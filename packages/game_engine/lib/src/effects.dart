@@ -1,0 +1,290 @@
+import 'actions/game_action.dart';
+import 'deck.dart';
+import 'models/armor.dart';
+import 'models/card.dart';
+import 'models/game_event.dart';
+import 'models/game_state.dart';
+import 'models/pending_interrupt.dart';
+import 'rng.dart';
+
+/// Resolves the effect of a just-played non-defense card. [state] already
+/// has the card removed from the player's hand and appended to the
+/// discard pile, and a [CardPlayed] event logged. This function applies
+/// the card's game-rule consequences (attack, restore, or event) and
+/// returns the resulting state.
+GameState resolveEffect({
+  required GameState state,
+  required CardDef def,
+  required PlayCard action,
+}) {
+  switch (def.effect) {
+    case EffectPrimitive.weakenOrHit:
+    case EffectPrimitive.doubleHit:
+      return _beginAttack(state: state, def: def, action: action);
+
+    case EffectPrimitive.restoreOneStep:
+      return _applyArmorCondition(
+        state: state,
+        playerId: action.playerId,
+        armorType: action.targetArmor!,
+        newCondition: ArmorCondition.strong,
+      );
+
+    case EffectPrimitive.restoreFullyFromLost:
+      return _applyArmorCondition(
+        state: state,
+        playerId: action.playerId,
+        armorType: action.targetArmor!,
+        newCondition: ArmorCondition.strong,
+      );
+
+    case EffectPrimitive.skipNextTurnAndRestore:
+      // The TurnSkipped event is logged when the skip actually takes
+      // effect (see _endTurn's turn-rotation logic in engine.dart), not
+      // here - playing Fasting only schedules it.
+      final working = state.updatePlayer(
+        action.playerId,
+        (p) => p.copyWith(fastingScheduled: true),
+      );
+      return _applyArmorCondition(
+        state: working,
+        playerId: action.playerId,
+        armorType: action.targetArmor!,
+        newCondition: ArmorCondition.strong,
+      );
+
+    case EffectPrimitive.allWeakenedToLost:
+      return _jerichoMarch(state);
+
+    case EffectPrimitive.allDiscardOne:
+      // Handled entirely as a sequence of explicit DiscardCard actions
+      // from each player; nothing to resolve here beyond the CardPlayed
+      // event already logged. The UI/bot driver is responsible for
+      // prompting every player (including the one who played this card)
+      // to discard one card before continuing.
+      return state;
+
+    case EffectPrimitive.stealRandomCard:
+      return _roadToDamascus(state: state, action: action);
+
+    case EffectPrimitive.blockAttack:
+    case EffectPrimitive.reflectAttack:
+    case EffectPrimitive.fellowshipRequest:
+      throw StateError(
+        'Defense effects must be resolved via resolveDefense, not resolveEffect',
+      );
+  }
+}
+
+GameState _applyArmorCondition({
+  required GameState state,
+  required String playerId,
+  required ArmorType armorType,
+  required ArmorCondition newCondition,
+}) {
+  final working =
+      state.updatePlayer(playerId, (p) => p.withArmorCondition(armorType, newCondition));
+  return working.appendEvent(
+    ArmorRestored(
+      turnNumber: working.turnNumber,
+      playerId: playerId,
+      armor: armorType,
+      newCondition: newCondition,
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Attacks
+// ---------------------------------------------------------------------------
+
+/// Starts attack resolution. If the defender holds any defense card, this
+/// opens a [PendingAttack] interrupt instead of landing immediately;
+/// otherwise the hit applies right away.
+GameState _beginAttack({
+  required GameState state,
+  required CardDef def,
+  required PlayCard action,
+}) {
+  final targetArmor = def.fixedTarget ?? action.targetArmor!;
+  final pending = PendingAttack(
+    attackCardDefId: def.id,
+    attackCardInstanceId: action.cardInstanceId,
+    attackerId: action.playerId,
+    defenderId: action.targetPlayerId!,
+    targetArmor: targetArmor,
+    isDoubleHit: def.effect == EffectPrimitive.doubleHit,
+  );
+
+  final defender = state.playerById(pending.defenderId);
+  final defenderHasDefenseCard = defender.hand
+      .any((c) => cardDefById(c.defId).type == CardType.defense);
+
+  if (!defenderHasDefenseCard) {
+    return landPendingAttack(state.copyWith(pendingInterrupt: pending));
+  }
+
+  return state.copyWith(pendingInterrupt: pending);
+}
+
+/// Applies the hit from [GameState.pendingInterrupt] to its target armor
+/// piece and clears the interrupt. Called when an attack goes undefended
+/// (no defense card held, or the defender/table declines).
+GameState landPendingAttack(GameState state) {
+  final pending = state.pendingInterrupt!;
+  var working = state.copyWith(clearPendingInterrupt: true);
+
+  final defender = working.playerById(pending.defenderId);
+  final before = defender.armorOf(pending.targetArmor).condition;
+  if (before == ArmorCondition.lost) {
+    // Already lost (e.g. a second attack resolved against it while this
+    // one was pending elsewhere) - no further effect, but still log the
+    // attack having landed with no consequence via no event.
+    return working;
+  }
+
+  final after = pending.isDoubleHit
+      ? ArmorCondition.lost
+      : before.stepDown();
+
+  working = working.updatePlayer(
+    pending.defenderId,
+    (p) => p.withArmorCondition(pending.targetArmor, after),
+  );
+
+  working = working.appendEvent(
+    after == ArmorCondition.lost
+        ? ArmorLost(
+            turnNumber: working.turnNumber,
+            playerId: pending.defenderId,
+            armor: pending.targetArmor,
+          )
+        : ArmorWeakened(
+            turnNumber: working.turnNumber,
+            playerId: pending.defenderId,
+            armor: pending.targetArmor,
+          ),
+  );
+
+  return working;
+}
+
+// ---------------------------------------------------------------------------
+// Defense responses
+// ---------------------------------------------------------------------------
+
+/// Resolves a [DeclareDefense] action: [def] is the defense card the
+/// responder ([responderId]) chose to play, already moved to the discard
+/// pile by the caller. [isHelper] is true when this response comes from a
+/// Fellowship helper rather than the defender themself.
+GameState resolveDefense({
+  required GameState state,
+  required CardDef def,
+  required String responderId,
+  required bool isHelper,
+}) {
+  final pending = state.pendingInterrupt!;
+
+  switch (def.effect) {
+    case EffectPrimitive.blockAttack:
+      final working = state.copyWith(clearPendingInterrupt: true);
+      return working.appendEvent(
+        AttackBlocked(
+          turnNumber: working.turnNumber,
+          defenderId: pending.defenderId,
+          byCardDefId: def.id,
+          helperId: isHelper ? responderId : null,
+        ),
+      );
+
+    case EffectPrimitive.reflectAttack:
+      final reflected = pending.reflected();
+      var working = state.copyWith(pendingInterrupt: reflected);
+      working = working.appendEvent(
+        AttackReflected(
+          turnNumber: working.turnNumber,
+          originalAttackerId: pending.attackerId,
+          newDefenderId: reflected.defenderId,
+          attackCardDefId: pending.attackCardDefId,
+        ),
+      );
+
+      // The new defender (the original attacker) may now respond in turn;
+      // if they hold no defense card, the reflected hit lands immediately.
+      final newDefender = working.playerById(reflected.defenderId);
+      final newDefenderHasDefenseCard = newDefender.hand
+          .any((c) => cardDefById(c.defId).type == CardType.defense);
+      if (!newDefenderHasDefenseCard) {
+        return landPendingAttack(working);
+      }
+      return working;
+
+    case EffectPrimitive.fellowshipRequest:
+      return state.copyWith(
+        pendingInterrupt: pending.copyWith(
+          fellowshipRequested: true,
+          helpersDeclined: const {},
+        ),
+      );
+
+    default:
+      throw StateError('${def.id} is not a defense card');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Events
+// ---------------------------------------------------------------------------
+
+GameState _jerichoMarch(GameState state) {
+  var working = state;
+  for (final player in working.players) {
+    for (final piece in player.armor) {
+      if (piece.condition == ArmorCondition.weakened) {
+        working = working.updatePlayer(
+          player.id,
+          (p) => p.withArmorCondition(piece.type, ArmorCondition.lost),
+        );
+        working = working.appendEvent(
+          ArmorLost(
+            turnNumber: working.turnNumber,
+            playerId: player.id,
+            armor: piece.type,
+          ),
+        );
+      }
+    }
+  }
+  return working;
+}
+
+GameState _roadToDamascus({
+  required GameState state,
+  required PlayCard action,
+}) {
+  final victim = state.playerById(action.targetPlayerId!);
+  final random = GameRandom(seed: state.rngSeed, drawCount: state.rngDrawCount);
+  final index = random.nextInt(victim.hand.length);
+  final stolen = victim.hand[index];
+
+  var working = state.copyWith(rngDrawCount: random.drawCount);
+  working = working.updatePlayer(
+    victim.id,
+    (p) => p.copyWith(
+      hand: [...p.hand]..removeAt(index),
+    ),
+  );
+  working = working.updatePlayer(
+    action.playerId,
+    (p) => p.copyWith(hand: [...p.hand, stolen]),
+  );
+  working = working.appendEvent(
+    CardStolen(
+      turnNumber: working.turnNumber,
+      thiefId: action.playerId,
+      victimId: victim.id,
+      cardDefId: stolen.defId,
+    ),
+  );
+  return working;
+}
