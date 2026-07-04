@@ -13,8 +13,11 @@ final class GameRandom {
         drawCount = drawCount {
     // Fast-forward past previously consumed draws so re-hydrating a
     // GameState mid-replay continues the same deterministic sequence.
+    // Uses a literal rather than `1 << 32`: dart2js/DDC represent ints as
+    // JS numbers, where shifts wrap at 32 bits and `1 << 32` evaluates to
+    // 0 on web (though not on the Dart VM), which crashes nextInt.
     for (var i = 0; i < drawCount; i++) {
-      _random.nextInt(1 << 32);
+      _random.nextInt(0xFFFFFFFF);
     }
   }
 
