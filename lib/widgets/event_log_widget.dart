@@ -27,7 +27,11 @@ String describeEvent(GameEvent event, GameState state) {
       '${nameOf(thiefId)} stole ${cardDefById(cardDefId).name} from ${nameOf(victimId)}',
     DeckReshuffled() => 'The discard pile was reshuffled into the draw pile',
     GameEnded(:final winnerId, :final winType) =>
-      '${nameOf(winnerId)} wins by ${winType == WinType.elimination ? 'elimination' : 'full restoration'}!',
+      '${nameOf(winnerId)} wins by ${switch (winType) {
+        WinType.elimination => 'elimination',
+        WinType.restoration => 'full restoration',
+        WinType.deckExhausted => 'closest to restoration when the deck ran out',
+      }}!',
   };
 }
 

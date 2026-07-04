@@ -88,7 +88,7 @@ void main() {
   });
 
   group('discard', () {
-    test('discard removes card from hand into discard pile', () {
+    test('discard as turn action removes card from hand and counts as this turn\'s play', () {
       final state = buildTestState(
         playerNames: ['Alice', 'Bob'],
         hands: {
@@ -104,6 +104,7 @@ void main() {
       expect(result.players[0].hand, hasLength(1));
       expect(result.discardPile, hasLength(1));
       expect(result.eventLog.whereType<CardDiscarded>(), hasLength(1));
+      expect(result.hasPlayedCardThisTurn, isTrue);
     });
 
     test('cannot end turn over hand limit without discarding first', () {
@@ -116,6 +117,57 @@ void main() {
       );
       final reason = expectFailure(applyAction(state, const EndTurn(playerId: 'p0')));
       expect(reason, contains('discard down to the hand limit'));
+    });
+
+    test('a non-active player cannot discard outside a group-discard window', () {
+      final state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {
+          0: [],
+          1: ['prayer'],
+        },
+      );
+      final cardId = state.players[1].hand.first.instanceId;
+      final reason = expectFailure(
+        applyAction(state, DiscardCard(playerId: 'p1', cardInstanceId: cardId)),
+      );
+      expect(reason, contains('active player'));
+    });
+
+    test('active player cannot discard as a turn action after already playing a card', () {
+      var state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {
+          0: ['prayer', 'renewal'],
+          1: [],
+        },
+      );
+      state = state.copyWith(hasPlayedCardThisTurn: true);
+      final cardId = state.players[0].hand.first.instanceId;
+      final reason = expectFailure(
+        applyAction(state, DiscardCard(playerId: 'p0', cardInstanceId: cardId)),
+      );
+      expect(reason, contains('Already played a card'));
+    });
+
+    test('active player can still discard for hand-limit cleanup after already playing a card', () {
+      var state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {
+          0: ['prayer', 'renewal', 'fasting', 'armor_bearer', 'doubt', 'fiery_dart'],
+          1: [],
+        },
+      );
+      state = state.copyWith(hasPlayedCardThisTurn: true);
+      final cardId = state.players[0].hand.first.instanceId;
+      final result = expectSuccess(
+        applyAction(state, DiscardCard(playerId: 'p0', cardInstanceId: cardId)),
+      );
+
+      expect(result.players[0].hand, hasLength(5));
+      // hasPlayedCardThisTurn was already true before this cleanup
+      // discard; it must stay true, not be reset or re-toggled.
+      expect(result.hasPlayedCardThisTurn, isTrue);
     });
   });
 

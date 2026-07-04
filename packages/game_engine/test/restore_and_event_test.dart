@@ -89,6 +89,49 @@ void main() {
       expect(afterPlay.players[0].isFasting, isFalse);
     });
 
+    test('Fasting can target a Strong piece (any condition is valid)', () {
+      final state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {
+          0: ['fasting'],
+          1: [],
+        },
+      );
+      final cardId = state.players[0].hand.first.instanceId;
+      final result = expectSuccess(
+        applyAction(
+          state,
+          PlayCard(playerId: 'p0', cardInstanceId: cardId, targetArmor: ArmorType.helmet),
+        ),
+      );
+
+      expect(result.players[0].armorOf(ArmorType.helmet).condition, ArmorCondition.strong);
+      expect(result.players[0].fastingScheduled, isTrue);
+    });
+
+    test('Fasting can target a Weakened piece', () {
+      final state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {
+          0: ['fasting'],
+          1: [],
+        },
+        armorOverrides: {
+          0: {ArmorType.shield: ArmorCondition.weakened},
+        },
+      );
+      final cardId = state.players[0].hand.first.instanceId;
+      final result = expectSuccess(
+        applyAction(
+          state,
+          PlayCard(playerId: 'p0', cardInstanceId: cardId, targetArmor: ArmorType.shield),
+        ),
+      );
+
+      expect(result.players[0].armorOf(ArmorType.shield).condition, ArmorCondition.strong);
+      expect(result.players[0].fastingScheduled, isTrue);
+    });
+
     test('fasting player still draws but cannot play on their skipped turn', () {
       var state = buildTestState(
         playerNames: ['Alice', 'Bob'],
@@ -210,7 +253,7 @@ void main() {
       expect(reason, contains('no cards to steal'));
     });
 
-    test('Wilderness Season logs CardPlayed; discards are explicit per-player actions', () {
+    test('Wilderness Season opens a tracked group-discard obligation for every player with cards', () {
       final state = buildTestState(
         playerNames: ['Alice', 'Bob'],
         hands: {
@@ -224,20 +267,91 @@ void main() {
       );
 
       expect(afterPlay.eventLog.whereType<CardPlayed>().last.cardDefId, 'wilderness_season');
+      expect(afterPlay.pendingGroupDiscard, isNotNull);
+      expect(afterPlay.pendingGroupDiscard!.owedPlayerIds, {'p0', 'p1'});
 
-      // Each affected player discards explicitly.
+      // Alice (the active player, already used her turn action playing
+      // Wilderness Season) discards explicitly.
       final aliceCardId = afterPlay.players[0].hand.first.instanceId;
       final afterAlice = expectSuccess(
         applyAction(afterPlay, DiscardCard(playerId: 'p0', cardInstanceId: aliceCardId)),
       );
+      expect(afterAlice.pendingGroupDiscard!.owedPlayerIds, {'p1'});
+
+      // Bob, who is NOT the active player, can still discard because he's
+      // owed by the group-discard obligation.
       final bobCardId = afterAlice.players[1].hand.first.instanceId;
       final afterBob = expectSuccess(
         applyAction(afterAlice, DiscardCard(playerId: 'p1', cardInstanceId: bobCardId)),
       );
 
+      expect(afterBob.pendingGroupDiscard, isNull);
       expect(afterBob.players[0].hand, isEmpty);
       expect(afterBob.players[1].hand, isEmpty);
       expect(afterBob.discardPile, hasLength(3)); // wilderness_season + 2 discards
+    });
+
+    test('Wilderness Season auto-excludes a player with an empty hand', () {
+      final state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {
+          0: ['wilderness_season', 'prayer'],
+          1: [],
+        },
+      );
+      final cardId = state.players[0].hand.firstWhere((c) => c.defId == 'wilderness_season').instanceId;
+      final afterPlay = expectSuccess(
+        applyAction(state, PlayCard(playerId: 'p0', cardInstanceId: cardId)),
+      );
+
+      // Bob has nothing to discard, so only Alice owes.
+      expect(afterPlay.pendingGroupDiscard!.owedPlayerIds, {'p0'});
+
+      final aliceCardId = afterPlay.players[0].hand.first.instanceId;
+      final afterAlice = expectSuccess(
+        applyAction(afterPlay, DiscardCard(playerId: 'p0', cardInstanceId: aliceCardId)),
+      );
+      expect(afterAlice.pendingGroupDiscard, isNull);
+    });
+
+    test('a player not owed a group discard cannot discard while one is pending', () {
+      final state = buildTestState(
+        playerNames: ['Alice', 'Bob', 'Carl'],
+        hands: {
+          0: ['wilderness_season', 'prayer'],
+          1: ['renewal'],
+          2: [],
+        },
+      );
+      final cardId = state.players[0].hand.firstWhere((c) => c.defId == 'wilderness_season').instanceId;
+      final afterPlay = expectSuccess(
+        applyAction(state, PlayCard(playerId: 'p0', cardInstanceId: cardId)),
+      );
+
+      // Carl has no cards, so he's not in the owed set and shouldn't be
+      // able to "discard" (nothing to discard, and not owed anyway).
+      expect(afterPlay.pendingGroupDiscard!.owedPlayerIds, {'p0', 'p1'});
+      final reason = expectFailure(
+        applyAction(afterPlay, const DiscardCard(playerId: 'p2', cardInstanceId: 'nonexistent')),
+      );
+      expect(reason, contains('not in that player'));
+    });
+
+    test('other action types are rejected while a group discard is pending', () {
+      final state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {
+          0: ['wilderness_season', 'prayer'],
+          1: ['renewal'],
+        },
+      );
+      final cardId = state.players[0].hand.firstWhere((c) => c.defId == 'wilderness_season').instanceId;
+      final afterPlay = expectSuccess(
+        applyAction(state, PlayCard(playerId: 'p0', cardInstanceId: cardId)),
+      );
+
+      final reason = expectFailure(applyAction(afterPlay, const EndTurn(playerId: 'p0')));
+      expect(reason, contains('group discard'));
     });
   });
 
@@ -264,7 +378,7 @@ void main() {
       expect(result.eventLog.whereType<DeckReshuffled>(), hasLength(1));
     });
 
-    test('draw is a no-op (not an error) when both piles are empty', () {
+    test('drawing with both piles empty ends the game (deck exhausted) instead of erroring', () {
       var state = buildTestState(
         playerNames: ['Alice', 'Bob'],
         hands: {0: [], 1: []},
@@ -274,7 +388,8 @@ void main() {
 
       final result = expectSuccess(applyAction(state, const DrawCard(playerId: 'p0')));
       expect(result.players[0].hand, isEmpty);
-      expect(result.hasDrawnThisTurn, isTrue);
+      expect(result.isGameOver, isTrue);
+      expect(result.winner!.type, WinType.deckExhausted);
     });
   });
 }

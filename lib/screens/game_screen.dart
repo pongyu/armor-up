@@ -12,6 +12,7 @@ import 'pass_device_screen.dart';
 import 'win_screen.dart';
 
 part 'defense_prompt_view.dart';
+part 'group_discard_prompt_view.dart';
 
 /// Top-level router for an in-progress game: alternates between the
 /// pass-the-phone screen and the active screen (game board or defense
@@ -44,12 +45,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     if (_showingPassScreen) {
       final actorName = state.playerById(actorId).name;
-      final isDefense = state.pendingInterrupt != null;
+      final reason = state.pendingGroupDiscard != null
+          ? 'You need to discard a card.'
+          : state.pendingInterrupt != null
+              ? 'An attack needs your response.'
+              : "It's your turn.";
       return PassDeviceScreen(
         nextPlayerName: actorName,
-        reason: isDefense
-            ? 'An attack needs your response.'
-            : "It's your turn.",
+        reason: reason,
         onReady: () {
           setState(() {
             _showingPassScreen = false;
@@ -59,6 +62,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       );
     }
 
+    if (state.pendingGroupDiscard != null) {
+      return _GroupDiscardPromptView(actorId: actorId);
+    }
     return state.pendingInterrupt != null
         ? _DefensePromptView(actorId: actorId)
         : _MainBoardView(actorId: actorId);
@@ -103,7 +109,10 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
       }
     });
 
-    final canPlaySelection = def != null && _isSelectionComplete(def);
+    final canPlaySelection = state.hasDrawnThisTurn &&
+        !state.hasPlayedCardThisTurn &&
+        def != null &&
+        _isSelectionComplete(def);
 
     return Scaffold(
       appBar: AppBar(
@@ -208,7 +217,9 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       child: _HandCard(
                         card: card,
                         selected: _selectedCard?.instanceId == card.instanceId,
-                        disabled: me.isFasting || cardDefFor(card).type == CardType.defense,
+                        disabled: me.isFasting ||
+                            state.hasPlayedCardThisTurn ||
+                            cardDefFor(card).type == CardType.defense,
                         onTap: () {
                           setState(() {
                             if (_selectedCard?.instanceId == card.instanceId) {
@@ -235,6 +246,14 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                 padding: EdgeInsets.only(bottom: 8),
                 child: Text(
                   'You are fasting this turn: you may not play a card.',
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+              )
+            else if (state.hasPlayedCardThisTurn)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  "You've already played a card this turn.",
                   style: TextStyle(fontStyle: FontStyle.italic),
                 ),
               ),

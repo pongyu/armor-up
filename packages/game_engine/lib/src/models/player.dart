@@ -46,6 +46,12 @@ final class PlayerState {
   bool get isFullyRestored =>
       wasEverDamaged && armor.every((piece) => piece.condition == ArmorCondition.strong);
 
+  int get strongPieceCount =>
+      armor.where((piece) => piece.condition == ArmorCondition.strong).length;
+
+  int get lostPieceCount =>
+      armor.where((piece) => piece.condition == ArmorCondition.lost).length;
+
   ArmorPiece armorOf(ArmorType type) =>
       armor.firstWhere((piece) => piece.type == type);
 

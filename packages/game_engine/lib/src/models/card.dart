@@ -60,7 +60,8 @@ enum EffectPrimitive {
   restoreFullyFromLost,
 
   /// Skip the acting player's next play step (they still draw), and fully
-  /// restore one Lost piece to Strong as part of playing this card.
+  /// restore one of their own pieces (any condition) to Strong as part of
+  /// playing this card.
   skipNextTurnAndRestore,
 
   /// Every player's Weakened pieces become Lost.

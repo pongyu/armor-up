@@ -6,6 +6,12 @@ enum WinType {
   /// The winner had all six armor pieces at Strong simultaneously at the
   /// start of their turn.
   restoration,
+
+  /// The draw pile and discard pile were both empty when a draw was
+  /// attempted, so the game ended immediately: the player closest to full
+  /// restoration (most Strong pieces, tiebroken by fewest Lost pieces,
+  /// then by turn order) is declared the winner.
+  deckExhausted,
 }
 
 final class WinResult {

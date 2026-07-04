@@ -1,5 +1,6 @@
 import 'card.dart';
 import 'game_event.dart';
+import 'pending_group_discard.dart';
 import 'pending_interrupt.dart';
 import 'player.dart';
 import 'win_result.dart';
@@ -35,6 +36,10 @@ final class GameState {
   /// [PendingAttack] for the interrupt state machine this drives.
   final PendingInterrupt? pendingInterrupt;
 
+  /// Non-null while a table-wide discard obligation (currently only from
+  /// Wilderness Season) is outstanding. See [PendingGroupDiscard].
+  final PendingGroupDiscard? pendingGroupDiscard;
+
   /// True once the active player has drawn for this turn. Guards against
   /// [DrawCard] being applied twice in one turn.
   final bool hasDrawnThisTurn;
@@ -57,6 +62,7 @@ final class GameState {
     this.eventLog = const [],
     this.winner,
     this.pendingInterrupt,
+    this.pendingGroupDiscard,
     this.hasDrawnThisTurn = false,
     this.hasPlayedCardThisTurn = false,
   });
@@ -84,6 +90,8 @@ final class GameState {
     bool clearWinner = false,
     PendingInterrupt? pendingInterrupt,
     bool clearPendingInterrupt = false,
+    PendingGroupDiscard? pendingGroupDiscard,
+    bool clearPendingGroupDiscard = false,
     bool? hasDrawnThisTurn,
     bool? hasPlayedCardThisTurn,
   }) =>
@@ -101,6 +109,9 @@ final class GameState {
         pendingInterrupt: clearPendingInterrupt
             ? null
             : (pendingInterrupt ?? this.pendingInterrupt),
+        pendingGroupDiscard: clearPendingGroupDiscard
+            ? null
+            : (pendingGroupDiscard ?? this.pendingGroupDiscard),
         hasDrawnThisTurn: hasDrawnThisTurn ?? this.hasDrawnThisTurn,
         hasPlayedCardThisTurn: hasPlayedCardThisTurn ?? this.hasPlayedCardThisTurn,
       );

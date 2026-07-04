@@ -16,6 +16,7 @@ export 'models/armor.dart';
 export 'models/card.dart';
 export 'models/game_event.dart';
 export 'models/game_state.dart';
+export 'models/pending_group_discard.dart';
 export 'models/pending_interrupt.dart';
 export 'models/player.dart';
 export 'models/win_result.dart';
@@ -45,6 +46,16 @@ ActionResult applyAction(GameState state, GameAction action) {
     };
   }
 
+  if (state.pendingGroupDiscard != null) {
+    return switch (action) {
+      DiscardCard() => _discardCard(state, action),
+      _ => const ActionFailure(
+          'A group discard (e.g. Wilderness Season) is pending; only '
+          'DiscardCard from a player who still owes one is valid right now',
+        ),
+    };
+  }
+
   return switch (action) {
     DrawCard() => _drawCard(state, action),
     PlayCard() => _playCard(state, action),
@@ -57,6 +68,19 @@ ActionResult applyAction(GameState state, GameAction action) {
 
 bool _isActivePlayer(GameState state, String playerId) =>
     state.activePlayer.id == playerId;
+
+/// Returns the index of the next player who still has armor, skipping over
+/// any eliminated players. Eliminated players never get another turn - by
+/// the time this is called the game is guaranteed to still have at least
+/// two players with armor (otherwise elimination-win would already have
+/// ended the game), so this always terminates.
+int _nextActivePlayerIndex(GameState state) {
+  var index = state.activePlayerIndex;
+  do {
+    index = (index + 1) % state.players.length;
+  } while (state.players[index].isEliminated);
+  return index;
+}
 
 // ---------------------------------------------------------------------------
 // Draw
@@ -72,11 +96,41 @@ ActionResult _drawCard(GameState state, DrawCard action) {
 
   final (drawn, nextState) = _drawOne(state, action.playerId);
   if (drawn == null) {
-    // Both piles empty; nothing to draw. Not an error - just proceed.
-    return ActionSuccess(nextState.copyWith(hasDrawnThisTurn: true));
+    // Both piles are empty and there is nothing left to reshuffle: the
+    // deck is exhausted, so the game ends immediately rather than
+    // continuing indefinitely with players unable to draw.
+    return ActionSuccess(_declareDeckExhaustedWinner(nextState));
   }
 
   return ActionSuccess(nextState.copyWith(hasDrawnThisTurn: true));
+}
+
+/// Ends the game when the deck is exhausted (draw pile and discard pile
+/// both empty). The player closest to full restoration wins: most Strong
+/// pieces first, then fewest Lost pieces, then earliest turn order as a
+/// final tiebreak so the outcome is always deterministic.
+GameState _declareDeckExhaustedWinner(GameState state) {
+  final contenders = state.players.where((p) => !p.isEliminated).toList();
+  contenders.sort((a, b) {
+    final byStrong = b.strongPieceCount.compareTo(a.strongPieceCount);
+    if (byStrong != 0) return byStrong;
+    final byLost = a.lostPieceCount.compareTo(b.lostPieceCount);
+    if (byLost != 0) return byLost;
+    return state.indexOfPlayer(a.id).compareTo(state.indexOfPlayer(b.id));
+  });
+
+  final winner = contenders.first;
+  return state
+      .copyWith(
+        winner: WinResult(winnerId: winner.id, type: WinType.deckExhausted),
+      )
+      .appendEvent(
+        GameEnded(
+          turnNumber: state.turnNumber,
+          winnerId: winner.id,
+          winType: WinType.deckExhausted,
+        ),
+      );
 }
 
 /// Draws one card for [playerId] from the draw pile, reshuffling the
@@ -257,11 +311,24 @@ String? _validateTarget(GameState state, CardDef def, PlayCard action) {
                 ?.defId ??
             '',
       );
-      final requiredCondition = def.effect == EffectPrimitive.restoreOneStep
-          ? ArmorCondition.weakened
-          : ArmorCondition.lost;
-      if (piece.condition != requiredCondition) {
-        return 'Target armor piece is not in the right condition for this card';
+      switch (def.effect) {
+        case EffectPrimitive.restoreOneStep:
+          if (piece.condition != ArmorCondition.weakened) {
+            return 'Target armor piece is not in the right condition for this card';
+          }
+        case EffectPrimitive.restoreFullyFromLost:
+          if (piece.condition != ArmorCondition.lost) {
+            return 'Target armor piece is not in the right condition for this card';
+          }
+        case EffectPrimitive.skipNextTurnAndRestore:
+          // Fasting: "one piece (any state, including Lost) -> Strong
+          // immediately". No condition restriction.
+          break;
+        default:
+          throw StateError(
+            '${def.id} uses TargetRule.ownArmorPiece with an unhandled '
+            'effect ${def.effect}',
+          );
       }
     case TargetRule.allPlayers:
     case TargetRule.none:
@@ -282,6 +349,61 @@ ActionResult _discardCard(GameState state, DiscardCard action) {
     return const ActionFailure('Card is not in that player\'s hand');
   }
 
+  final pendingGroup = state.pendingGroupDiscard;
+  if (pendingGroup != null) {
+    if (!pendingGroup.owedPlayerIds.contains(action.playerId)) {
+      return const ActionFailure(
+        'A group discard is pending and this player does not owe one',
+      );
+    }
+    // An owed group discard (e.g. from Wilderness Season) is allowed
+    // regardless of turn order or draw/play state, and never counts as
+    // this turn's one action.
+    var working = _removeCardAndLog(state, action, cardInstance);
+    final remaining = {...pendingGroup.owedPlayerIds}..remove(action.playerId);
+    working = working.copyWith(
+      pendingGroupDiscard: remaining.isEmpty ? null : pendingGroup.copyWith(owedPlayerIds: remaining),
+      clearPendingGroupDiscard: remaining.isEmpty,
+    );
+    return ActionSuccess(working);
+  }
+
+  // Normal turn-flow discard: only the active player, and only after
+  // drawing.
+  if (!_isActivePlayer(state, action.playerId)) {
+    return const ActionFailure('Only the active player may discard right now');
+  }
+  if (!state.hasDrawnThisTurn) {
+    return const ActionFailure('Must draw before discarding');
+  }
+
+  // A hand at or under the limit means this discard IS the player's one
+  // turn action (mutually exclusive with PlayCard, per "play exactly 1
+  // card, OR discard 1 card"); above the limit, it's mandatory hand-limit
+  // cleanup and is always allowed once drawn, regardless of whether a
+  // card was already played this turn.
+  final isHandLimitCleanup = player.hand.length > maxHandSize;
+  if (!isHandLimitCleanup && state.hasPlayedCardThisTurn) {
+    return const ActionFailure(
+      'Already played a card this turn; further discards are only '
+      'allowed to get under the hand limit',
+    );
+  }
+
+  var working = _removeCardAndLog(state, action, cardInstance);
+  if (!isHandLimitCleanup) {
+    working = working.copyWith(hasPlayedCardThisTurn: true);
+  }
+  return ActionSuccess(working);
+}
+
+/// Shared tail of [_discardCard]: moves [cardInstance] from
+/// [action.playerId]'s hand to the discard pile and logs [CardDiscarded].
+GameState _removeCardAndLog(
+  GameState state,
+  DiscardCard action,
+  CardInstance cardInstance,
+) {
   var working = state.updatePlayer(
     action.playerId,
     (p) => p.copyWith(
@@ -289,14 +411,13 @@ ActionResult _discardCard(GameState state, DiscardCard action) {
     ),
   );
   working = working.copyWith(discardPile: [...working.discardPile, cardInstance]);
-  working = working.appendEvent(
+  return working.appendEvent(
     CardDiscarded(
       turnNumber: working.turnNumber,
       playerId: action.playerId,
       cardDefId: cardInstance.defId,
     ),
   );
-  return ActionSuccess(working);
 }
 
 // ---------------------------------------------------------------------------
@@ -323,7 +444,7 @@ ActionResult _endTurn(GameState state, EndTurn action) {
     working = working.updatePlayer(player.id, (p) => p.copyWith(isFasting: false));
   }
 
-  final nextIndex = (working.activePlayerIndex + 1) % working.players.length;
+  final nextIndex = _nextActivePlayerIndex(working);
   working = working.copyWith(
     activePlayerIndex: nextIndex,
     hasDrawnThisTurn: false,

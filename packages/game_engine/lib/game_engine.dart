@@ -14,6 +14,7 @@ export 'src/models/armor.dart';
 export 'src/models/card.dart';
 export 'src/models/game_event.dart';
 export 'src/models/game_state.dart';
+export 'src/models/pending_group_discard.dart';
 export 'src/models/pending_interrupt.dart';
 export 'src/models/player.dart';
 export 'src/models/win_result.dart';

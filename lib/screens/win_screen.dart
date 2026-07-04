@@ -17,7 +17,24 @@ class WinScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final winner = state.winner!;
     final winnerName = state.playerById(winner.winnerId).name;
-    final isElimination = winner.type == WinType.elimination;
+    final (icon, iconColor, message) = switch (winner.type) {
+      WinType.elimination => (
+          Icons.gavel,
+          Colors.red.shade400,
+          'Victory by elimination - every other player lost all their armor.',
+        ),
+      WinType.restoration => (
+          Icons.shield,
+          Colors.green.shade600,
+          'Victory by full restoration - all six pieces of armor, Strong once again.',
+        ),
+      WinType.deckExhausted => (
+          Icons.style,
+          Colors.blueGrey.shade400,
+          'The deck ran out - victory goes to whoever was closest to full '
+              'restoration.',
+        ),
+    };
 
     return Scaffold(
       appBar: AppBar(title: const Text('Victory!')),
@@ -27,11 +44,7 @@ class WinScreen extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(height: 24),
-              Icon(
-                isElimination ? Icons.gavel : Icons.shield,
-                size: 96,
-                color: isElimination ? Colors.red.shade400 : Colors.green.shade600,
-              ),
+              Icon(icon, size: 96, color: iconColor),
               const SizedBox(height: 16),
               Text(
                 '$winnerName wins!',
@@ -40,9 +53,7 @@ class WinScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                isElimination
-                    ? 'Victory by elimination - every other player lost all their armor.'
-                    : 'Victory by full restoration - all six pieces of armor, Strong once again.',
+                message,
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),

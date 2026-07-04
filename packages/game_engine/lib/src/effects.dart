@@ -4,6 +4,7 @@ import 'models/armor.dart';
 import 'models/card.dart';
 import 'models/game_event.dart';
 import 'models/game_state.dart';
+import 'models/pending_group_discard.dart';
 import 'models/pending_interrupt.dart';
 import 'rng.dart';
 
@@ -57,12 +58,20 @@ GameState resolveEffect({
       return _jerichoMarch(state);
 
     case EffectPrimitive.allDiscardOne:
-      // Handled entirely as a sequence of explicit DiscardCard actions
-      // from each player; nothing to resolve here beyond the CardPlayed
-      // event already logged. The UI/bot driver is responsible for
-      // prompting every player (including the one who played this card)
-      // to discard one card before continuing.
-      return state;
+      // Every player with at least one card owes a discard, tracked as an
+      // engine-level obligation (see PendingGroupDiscard) so applyAction
+      // can gate to exactly the right DiscardCard actions until everyone
+      // has gone. A player with an empty hand (including the one who just
+      // played this card, if it was their last) has nothing to discard
+      // and is excluded, so the obligation can always be fully resolved.
+      final owed = {
+        for (final p in state.players)
+          if (p.hand.isNotEmpty) p.id,
+      };
+      if (owed.isEmpty) return state;
+      return state.copyWith(
+        pendingGroupDiscard: PendingGroupDiscard(owedPlayerIds: owed),
+      );
 
     case EffectPrimitive.stealRandomCard:
       return _roadToDamascus(state: state, action: action);
@@ -263,6 +272,10 @@ GameState _roadToDamascus({
   required PlayCard action,
 }) {
   final victim = state.playerById(action.targetPlayerId!);
+  // _validateTarget rejects an empty-handed target before this point; an
+  // empty hand here would mean that check was bypassed, which is a
+  // programmer error, not a game-rule violation.
+  assert(victim.hand.isNotEmpty, 'Road to Damascus target has no cards');
   final random = GameRandom(seed: state.rngSeed, drawCount: state.rngDrawCount);
   final index = random.nextInt(victim.hand.length);
   final stolen = victim.hand[index];
