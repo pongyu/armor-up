@@ -66,6 +66,51 @@ To run on Edge instead: `flutter run -d edge`.
 To run as a native Windows app (requires the Visual Studio C++ toolchain
 mentioned above): `flutter run -d windows`.
 
+### Running on an Android phone wirelessly
+
+This lets you play on your actual phone with hot reload, no USB cable
+required once paired.
+
+**One-time setup:**
+
+1. On the phone: enable Developer Options (Settings -> About phone -> tap
+   **Build number** 7 times), then turn on **Wireless debugging** under
+   Settings -> Developer options.
+2. Make sure the phone and your computer are on the same Wi-Fi network.
+3. Tap **Wireless debugging** -> **Pair device with pairing code**. It
+   shows an IP:port and a 6-digit code.
+4. On the computer, pair once:
+
+   ```bash
+   adb pair <ip>:<pairing-port>
+   # enter the 6-digit code when prompted
+   ```
+
+**Each time you want to run:**
+
+1. On the phone's Wireless debugging screen, note the IP:port shown next
+   to the device name (this port differs from the pairing port).
+2. Connect:
+
+   ```bash
+   adb connect <ip>:<port>
+   flutter devices
+   ```
+
+   Your phone should show up in the device list.
+3. Run the app on it:
+
+   ```bash
+   flutter run -d <device-id-from-flutter-devices>
+   ```
+
+   or just `flutter run` and pick it from the prompt if it's the only
+   device connected.
+
+The connection stays paired, so on later sessions you can usually skip the
+pairing step and just run `adb connect <ip>:<port>` again (the phone must
+still have Wireless debugging turned on and be on the same network).
+
 ### Building a standalone web build
 
 If you'd rather not run the dev server, build a static bundle and serve it
