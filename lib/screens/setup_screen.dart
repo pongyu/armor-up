@@ -83,19 +83,23 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
               ),
               const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  OutlinedButton.icon(
-                    onPressed:
-                        _nameControllers.length > minPlayers ? _removePlayer : null,
-                    icon: const Icon(Icons.remove),
-                    label: const Text('Remove player'),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed:
+                          _nameControllers.length > minPlayers ? _removePlayer : null,
+                      icon: const Icon(Icons.remove),
+                      label: const Text('Remove player'),
+                    ),
                   ),
-                  OutlinedButton.icon(
-                    onPressed:
-                        _nameControllers.length < maxPlayers ? _addPlayer : null,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add player'),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed:
+                          _nameControllers.length < maxPlayers ? _addPlayer : null,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add player'),
+                    ),
                   ),
                 ],
               ),

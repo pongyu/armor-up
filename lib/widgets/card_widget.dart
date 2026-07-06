@@ -65,7 +65,7 @@ class CardWidget extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 130,
-        height: 170,
+        height: 150,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.18),

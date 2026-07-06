@@ -148,6 +148,9 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                             ? () => setState(() => _selectedTargetPlayerId = player.id)
                             : null,
                         isSelectedTarget: player.id == _selectedTargetPlayerId,
+                        isConditionSelectable: def == null
+                            ? defaultIsConditionSelectable
+                            : (condition) => _isConditionSelectable(def, condition),
                       ),
                     ),
                 ],
@@ -206,14 +209,14 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
               ),
             ),
             SizedBox(
-              height: 224,
+              height: 206,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 children: [
                   for (final card in me.hand)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                       child: _HandCard(
                         card: card,
                         selected: _selectedCard?.instanceId == card.instanceId,
@@ -287,6 +290,19 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
       rule == TargetRule.anyPieceOnPlayer || rule == TargetRule.ownArmorPiece;
 
   bool _targetRuleNeedsOwnPiece(TargetRule rule) => rule == TargetRule.ownArmorPiece;
+
+  bool _isConditionSelectable(CardDef def, ArmorCondition condition) {
+    switch (def.effect) {
+      case EffectPrimitive.restoreOneStep:
+        return condition == ArmorCondition.weakened;
+      case EffectPrimitive.restoreFullyFromLost:
+        return condition == ArmorCondition.lost;
+      case EffectPrimitive.skipNextTurnAndRestore:
+        return true;
+      default:
+        return condition != ArmorCondition.lost;
+    }
+  }
 }
 
 class _HandCard extends StatelessWidget {
@@ -320,7 +336,11 @@ class _HandCard extends StatelessWidget {
         if (onDiscard != null)
           TextButton(
             onPressed: onDiscard,
-            style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(60, 24)),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(60, 24),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
             child: const Text('Discard', style: TextStyle(fontSize: 11)),
           ),
       ],
@@ -336,6 +356,7 @@ class _PlayerArmorPanel extends StatelessWidget {
   final ValueChanged<ArmorType>? onSelectArmor;
   final VoidCallback? onSelectAsTarget;
   final bool isSelectedTarget;
+  final bool Function(ArmorCondition condition) isConditionSelectable;
 
   const _PlayerArmorPanel({
     required this.player,
@@ -345,6 +366,7 @@ class _PlayerArmorPanel extends StatelessWidget {
     required this.onSelectArmor,
     required this.onSelectAsTarget,
     required this.isSelectedTarget,
+    this.isConditionSelectable = defaultIsConditionSelectable,
   });
 
   @override
@@ -387,6 +409,7 @@ class _PlayerArmorPanel extends StatelessWidget {
               selectable: selectable,
               selectedArmor: selectedArmor,
               onSelect: onSelectArmor,
+              isConditionSelectable: isConditionSelectable,
             ),
           ],
         ),

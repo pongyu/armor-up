@@ -88,6 +88,13 @@ class ArmorBadge extends StatelessWidget {
       };
 }
 
+/// Default per-piece selectability: excludes Lost pieces, which is correct
+/// for attack cards (you can't hit an already-lost piece). Restore cards
+/// with different rules (e.g. Armor Bearer targets only Lost pieces) should
+/// pass an override to [ArmorRow.isConditionSelectable].
+bool defaultIsConditionSelectable(ArmorCondition condition) =>
+    condition != ArmorCondition.lost;
+
 /// A row of all six armor badges for one player.
 class ArmorRow extends StatelessWidget {
   final PlayerState player;
@@ -95,12 +102,19 @@ class ArmorRow extends StatelessWidget {
   final ArmorType? selectedArmor;
   final ValueChanged<ArmorType>? onSelect;
 
+  /// Further restricts which pieces are selectable based on their current
+  /// condition (e.g. a restore card may only target a Lost or Weakened
+  /// piece). Defaults to excluding Lost pieces, which is correct for
+  /// attack cards; pass an override for cards with different rules.
+  final bool Function(ArmorCondition condition) isConditionSelectable;
+
   const ArmorRow({
     super.key,
     required this.player,
     this.selectable = false,
     this.selectedArmor,
     this.onSelect,
+    this.isConditionSelectable = defaultIsConditionSelectable,
   });
 
   @override
@@ -114,7 +128,7 @@ class ArmorRow extends StatelessWidget {
               padding: const EdgeInsets.only(right: 6),
               child: ArmorBadge(
                 piece: piece,
-                selectable: selectable && piece.condition != ArmorCondition.lost,
+                selectable: selectable && isConditionSelectable(piece.condition),
                 selected: selectedArmor == piece.type,
                 onTap: onSelect == null ? null : () => onSelect!(piece.type),
               ),
