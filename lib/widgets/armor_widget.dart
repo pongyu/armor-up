@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:game_engine/game_engine.dart';
 
+import '../theme/armor_up_colors.dart';
+
 IconData iconForArmor(ArmorType type) => switch (type) {
       ArmorType.helmet => Icons.sports_motorsports,
       ArmorType.breastplate => Icons.shield,
@@ -11,9 +13,9 @@ IconData iconForArmor(ArmorType type) => switch (type) {
     };
 
 Color colorForCondition(ArmorCondition condition) => switch (condition) {
-      ArmorCondition.strong => Colors.green.shade600,
-      ArmorCondition.weakened => Colors.orange.shade600,
-      ArmorCondition.lost => Colors.grey.shade500,
+      ArmorCondition.strong => ArmorUpColors.armorStrong,
+      ArmorCondition.weakened => ArmorUpColors.armorWeakened,
+      ArmorCondition.lost => ArmorUpColors.armorLost,
     };
 
 /// A single armor piece badge: icon, short name, and condition, tappable
@@ -44,12 +46,12 @@ class ArmorBadge extends StatelessWidget {
         width: 76,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: isLost ? 0.08 : 0.16),
-          border: Border.all(
-            color: selected ? color : color.withValues(alpha: 0.5),
-            width: selected ? 3 : 1.5,
-          ),
+          color: ArmorUpColors.cardBackground,
+          border: Border.all(color: color, width: selected ? 3 : 2),
           borderRadius: BorderRadius.circular(10),
+          boxShadow: selected
+              ? [BoxShadow(color: color.withValues(alpha: 0.55), blurRadius: 6)]
+              : null,
         ),
         child: Column(
           children: [
@@ -57,7 +59,10 @@ class ArmorBadge extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               _shortName(piece.type),
-              style: const TextStyle(fontSize: 10),
+              style: TextStyle(
+                fontSize: 10,
+                color: ArmorUpColors.cardStroke.withValues(alpha: isLost ? 0.5 : 0.9),
+              ),
               textAlign: TextAlign.center,
               maxLines: 2,
             ),

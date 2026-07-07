@@ -5,6 +5,7 @@ import 'package:game_engine/game_engine.dart';
 import '../state/game_controller.dart';
 import '../state/game_providers.dart';
 import '../state/turn_actor.dart';
+import '../theme/armor_up_colors.dart';
 import '../widgets/armor_widget.dart';
 import '../widgets/card_widget.dart';
 import '../widgets/event_log_widget.dart';
@@ -84,6 +85,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   CardInstance? _selectedCard;
   String? _selectedTargetPlayerId;
   ArmorType? _selectedTargetArmor;
+  bool _showEventLog = false;
 
   void _resetSelection() {
     setState(() {
@@ -117,6 +119,14 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     return Scaffold(
       appBar: AppBar(
         title: Text("${me.name}'s turn - Turn ${state.turnNumber}"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: _showEventLog ? 'Hide game log' : 'Show game log',
+            isSelected: _showEventLog,
+            onPressed: () => setState(() => _showEventLog = !_showEventLog),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -157,11 +167,15 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
               ),
             ),
             const Divider(height: 1),
-            Expanded(
-              flex: 2,
-              child: EventLogWidget(state: state),
-            ),
-            const Divider(height: 1),
+            // The scrolling event log clutters the primary view, so it is
+            // hidden unless toggled via the history button in the app bar.
+            if (_showEventLog) ...[
+              Expanded(
+                flex: 2,
+                child: EventLogWidget(state: state),
+              ),
+              const Divider(height: 1),
+            ],
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
@@ -209,7 +223,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
               ),
             ),
             SizedBox(
-              height: 206,
+              // Card height + Discard button + vertical padding.
+              height: CardWidget.cardHeight + 24 + 12,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -374,11 +389,12 @@ class _PlayerArmorPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
+        color: ArmorUpColors.cardBackground.withValues(alpha: 0.45),
         border: Border.all(
           color: isSelectedTarget
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey.shade300,
-          width: isSelectedTarget ? 2 : 1,
+              ? ArmorUpColors.bannerAttack
+              : ArmorUpColors.cardStroke.withValues(alpha: 0.35),
+          width: isSelectedTarget ? 2.5 : 1,
         ),
         borderRadius: BorderRadius.circular(10),
       ),
@@ -391,7 +407,10 @@ class _PlayerArmorPanel extends StatelessWidget {
               children: [
                 Text(
                   isSelf ? '${player.name} (you)' : player.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: ArmorUpColors.cardStroke,
+                  ),
                 ),
                 if (player.isEliminated) ...[
                   const SizedBox(width: 8),
@@ -399,7 +418,13 @@ class _PlayerArmorPanel extends StatelessWidget {
                 ],
                 if (onSelectAsTarget != null) ...[
                   const SizedBox(width: 8),
-                  const Text('(tap to target)', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  Text(
+                    '(tap to target)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
+                    ),
+                  ),
                 ],
               ],
             ),

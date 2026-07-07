@@ -4,9 +4,53 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/game_screen.dart';
 import 'screens/setup_screen.dart';
 import 'state/game_providers.dart';
+import 'theme/armor_up_colors.dart';
 
 void main() {
   runApp(const ProviderScope(child: ArmorUpApp()));
+}
+
+/// Fixed warm/parchment brand theme. Only [MaterialApp.theme] is set (no
+/// darkTheme) on purpose: the palette is brand color and must not shift
+/// with the system dark/light mode.
+ThemeData _buildArmorUpTheme() {
+  final scheme = ColorScheme.fromSeed(
+    seedColor: ArmorUpColors.descriptionBackground,
+  ).copyWith(
+    primary: ArmorUpColors.descriptionBackground,
+    onPrimary: ArmorUpColors.fontColor,
+    surface: ArmorUpColors.boardBackground,
+    onSurface: ArmorUpColors.cardStroke,
+  );
+  return ThemeData(
+    useMaterial3: true,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: ArmorUpColors.boardBackground,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: ArmorUpColors.cardStroke,
+      foregroundColor: ArmorUpColors.fontColor,
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: ArmorUpColors.descriptionBackground,
+        foregroundColor: ArmorUpColors.fontColor,
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: ArmorUpColors.cardStroke,
+        side: BorderSide(color: ArmorUpColors.cardStroke.withValues(alpha: 0.6)),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: ArmorUpColors.descriptionBackground,
+      ),
+    ),
+    dividerTheme: DividerThemeData(
+      color: ArmorUpColors.cardStroke.withValues(alpha: 0.25),
+    ),
+  );
 }
 
 class ArmorUpApp extends StatelessWidget {
@@ -16,10 +60,7 @@ class ArmorUpApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Armor Up!',
-      theme: ThemeData(
-        colorSchemeSeed: Colors.indigo,
-        useMaterial3: true,
-      ),
+      theme: _buildArmorUpTheme(),
       home: const _AppRoot(),
     );
   }
