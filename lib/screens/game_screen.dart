@@ -9,6 +9,7 @@ import '../theme/armor_up_colors.dart';
 import '../widgets/armor_widget.dart';
 import '../widgets/card_widget.dart';
 import '../widgets/event_log_widget.dart';
+import '../widgets/player_display.dart';
 import 'pass_device_screen.dart';
 import 'win_screen.dart';
 
@@ -118,7 +119,11 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("${me.name}'s turn - Turn ${state.turnNumber}"),
+        toolbarHeight: 40,
+        title: Text(
+          "${me.name}'s turn - Turn ${state.turnNumber}",
+          style: const TextStyle(fontSize: 15),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
@@ -129,155 +134,205 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              flex: 3,
-              child: ListView(
-                padding: const EdgeInsets.all(12),
-                children: [
-                  for (final player in state.players)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: _PlayerArmorPanel(
-                        player: player,
-                        isSelf: player.id == widget.actorId,
-                        selectable: def != null &&
-                            _targetRuleNeedsArmor(def.targetRule) &&
-                            (_targetRuleNeedsOwnPiece(def.targetRule)
-                                ? player.id == widget.actorId
-                                : player.id == _selectedTargetPlayerId),
-                        selectedArmor: _selectedTargetArmor,
-                        onSelectArmor: (armor) {
-                          setState(() => _selectedTargetArmor = armor);
-                        },
-                        onSelectAsTarget: def != null &&
-                                _targetRuleNeedsPlayer(def.targetRule) &&
-                                player.id != widget.actorId &&
-                                !player.isEliminated
-                            ? () => setState(() => _selectedTargetPlayerId = player.id)
-                            : null,
-                        isSelectedTarget: player.id == _selectedTargetPlayerId,
-                        isConditionSelectable: def == null
-                            ? defaultIsConditionSelectable
-                            : (condition) => _isConditionSelectable(def, condition),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
+              children: [
+                Expanded(
+                  child: _showEventLog
+                      ? Row(
+                          children: [
+                            Expanded(child: _buildPanels(state, me, def)),
+                            const VerticalDivider(width: 1),
+                            Expanded(
+                              flex: 2,
+                              child: EventLogWidget(state: state),
+                            ),
+                          ],
+                        )
+                      : _buildPanels(state, me, def),
+                ),
+                const Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: state.hasDrawnThisTurn
+                              ? null
+                              : () =>
+                                  controller.dispatch(DrawCard(playerId: widget.actorId)),
+                          icon: const Icon(Icons.style),
+                          label: const Text('Draw'),
+                        ),
                       ),
-                    ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            // The scrolling event log clutters the primary view, so it is
-            // hidden unless toggled via the history button in the app bar.
-            if (_showEventLog) ...[
-              Expanded(
-                flex: 2,
-                child: EventLogWidget(state: state),
-              ),
-              const Divider(height: 1),
-            ],
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: state.hasDrawnThisTurn
-                          ? null
-                          : () => controller.dispatch(DrawCard(playerId: widget.actorId)),
-                      icon: const Icon(Icons.style),
-                      label: const Text('Draw'),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: canPlaySelection
+                              ? () {
+                                  controller.dispatch(
+                                    PlayCard(
+                                      playerId: widget.actorId,
+                                      cardInstanceId: _selectedCard!.instanceId,
+                                      targetPlayerId: _selectedTargetPlayerId,
+                                      targetArmor: _selectedTargetArmor,
+                                    ),
+                                  );
+                                  _resetSelection();
+                                }
+                              : null,
+                          icon: const Icon(Icons.play_arrow),
+                          label: const Text('Play card'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: !state.hasDrawnThisTurn
+                              ? null
+                              : () =>
+                                  controller.dispatch(EndTurn(playerId: widget.actorId)),
+                          icon: const Icon(Icons.check),
+                          label: Text(
+                              me.hand.length > maxHandSize ? 'Discard first' : 'End turn'),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: FilledButton.icon(
-                      onPressed: canPlaySelection
-                          ? () {
-                              controller.dispatch(
-                                PlayCard(
-                                  playerId: widget.actorId,
-                                  cardInstanceId: _selectedCard!.instanceId,
-                                  targetPlayerId: _selectedTargetPlayerId,
-                                  targetArmor: _selectedTargetArmor,
+                ),
+                Builder(builder: (context) {
+                  // On short (landscape phone) heights the fixed card size
+                  // would otherwise crowd out the panels above it - shrink
+                  // each card's real footprint (FittedBox around a bounded
+                  // CardWidget, not the scrollable list itself) so the
+                  // panels - the primary game-state view - always keep
+                  // most of the vertical space, with no overflow and
+                  // correctly mapped tap coordinates.
+                  const naturalHandHeight = CardWidget.cardHeight + 24 + 12;
+                  final availableForHand = constraints.maxHeight * 0.32;
+                  final scale =
+                      (availableForHand / naturalHandHeight).clamp(0.55, 1.0);
+                  final handRowHeight = naturalHandHeight * scale;
+
+                  return SizedBox(
+                    height: handRowHeight,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            children: [
+                              for (final card in me.hand)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                  child: SizedBox(
+                                    width: (CardWidget.cardWidth) * scale,
+                                    height: handRowHeight,
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: SizedBox(
+                                        width: CardWidget.cardWidth,
+                                        height: naturalHandHeight,
+                                        child: _HandCard(
+                                          card: card,
+                                          selected: _selectedCard?.instanceId ==
+                                              card.instanceId,
+                                          disabled: me.isFasting ||
+                                              state.hasPlayedCardThisTurn ||
+                                              cardDefFor(card).type == CardType.defense,
+                                          onTap: () {
+                                            setState(() {
+                                              if (_selectedCard?.instanceId ==
+                                                  card.instanceId) {
+                                                _resetSelection();
+                                              } else {
+                                                _selectedCard = card;
+                                                _selectedTargetPlayerId = null;
+                                                _selectedTargetArmor = null;
+                                              }
+                                            });
+                                          },
+                                          onDiscard: state.hasDrawnThisTurn
+                                              ? () => controller.dispatch(
+                                                    DiscardCard(
+                                                        playerId: widget.actorId,
+                                                        cardInstanceId: card.instanceId),
+                                                  )
+                                              : null,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              );
-                              _resetSelection();
-                            }
-                          : null,
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text('Play card'),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: _PileCountersColumn(state: state),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: !state.hasDrawnThisTurn
-                          ? null
-                          : () => controller.dispatch(EndTurn(playerId: widget.actorId)),
-                      icon: const Icon(Icons.check),
-                      label: Text(me.hand.length > maxHandSize ? 'Discard first' : 'End turn'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              // Card height + Discard button + vertical padding.
-              height: CardWidget.cardHeight + 24 + 12,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                children: [
-                  for (final card in me.hand)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                      child: _HandCard(
-                        card: card,
-                        selected: _selectedCard?.instanceId == card.instanceId,
-                        disabled: me.isFasting ||
-                            state.hasPlayedCardThisTurn ||
-                            cardDefFor(card).type == CardType.defense,
-                        onTap: () {
-                          setState(() {
-                            if (_selectedCard?.instanceId == card.instanceId) {
-                              _resetSelection();
-                            } else {
-                              _selectedCard = card;
-                              _selectedTargetPlayerId = null;
-                              _selectedTargetArmor = null;
-                            }
-                          });
-                        },
-                        onDiscard: state.hasDrawnThisTurn
-                            ? () => controller.dispatch(
-                                  DiscardCard(playerId: widget.actorId, cardInstanceId: card.instanceId),
-                                )
-                            : null,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (me.isFasting)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Text(
-                  'You are fasting this turn: you may not play a card.',
-                  style: TextStyle(fontStyle: FontStyle.italic),
-                ),
-              )
-            else if (state.hasPlayedCardThisTurn)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Text(
-                  "You've already played a card this turn.",
-                  style: TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ),
-          ],
+                  );
+                }),
+              ],
+            );
+          },
         ),
       ),
+    );
+  }
+
+  Widget _buildPanels(
+    GameState state,
+    PlayerState me,
+    CardDef? def,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: 190,
+          child: _ActivePlayerPortraitPanel(player: me, state: state),
+        ),
+        const VerticalDivider(width: 1),
+        Expanded(
+          child: _PlayerListPanel(
+            actorId: widget.actorId,
+            players: state.players,
+            def: def,
+            selectedTargetPlayerId: _selectedTargetPlayerId,
+            onSelectTarget: (playerId) =>
+                setState(() => _selectedTargetPlayerId = playerId),
+            targetRuleNeedsPlayer: _targetRuleNeedsPlayer,
+            selectedTargetArmor: _selectedTargetArmor,
+            onSelectArmor: (armor) => setState(() => _selectedTargetArmor = armor),
+            isConditionSelectable: def == null
+                ? defaultIsConditionSelectable
+                : (condition) => _isConditionSelectable(def, condition),
+          ),
+        ),
+        const VerticalDivider(width: 1),
+        SizedBox(
+          width: 280,
+          child: _MyArmorGridPanel(
+            player: me,
+            selectable: def != null &&
+                _targetRuleNeedsArmor(def.targetRule) &&
+                _targetRuleNeedsOwnPiece(def.targetRule),
+            selectedArmor: _selectedTargetArmor,
+            onSelectArmor: (armor) => setState(() => _selectedTargetArmor = armor),
+            isConditionSelectable: def == null
+                ? defaultIsConditionSelectable
+                : (condition) => _isConditionSelectable(def, condition),
+          ),
+        ),
+      ],
     );
   }
 
@@ -363,33 +418,156 @@ class _HandCard extends StatelessWidget {
   }
 }
 
-class _PlayerArmorPanel extends StatelessWidget {
+/// Left panel: the active player's portrait, name, and a turn-status line.
+/// This is the single place turn/fasting/played-card status is shown - it
+/// used to be a footer message repeated under the hand row.
+class _ActivePlayerPortraitPanel extends StatelessWidget {
   final PlayerState player;
-  final bool isSelf;
-  final bool selectable;
-  final ArmorType? selectedArmor;
-  final ValueChanged<ArmorType>? onSelectArmor;
-  final VoidCallback? onSelectAsTarget;
-  final bool isSelectedTarget;
+  final GameState state;
+
+  const _ActivePlayerPortraitPanel({required this.player, required this.state});
+
+  String get _statusLine {
+    if (player.isFasting) return 'Fasting this turn';
+    if (state.hasPlayedCardThisTurn) return 'Already played a card';
+    if (!state.hasDrawnThisTurn) return 'Draw to begin your turn';
+    return 'Choose a card to play';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            player.name,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: ArmorUpColors.cardStroke,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            '(active)',
+            style: TextStyle(
+              fontSize: 11,
+              color: ArmorUpColors.cardStroke.withValues(alpha: 0.6),
+            ),
+          ),
+          const SizedBox(height: 10),
+          PlayerPortrait(playerId: player.id, size: 76),
+          const SizedBox(height: 10),
+          Text(
+            'Status: $_statusLine',
+            style: TextStyle(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: ArmorUpColors.cardStroke.withValues(alpha: 0.75),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Center panel: a glanceable, scrollable list of every player. The active
+/// player's row is minimal (name only) since their armor is already shown
+/// in full detail in the right-hand grid - repeating it here would show the
+/// same data twice. Other players get a compact armor-badge row and remain
+/// tap-to-target, unchanged from the previous per-player panel.
+class _PlayerListPanel extends StatelessWidget {
+  final String actorId;
+  final List<PlayerState> players;
+  final CardDef? def;
+  final String? selectedTargetPlayerId;
+  final ValueChanged<String> onSelectTarget;
+  final bool Function(TargetRule rule) targetRuleNeedsPlayer;
+  final ArmorType? selectedTargetArmor;
+  final ValueChanged<ArmorType> onSelectArmor;
   final bool Function(ArmorCondition condition) isConditionSelectable;
 
-  const _PlayerArmorPanel({
+  const _PlayerListPanel({
+    required this.actorId,
+    required this.players,
+    required this.def,
+    required this.selectedTargetPlayerId,
+    required this.onSelectTarget,
+    required this.targetRuleNeedsPlayer,
+    required this.selectedTargetArmor,
+    required this.onSelectArmor,
+    required this.isConditionSelectable,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Cards like Fiery Dart or Goliath's Taunt (anyPieceOnPlayer) need a
+    // specific armor piece picked on the targeted opponent, not just the
+    // player themselves - so once that opponent is selected, their compact
+    // armor row becomes the picker (their armor grid isn't shown anywhere
+    // else, unlike the active player's).
+    final needsArmorPick = def != null && def!.targetRule == TargetRule.anyPieceOnPlayer;
+
+    return ListView(
+      padding: const EdgeInsets.all(10),
+      children: [
+        for (final player in players)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _PlayerListRow(
+              player: player,
+              isSelf: player.id == actorId,
+              isSelectedTarget: player.id == selectedTargetPlayerId,
+              onSelectAsTarget: def != null &&
+                      targetRuleNeedsPlayer(def!.targetRule) &&
+                      player.id != actorId &&
+                      !player.isEliminated
+                  ? () => onSelectTarget(player.id)
+                  : null,
+              armorSelectable: needsArmorPick && player.id == selectedTargetPlayerId,
+              selectedArmor: selectedTargetArmor,
+              onSelectArmor: onSelectArmor,
+              isConditionSelectable: isConditionSelectable,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _PlayerListRow extends StatelessWidget {
+  final PlayerState player;
+  final bool isSelf;
+  final bool isSelectedTarget;
+  final VoidCallback? onSelectAsTarget;
+  final bool armorSelectable;
+  final ArmorType? selectedArmor;
+  final ValueChanged<ArmorType> onSelectArmor;
+  final bool Function(ArmorCondition condition) isConditionSelectable;
+
+  const _PlayerListRow({
     required this.player,
     required this.isSelf,
-    required this.selectable,
+    required this.isSelectedTarget,
+    required this.onSelectAsTarget,
+    required this.armorSelectable,
     required this.selectedArmor,
     required this.onSelectArmor,
-    required this.onSelectAsTarget,
-    required this.isSelectedTarget,
-    this.isConditionSelectable = defaultIsConditionSelectable,
+    required this.isConditionSelectable,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: ArmorUpColors.cardBackground.withValues(alpha: 0.45),
+        color: isSelf
+            ? ArmorUpColors.cardBackground.withValues(alpha: 0.2)
+            : ArmorUpColors.cardBackground.withValues(alpha: 0.45),
         border: Border.all(
           color: isSelectedTarget
               ? ArmorUpColors.bannerAttack
@@ -400,45 +578,132 @@ class _PlayerArmorPanel extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onSelectAsTarget,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Row(
-              children: [
-                Text(
-                  isSelf ? '${player.name} (you)' : player.name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: ArmorUpColors.cardStroke,
-                  ),
+            Expanded(
+              child: Text(
+                isSelf ? '${player.name} (you)' : player.name,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: ArmorUpColors.cardStroke.withValues(alpha: isSelf ? 0.55 : 1),
                 ),
-                if (player.isEliminated) ...[
-                  const SizedBox(width: 8),
-                  const Chip(label: Text('Eliminated'), visualDensity: VisualDensity.compact),
-                ],
-                if (onSelectAsTarget != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    '(tap to target)',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
-            const SizedBox(height: 6),
-            ArmorRow(
-              player: player,
-              selectable: selectable,
-              selectedArmor: selectedArmor,
-              onSelect: onSelectArmor,
-              isConditionSelectable: isConditionSelectable,
-            ),
+            if (player.isEliminated)
+              const Padding(
+                padding: EdgeInsets.only(left: 6),
+                child: Chip(label: Text('Eliminated'), visualDensity: VisualDensity.compact),
+              )
+            else if (!isSelf)
+              ArmorRow(
+                player: player,
+                compact: true,
+                selectable: armorSelectable,
+                selectedArmor: selectedArmor,
+                onSelect: armorSelectable ? onSelectArmor : null,
+                isConditionSelectable: isConditionSelectable,
+              )
+            else
+              Text(
+                'see your armor grid',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontStyle: FontStyle.italic,
+                  color: ArmorUpColors.cardStroke.withValues(alpha: 0.4),
+                ),
+              ),
+            if (onSelectAsTarget != null) ...[
+              const SizedBox(width: 6),
+              Text(
+                '(tap to target)',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
+                ),
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Right panel: the single detailed representation of the active player's
+/// own armor, as a 3x2 grid of full-size badges.
+class _MyArmorGridPanel extends StatelessWidget {
+  final PlayerState player;
+  final bool selectable;
+  final ArmorType? selectedArmor;
+  final ValueChanged<ArmorType> onSelectArmor;
+  final bool Function(ArmorCondition condition) isConditionSelectable;
+
+  const _MyArmorGridPanel({
+    required this.player,
+    required this.selectable,
+    required this.selectedArmor,
+    required this.onSelectArmor,
+    required this.isConditionSelectable,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Your Armor',
+            style: TextStyle(fontWeight: FontWeight.bold, color: ArmorUpColors.cardStroke),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 3,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 0.85,
+              children: [
+                for (final piece in player.armor)
+                  Center(
+                    child: ArmorBadge(
+                      piece: piece,
+                      selectable: selectable && isConditionSelectable(piece.condition),
+                      selected: selectedArmor == piece.type,
+                      onTap: () => onSelectArmor(piece.type),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bottom-right stat readout: cards remaining in the draw pile and cards
+/// in the discard pile. Simple, non-interactive.
+class _PileCountersColumn extends StatelessWidget {
+  final GameState state;
+
+  const _PileCountersColumn({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(
+      fontSize: 12,
+      color: ArmorUpColors.cardStroke.withValues(alpha: 0.8),
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text('Draw pile: ${state.drawPile.length}', style: style),
+        const SizedBox(height: 4),
+        Text('Discard pile: ${state.discardPile.length}', style: style),
+      ],
     );
   }
 }

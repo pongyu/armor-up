@@ -19,12 +19,17 @@ Color colorForCondition(ArmorCondition condition) => switch (condition) {
     };
 
 /// A single armor piece badge: icon, short name, and condition, tappable
-/// when used as an attack/restore target picker.
+/// when used as an attack/restore target picker. Pass [compact] for the
+/// small icon-only variant used in glanceable per-player rows (e.g. the
+/// center player-list panel on the landscape board), where showing full
+/// name/condition text for every piece of every player would be too much
+/// detail - the detailed view lives in the active player's armor grid.
 class ArmorBadge extends StatelessWidget {
   final ArmorPiece piece;
   final bool selectable;
   final bool selected;
   final VoidCallback? onTap;
+  final bool compact;
 
   const ArmorBadge({
     super.key,
@@ -32,12 +37,33 @@ class ArmorBadge extends StatelessWidget {
     this.selectable = false,
     this.selected = false,
     this.onTap,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final color = colorForCondition(piece.condition);
     final isLost = piece.condition == ArmorCondition.lost;
+
+    if (compact) {
+      return InkWell(
+        onTap: selectable ? onTap : null,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: ArmorUpColors.cardBackground,
+            border: Border.all(color: color, width: selected ? 2.5 : 1.5),
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: selected
+                ? [BoxShadow(color: color.withValues(alpha: 0.55), blurRadius: 4)]
+                : null,
+          ),
+          child: Icon(iconForArmor(piece.type), color: color, size: 13),
+        ),
+      );
+    }
 
     return InkWell(
       onTap: selectable ? onTap : null,
@@ -100,12 +126,14 @@ class ArmorBadge extends StatelessWidget {
 bool defaultIsConditionSelectable(ArmorCondition condition) =>
     condition != ArmorCondition.lost;
 
-/// A row of all six armor badges for one player.
+/// A row of all six armor badges for one player. Pass [compact] for the
+/// small icon-only badges used in glanceable per-player rows.
 class ArmorRow extends StatelessWidget {
   final PlayerState player;
   final bool selectable;
   final ArmorType? selectedArmor;
   final ValueChanged<ArmorType>? onSelect;
+  final bool compact;
 
   /// Further restricts which pieces are selectable based on their current
   /// condition (e.g. a restore card may only target a Lost or Weakened
@@ -120,6 +148,7 @@ class ArmorRow extends StatelessWidget {
     this.selectedArmor,
     this.onSelect,
     this.isConditionSelectable = defaultIsConditionSelectable,
+    this.compact = false,
   });
 
   @override
@@ -130,12 +159,13 @@ class ArmorRow extends StatelessWidget {
         children: [
           for (final piece in player.armor)
             Padding(
-              padding: const EdgeInsets.only(right: 6),
+              padding: EdgeInsets.only(right: compact ? 3 : 6),
               child: ArmorBadge(
                 piece: piece,
                 selectable: selectable && isConditionSelectable(piece.condition),
                 selected: selectedArmor == piece.type,
                 onTap: onSelect == null ? null : () => onSelect!(piece.type),
+                compact: compact,
               ),
             ),
         ],
