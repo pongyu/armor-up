@@ -659,22 +659,40 @@ class _MyArmorGridPanel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: GridView.count(
-              crossAxisCount: 3,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              childAspectRatio: 0.85,
-              children: [
-                for (final piece in player.armor)
-                  Center(
-                    child: ArmorBadge(
-                      piece: piece,
-                      selectable: selectable && isConditionSelectable(piece.condition),
-                      selected: selectedArmor == piece.type,
-                      onTap: () => onSelectArmor(piece.type),
-                    ),
-                  ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // ArmorBadge has a fixed natural size; on short landscape
+                // heights (real phones) the 2-row grid doesn't fit that
+                // size, and GridView silently clips the second row instead
+                // of erroring. Shrink each badge to fit its actual cell via
+                // FittedBox rather than let it clip - all 6 pieces should
+                // always be visible without scrolling.
+                const columns = 3;
+                const rows = 2;
+                const spacing = 8.0;
+                final cellWidth = (constraints.maxWidth - spacing * (columns - 1)) / columns;
+                final cellHeight = (constraints.maxHeight - spacing * (rows - 1)) / rows;
+
+                return GridView.count(
+                  crossAxisCount: columns,
+                  mainAxisSpacing: spacing,
+                  crossAxisSpacing: spacing,
+                  childAspectRatio: cellWidth / cellHeight,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    for (final piece in player.armor)
+                      FittedBox(
+                        fit: BoxFit.contain,
+                        child: ArmorBadge(
+                          piece: piece,
+                          selectable: selectable && isConditionSelectable(piece.condition),
+                          selected: selectedArmor == piece.type,
+                          onTap: () => onSelectArmor(piece.type),
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ],

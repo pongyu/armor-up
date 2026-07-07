@@ -52,20 +52,20 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Armor Up!')),
+      appBar: AppBar(title: const Text('Armor Up!'), toolbarHeight: 40),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 'Suit up',
-                style: Theme.of(context).textTheme.headlineMedium,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               const Text('Enter names for 2-6 players (pass and play).'),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               Expanded(
                 child: ListView.separated(
                   itemCount: _nameControllers.length,
@@ -76,6 +76,9 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                       decoration: InputDecoration(
                         labelText: 'Player ${index + 1}',
                         border: const OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       ),
                     );
                   },
@@ -103,10 +106,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               FilledButton(
                 onPressed: _startGame,
-                style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
+                style: FilledButton.styleFrom(padding: const EdgeInsets.all(12)),
                 child: const Text('Start Game'),
               ),
             ],
