@@ -1,8 +1,15 @@
 # Armor Up!
 
 A biblical "spiritual warfare" take-that card game (Ephesians 6 / Armor of
-God), inspired by games like Organ Attack. **Phase 1**: a pure Dart rules
-engine plus a hotseat (pass-and-play) Flutter UI. No networking yet.
+God), inspired by games like Organ Attack. Each player defends six armor
+pieces - Helmet, Breastplate, Shield, Sword, Belt, Shoes - against attack
+cards from the other players, while playing defense and restore cards of
+their own to survive and repair the damage.
+
+**Phase 1** (complete): a pure Dart rules engine plus a hotseat
+(pass-and-play) Flutter UI, reskinned in a warm illustrated card-game
+style (parchment card frames, type-colored name banners, placeholder
+icons standing in for final card art). No networking yet.
 
 ## Project layout
 
@@ -16,8 +23,40 @@ armor_up/
   lib/                   # Flutter hotseat UI
     screens/
     widgets/
+    theme/               # ArmorUpColors - the single source of truth for the palette
     state/               # Riverpod providers wrapping the engine
 ```
+
+## Game mechanics
+
+- **Setup**: 2-6 players, each dealt a 5-card hand and a full set of six
+  Strong armor pieces. The shared deck (62 cards) is shuffled from a seed
+  so games are replayable.
+- **Turn structure**: draw a card, optionally play one card, discard down
+  to 5 cards if over the limit, then end your turn. Playing a card is
+  optional but drawing and ending are not.
+- **Card types**:
+  - **Attack (Trial)** - targets an opponent's armor piece. A Strong piece
+    hit by an attack becomes Weakened; a Weakened piece hit again becomes
+    Lost. Some attacks (e.g. Doubt, Deception) always target a specific
+    fixed piece; others (Fiery Dart, Goliath's Taunt) let the attacker
+    choose any piece, and Goliath's Taunt hits twice in one resolution
+    (Strong straight to Lost).
+  - **Defense** - played in response to an incoming attack: Prayer blocks
+    it outright, It Is Written blocks and reflects it back at the
+    attacker, and Fellowship asks the rest of the table for help blocking.
+  - **Restore** - repairs your own armor: Renewal steps a Weakened piece
+    back to Strong, Armor Bearer fully restores a Lost piece, and Fasting
+    skips your next turn's play step in exchange for fully restoring one
+    piece regardless of its condition.
+  - **Event** - affects the whole table at once: Jericho March turns every
+    Weakened piece into Lost, Wilderness Season makes every player discard
+    a card, and Road to Damascus steals a random card from a chosen
+    opponent.
+- **Winning**: a player wins by eliminating every other player (all their
+  armor Lost), by fully restoring all six of their own pieces to Strong
+  after having taken damage, or - if the draw and discard piles both run
+  dry - whoever is closest to full restoration when the deck is exhausted.
 
 ## Prerequisites
 
@@ -165,6 +204,11 @@ Defaults to 200 games with a fixed seed if no arguments are given.
    **End turn**.
 3. When attacked, the defender gets a **Defense** screen to play a defense
    card (Prayer / It Is Written / Fellowship) or take the hit.
-4. The game ends when one player is fully eliminated (all 6 armor pieces
+4. If an event card requires it (e.g. Wilderness Season), you'll get a
+   **Discard** screen prompting you to give up one card from your hand.
+5. The game ends when one player is fully eliminated (all 6 armor pieces
    Lost) or fully restored (all 6 Strong at the start of their turn, after
    having been damaged at some point).
+
+The scrolling game log is hidden by default to keep the board
+uncluttered; tap the history icon in the app bar to reveal it.

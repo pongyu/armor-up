@@ -27,9 +27,18 @@ const cardDisplaySpecs = <String, CardDisplaySpec>{
   'fiery_dart': CardDisplaySpec(Icons.local_fire_department),
   'goliaths_taunt': CardDisplaySpec(Icons.campaign),
   // Defenses.
-  'prayer': CardDisplaySpec(Icons.front_hand),
-  'it_is_written': CardDisplaySpec(Icons.menu_book),
-  'fellowship': CardDisplaySpec(Icons.groups),
+  'prayer': CardDisplaySpec(
+    Icons.front_hand,
+    illustrationAssetPath: 'assets/cards/prayer.png',
+  ),
+  'it_is_written': CardDisplaySpec(
+    Icons.menu_book,
+    illustrationAssetPath: 'assets/cards/it_is_written.png',
+  ),
+  'fellowship': CardDisplaySpec(
+    Icons.groups,
+    illustrationAssetPath: 'assets/cards/fellowship.png',
+  ),
   // Restores.
   'fasting': CardDisplaySpec(Icons.hourglass_empty),
   'renewal': CardDisplaySpec(Icons.eco),
