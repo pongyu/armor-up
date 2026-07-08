@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 
-import '../state/game_controller.dart';
+import '../state/app_mode_controller.dart';
 import '../state/game_providers.dart';
 import '../state/turn_actor.dart';
 import '../theme/armor_up_colors.dart';
@@ -40,6 +40,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       return WinScreen(state: state);
     }
 
+    // In LAN mode every device is fixed to its own player and there is no
+    // phone to pass, so it never shows the pass-device gate: it renders
+    // its own player's view, interactive when that player must act and
+    // read-only otherwise. In hotseat mode there is no local player, so
+    // the board follows whoever must act next behind the pass gate.
+    final localPlayerId = ref.watch(localPlayerIdProvider);
+    if (localPlayerId != null) {
+      return _buildNetworked(state, localPlayerId);
+    }
+
     final actorId = currentActorId(state);
     if (_lastAcknowledgedActorId != actorId) {
       _showingPassScreen = true;
@@ -71,12 +81,37 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         ? _DefensePromptView(actorId: actorId)
         : _MainBoardView(actorId: actorId);
   }
+
+  /// LAN routing: [localPlayerId] is this device's own player. When it is
+  /// this player's turn/response, show the same interactive views hotseat
+  /// uses (just without a pass gate). When it is someone else's, show a
+  /// read-only board from this player's own perspective so they can watch
+  /// the game unfold without ever touching another player's hidden hand.
+  Widget _buildNetworked(GameState state, String localPlayerId) {
+    final actorId = currentActorId(state);
+    if (actorId == localPlayerId) {
+      if (state.pendingGroupDiscard != null) {
+        return _GroupDiscardPromptView(actorId: localPlayerId);
+      }
+      return state.pendingInterrupt != null
+          ? _DefensePromptView(actorId: localPlayerId)
+          : _MainBoardView(actorId: localPlayerId);
+    }
+    return _MainBoardView(actorId: localPlayerId, readOnly: true);
+  }
 }
 
 class _MainBoardView extends ConsumerStatefulWidget {
   final String actorId;
 
-  const _MainBoardView({required this.actorId});
+  /// LAN read-only mode: this is the local player's board shown while it
+  /// is *someone else's* turn. The board renders from [actorId]'s
+  /// perspective as usual, but the Draw/Play/End controls are disabled and
+  /// the title reflects whose turn it actually is, so the player watches
+  /// the game unfold without being able to act out of turn.
+  final bool readOnly;
+
+  const _MainBoardView({required this.actorId, this.readOnly = false});
 
   @override
   ConsumerState<_MainBoardView> createState() => _MainBoardViewState();
@@ -99,7 +134,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(gameStateProvider)!;
-    final controller = ref.read(gameControllerProvider.notifier);
+    final controller = ref.read(activeGameControllerProvider);
     final me = state.playerById(widget.actorId);
     final def = _selectedCard == null ? null : cardDefFor(_selectedCard!);
 
@@ -117,11 +152,18 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         def != null &&
         _isSelectionComplete(def);
 
+    // In read-only mode the active player is someone else; name the turn
+    // after them, not after the local player whose board this is.
+    final activeName = state.activePlayer.name;
+    final title = widget.readOnly
+        ? "$activeName's turn - Turn ${state.turnNumber}"
+        : "${me.name}'s turn - Turn ${state.turnNumber}";
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 40,
         title: Text(
-          "${me.name}'s turn - Turn ${state.turnNumber}",
+          title,
           style: const TextStyle(fontSize: 15),
         ),
         actions: [
@@ -159,7 +201,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: state.hasDrawnThisTurn
+                          onPressed: widget.readOnly || state.hasDrawnThisTurn
                               ? null
                               : () =>
                                   controller.dispatch(DrawCard(playerId: widget.actorId)),
@@ -170,7 +212,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: FilledButton.icon(
-                          onPressed: canPlaySelection
+                          onPressed: !widget.readOnly && canPlaySelection
                               ? () {
                                   controller.dispatch(
                                     PlayCard(
@@ -190,7 +232,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: !state.hasDrawnThisTurn
+                          onPressed: widget.readOnly || !state.hasDrawnThisTurn
                               ? null
                               : () =>
                                   controller.dispatch(EndTurn(playerId: widget.actorId)),
@@ -242,7 +284,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                                           card: card,
                                           selected: _selectedCard?.instanceId ==
                                               card.instanceId,
-                                          disabled: me.isFasting ||
+                                          disabled: widget.readOnly ||
+                                              me.isFasting ||
                                               state.hasPlayedCardThisTurn ||
                                               cardDefFor(card).type == CardType.defense,
                                           onTap: () {
@@ -257,7 +300,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                                               }
                                             });
                                           },
-                                          onDiscard: state.hasDrawnThisTurn
+                                          onDiscard: !widget.readOnly && state.hasDrawnThisTurn
                                               ? () => controller.dispatch(
                                                     DiscardCard(
                                                         playerId: widget.actorId,

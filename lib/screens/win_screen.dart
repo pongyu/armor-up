@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 
+import '../state/app_mode_controller.dart';
 import '../state/game_controller.dart';
 import '../widgets/event_log_widget.dart';
 
@@ -63,7 +64,14 @@ class WinScreen extends ConsumerWidget {
               Expanded(child: EventLogWidget(state: state)),
               const SizedBox(height: 12),
               FilledButton(
-                onPressed: () => ref.read(gameControllerProvider.notifier).endGame(),
+                onPressed: () {
+                  final mode = ref.read(appModeControllerProvider).mode;
+                  if (mode == AppMode.netPlaying) {
+                    ref.read(appModeControllerProvider.notifier).returnToModeSelect();
+                  } else {
+                    ref.read(gameControllerProvider.notifier).endGame();
+                  }
+                },
                 style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
                 child: const Text('New game'),
               ),

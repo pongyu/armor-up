@@ -12,7 +12,7 @@ class _GroupDiscardPromptView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gameStateProvider)!;
-    final controller = ref.read(gameControllerProvider.notifier);
+    final controller = ref.read(activeGameControllerProvider);
     final player = state.playerById(actorId);
 
     ref.listen(gameErrorProvider, (previous, next) {

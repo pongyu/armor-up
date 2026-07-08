@@ -11,7 +11,7 @@ class _DefensePromptView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gameStateProvider)!;
-    final controller = ref.read(gameControllerProvider.notifier);
+    final controller = ref.read(activeGameControllerProvider);
     final pending = state.pendingInterrupt!;
     final responder = state.playerById(actorId);
     final isHelper = actorId != pending.defenderId;
