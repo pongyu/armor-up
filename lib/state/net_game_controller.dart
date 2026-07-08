@@ -32,6 +32,15 @@ class NetGameController extends StateNotifier<GameUiState?> implements GameActio
   /// [FilteredGameState]).
   void attach(GameClient client) {
     _client = client;
+    // states is a broadcast stream with no replay: the host's first
+    // StateMessage is sent synchronously from the same startGame() call
+    // that completes whenStarted, so it can arrive before this listen()
+    // below subscribes. Seed from the last received state so that first
+    // push isn't silently missed, then keep listening for further updates.
+    final latest = client.latestState;
+    if (latest != null) {
+      state = GameUiState(state: reconstructFromFiltered(latest), lastError: null);
+    }
     _statesSub = client.states.listen((filtered) {
       state = GameUiState(state: reconstructFromFiltered(filtered), lastError: null);
     });

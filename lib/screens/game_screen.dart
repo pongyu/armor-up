@@ -341,7 +341,10 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
       children: [
         SizedBox(
           width: 190,
-          child: _ActivePlayerPortraitPanel(player: me, state: state),
+          child: _ActivePlayerPortraitPanel(
+            player: widget.readOnly ? state.activePlayer : me,
+            state: state,
+          ),
         ),
         const VerticalDivider(width: 1),
         Expanded(

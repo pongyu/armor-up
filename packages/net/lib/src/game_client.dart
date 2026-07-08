@@ -26,6 +26,7 @@ class GameClient {
   WebSocket? _socket;
   bool _closing = false;
   List<LobbyPlayer> _latestRoster = const [];
+  FilteredGameState? _latestState;
 
   final _lobbyRosterController = StreamController<List<LobbyPlayer>>.broadcast();
   final _lobbyStartedController = StreamController<void>.broadcast();
@@ -77,6 +78,16 @@ class GameClient {
 
   /// The latest player-filtered state pushed by the host.
   Stream<FilteredGameState> get states => _stateController.stream;
+
+  /// The most recently received state, synchronously available. Since
+  /// [states] is a broadcast stream with no replay, the host's first
+  /// [StateMessage] - sent as part of the same [HostServer.startGame] call
+  /// that completes [whenStarted] - can arrive and be missed before UI code
+  /// reacting to [whenStarted] gets a chance to subscribe. Callers should
+  /// seed initial UI state from this rather than assuming the stream's
+  /// first event is still coming. Null before the first [StateMessage]
+  /// arrives.
+  FilteredGameState? get latestState => _latestState;
 
   /// One-shot [ActionFailure] reasons for actions this client sent.
   Stream<String> get errors => _errorController.stream;
@@ -150,6 +161,7 @@ class GameClient {
 
     switch (message) {
       case StateMessage(:final state):
+        _latestState = state;
         if (!_stateController.isClosed) _stateController.add(state);
       case ErrorMessage(:final reason):
         if (!_errorController.isClosed) _errorController.add(reason);
