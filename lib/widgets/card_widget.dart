@@ -5,43 +5,47 @@ import '../theme/armor_up_colors.dart';
 import 'card_display.dart';
 
 Color colorForCardType(CardType type) => switch (type) {
-      CardType.attack => ArmorUpColors.bannerAttack,
-      CardType.defense => ArmorUpColors.bannerDefense,
-      CardType.restore => ArmorUpColors.bannerRestore,
-      CardType.event => ArmorUpColors.bannerEvent,
-    };
+  CardType.attack => ArmorUpColors.bannerAttack,
+  CardType.defense => ArmorUpColors.bannerDefense,
+  CardType.restore => ArmorUpColors.bannerRestore,
+  CardType.event => ArmorUpColors.bannerEvent,
+};
 
 String labelForCardType(CardType type) => switch (type) {
-      CardType.attack => 'Trial',
-      CardType.defense => 'Defense',
-      CardType.restore => 'Restore',
-      CardType.event => 'Event',
-    };
+  CardType.attack => 'Trial',
+  CardType.defense => 'Defense',
+  CardType.restore => 'Restore',
+  CardType.event => 'Event',
+};
 
 String describeEffect(CardDef def) {
   final target = switch (def.targetRule) {
-    TargetRule.specificArmorOnPlayer => 'Weaken/hit ${def.fixedTarget!.displayName}',
+    TargetRule.specificArmorOnPlayer =>
+      'Weaken/hit ${def.fixedTarget!.displayName}',
     TargetRule.anyPieceOnPlayer =>
-      def.effect == EffectPrimitive.doubleHit ? 'Hits any piece twice' : 'Weaken/hit any piece',
+      def.effect == EffectPrimitive.doubleHit
+          ? 'Hits any piece twice'
+          : 'Weaken/hit any piece',
     TargetRule.singlePlayer => 'Steal a random card',
     TargetRule.ownArmorPiece => switch (def.effect) {
-        EffectPrimitive.restoreOneStep => 'Weakened -> Strong on your piece',
-        EffectPrimitive.restoreFullyFromLost => 'Lost -> Strong on your piece',
-        EffectPrimitive.skipNextTurnAndRestore =>
-          'Skip your next turn; fully restore one piece',
-        _ => '',
-      },
+      EffectPrimitive.restoreOneStep => 'Weakened -> Strong on your piece',
+      EffectPrimitive.restoreFullyFromLost => 'Lost -> Strong on your piece',
+      EffectPrimitive.skipNextTurnAndRestore =>
+        'Skip your next turn; fully restore one piece',
+      _ => '',
+    },
     TargetRule.allPlayers => switch (def.effect) {
-        EffectPrimitive.allWeakenedToLost => "All players' Weakened pieces become Lost",
-        EffectPrimitive.allDiscardOne => 'Every player discards one card',
-        _ => '',
-      },
+      EffectPrimitive.allWeakenedToLost =>
+        "All players' Weakened pieces become Lost",
+      EffectPrimitive.allDiscardOne => 'Every player discards one card',
+      _ => '',
+    },
     TargetRule.none => switch (def.effect) {
-        EffectPrimitive.blockAttack => 'Block any attack',
-        EffectPrimitive.reflectAttack => 'Block and reflect an attack',
-        EffectPrimitive.fellowshipRequest => 'Ask the table to block for you',
-        _ => '',
-      },
+      EffectPrimitive.blockAttack => 'Block any attack',
+      EffectPrimitive.reflectAttack => 'Block and reflect an attack',
+      EffectPrimitive.fellowshipRequest => 'Ask the table to block for you',
+      _ => '',
+    },
   };
   return target;
 }
@@ -84,7 +88,12 @@ class CardWidget extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(10),
           boxShadow: selected
-              ? [BoxShadow(color: banner.withValues(alpha: 0.55), blurRadius: 8)]
+              ? [
+                  BoxShadow(
+                    color: banner.withValues(alpha: 0.55),
+                    blurRadius: 8,
+                  ),
+                ]
               : null,
         ),
         // Inset 2px ring just inside the outer border: the "bevel" look.
@@ -98,16 +107,23 @@ class CardWidget extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Square illustration, sized off the card's own width (minus
+                // the 6px padding on each side) so the art fills as much of
+                // the card as possible while staying square - not a fixed
+                // height band like before.
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(6, 6, 6, 5),
-                  child: SizedBox(
-                    height: 54,
+                  padding: const EdgeInsets.fromLTRB(6, 6, 6, 4),
+                  child: AspectRatio(
+                    aspectRatio: 1,
                     child: _IllustrationBox(spec: spec),
                   ),
                 ),
                 Container(
                   color: banner,
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 2,
+                  ),
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
@@ -116,7 +132,7 @@ class CardWidget extends StatelessWidget {
                       style: const TextStyle(
                         color: ArmorUpColors.fontColor,
                         fontWeight: FontWeight.w500,
-                        fontSize: 14,
+                        fontSize: 13,
                         shadows: ArmorUpColors.titleOutline,
                       ),
                     ),
@@ -125,7 +141,7 @@ class CardWidget extends StatelessWidget {
                 Expanded(
                   child: Container(
                     color: ArmorUpColors.descriptionBackground,
-                    padding: const EdgeInsets.fromLTRB(6, 5, 6, 5),
+                    padding: const EdgeInsets.fromLTRB(5, 3, 5, 3),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -133,20 +149,22 @@ class CardWidget extends StatelessWidget {
                           child: Text(
                             describeEffect(def),
                             style: const TextStyle(
-                              fontSize: 10,
-                              height: 1.25,
+                              fontSize: 8,
+                              height: 1.15,
                               color: ArmorUpColors.fontColor,
                             ),
-                            maxLines: 5,
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Text(
                           def.verseRef,
                           style: TextStyle(
-                            fontSize: 9,
+                            fontSize: 7,
                             fontStyle: FontStyle.italic,
-                            color: ArmorUpColors.fontColor.withValues(alpha: 0.8),
+                            color: ArmorUpColors.fontColor.withValues(
+                              alpha: 0.8,
+                            ),
                           ),
                         ),
                       ],
@@ -187,7 +205,7 @@ class _IllustrationBox extends StatelessWidget {
           : Center(
               child: Icon(
                 spec.iconPlaceholder,
-                size: 30,
+                size: 46,
                 color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
               ),
             ),
@@ -208,10 +226,9 @@ class _DashedBorderPainter extends CustomPainter {
       ..strokeWidth = 1.2;
 
     final path = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        Offset.zero & size,
-        const Radius.circular(3),
-      ));
+      ..addRRect(
+        RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(3)),
+      );
 
     const dashLength = 4.0;
     const gapLength = 3.0;

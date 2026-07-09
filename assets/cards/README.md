@@ -8,9 +8,11 @@ below, matching `CardDef.id` / the keys in
 
 - **File type**: PNG with transparency (no background fill - the parchment
   illustration box shows through).
-- **Canvas size**: 64x64px, square. Render at this size natively; don't
-  upscale from smaller source art. `CardWidget` displays it at ~54px tall
-  inside a `BoxFit.contain` box, so anything under ~64px will look soft.
+- **Canvas size**: 96x96px, square. Render at this size natively; don't
+  upscale from smaller source art. `CardWidget` displays it inside a
+  square `AspectRatio(1)` box sized off the card's own width (roughly
+  100-110px on the default card size), using `BoxFit.contain`, so
+  anything under ~96px will look soft.
 - **Filter quality**: the renderer forces `FilterQuality.none` (nearest
   neighbor, no smoothing) - this is a pixel-art hard constraint, not a
   style suggestion. Anti-aliased / soft-gradient art will look wrong
