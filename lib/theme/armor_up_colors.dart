@@ -10,10 +10,18 @@ class ArmorUpColors {
   // Card face.
   static const cardBackground = Color(0xFFE8DFD0);
   static const cardStroke = Color(0xFF2A1C0F); // outer border
-  static const cardInnerStroke = Color(0xFFEDDDC3); // inner ring, same as font color
+  static const cardInnerStroke = Color(
+    0xFFEDDDC3,
+  ); // inner ring, same as font color
   static const descriptionBackground = Color(0xFF7E584B);
   static const fontColor = Color(0xFFEDDDC3);
   static const fontStrokeColor = Colors.black;
+
+  // Illustration medallion ring (the circular frame around card art,
+  // reuses the same brown as descriptionBackground) and the thin gold
+  // accent used on the medallion/banner/card border rings.
+  static const medallionRing = descriptionBackground;
+  static const goldAccent = Color(0xFFC9A24B);
 
   // Name banner, per card type.
   static const bannerAttack = Color(0xFF9B4040);

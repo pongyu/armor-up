@@ -186,17 +186,25 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                     // panels - the primary game-state view - always keep
                     // most of the vertical space, with no overflow and
                     // correctly mapped tap coordinates.
-                    const naturalHandHeight = CardWidget.cardHeight + 24 + 12;
+                    // 24: the Discard button's minimumSize height below the
+                    // card. No other padding sits between the card and
+                    // button, or after the button, so this must match
+                    // _HandCard's actual content exactly - any slack here
+                    // shows up as dead space under the cards once scaled up.
+                    const naturalHandHeight = CardWidget.cardHeight + 24;
                     // The action buttons used to have their own full-width row
                     // above the hand; folding them into a sidebar alongside the
                     // pile counters gives that space back to the hand, so cards
-                    // can render bigger.
-                    final availableForHand = constraints.maxHeight * 0.42;
-                    final scale = (availableForHand / naturalHandHeight).clamp(
+                    // can render bigger. Give the hand a bigger share of the
+                    // vertical space than the top panels - the hand is what
+                    // the player is actually reading/interacting with turn to
+                    // turn, so it's fine for the portrait/opponent-list panels
+                    // to run a bit shorter.
+                    final availableForHand = constraints.maxHeight * 0.55;
+                    var scale = (availableForHand / naturalHandHeight).clamp(
                       0.55,
-                      1.2,
+                      1.35,
                     );
-                    final handRowHeight = naturalHandHeight * scale;
                     // On narrow (portrait phone) widths a fixed sidebar would
                     // starve or overflow the scrollable hand list - shrink it
                     // down (and let it wrap to icon-only buttons) rather than
@@ -204,6 +212,25 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                     final sidebarWidth = constraints.maxWidth < 500
                         ? 96.0
                         : 128.0;
+                    // Hand size is normally capped at maxHandSize, but a
+                    // just-drawn hand can briefly sit one over that limit
+                    // until the player discards back down. Rather than let
+                    // that transient extra card force horizontal scrolling,
+                    // shrink every card just enough for all of them to fit
+                    // the row width without scrolling - no fan/overlap
+                    // layout (noted as a future idea), just a smaller flat
+                    // row for the one turn it's needed.
+                    if (me.hand.length > maxHandSize) {
+                      const cardHorizontalSlot = CardWidget.cardWidth + 8;
+                      final availableRowWidth =
+                          constraints.maxWidth - sidebarWidth - 24 - 16;
+                      final widthScale =
+                          availableRowWidth /
+                          (cardHorizontalSlot * me.hand.length);
+                      scale = scale < widthScale ? scale : widthScale;
+                      scale = scale.clamp(0.4, 1.35);
+                    }
+                    final handRowHeight = naturalHandHeight * scale;
 
                     return SizedBox(
                       height: handRowHeight,
