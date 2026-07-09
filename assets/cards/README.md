@@ -4,6 +4,30 @@ Drop one PNG per card into this folder, named exactly `<card_id>.png` (ids
 below, matching `CardDef.id` / the keys in
 [`lib/widgets/card_display.dart`](../../lib/widgets/card_display.dart)).
 
+## Card frame border (`card_frame.png`)
+
+The pixelated card border/corners is a separate nine-slice asset, already
+wired in `lib/widgets/card_widget.dart` (`_CardFrame`):
+
+- **Canvas**: 48x48px.
+- **Corners**: 12x12px each, drawn with pixelated stair-step edges (this
+  is the only part where the actual corner shape lives - never stretched).
+- **Edges**: the 24px-long strips between corners are straight border
+  segments (no curve); Flutter stretches these to fit the card's real
+  on-screen size via `centerSlice`.
+- **Center**: the middle 24x24px must be fully transparent - the card's
+  own parchment fill and content render underneath it.
+- **Palette**: `ArmorUpColors.cardStroke` (outer, `#2A1C0F`) and
+  `ArmorUpColors.goldAccent` (inner ring, `#C9A24B`), same as the rest of
+  the card chrome.
+- Border thickness must stay consistent between the corner tiles and the
+  edge strips, or the stretched edges won't align with the fixed corners
+  at the seam.
+
+Selection state is *not* baked into this asset - it's a fixed single
+frame; the colored glow shown when a card is selected is layered on
+separately in Flutter (`_CardFrame`'s `boxShadow`), not part of the PNG.
+
 ## Format
 
 - **File type**: PNG with transparency (no background fill - the parchment

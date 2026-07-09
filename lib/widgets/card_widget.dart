@@ -171,9 +171,17 @@ class CardWidget extends StatelessWidget {
   }
 }
 
-/// The card's outer parchment frame: textured fill, double-stroke border,
-/// and a selection glow. Isolated from the content layout so a future
-/// nine-slice ornamental border asset can replace just this decoration.
+/// Pixel-art nine-slice card border. A single 48x48 PNG: 12px corners
+/// (drawn with pixelated stair-step edges, never stretched), 12px-thick
+/// straight edge segments (stretched to fit the card's actual size), and
+/// a fully transparent 24x24 center so the card's own content shows
+/// through. See assets/cards/README.md for the art spec.
+const _cardFrameAssetPath = 'assets/cards/card_frame.png';
+const _cardFrameCenterSlice = Rect.fromLTRB(12, 12, 36, 36);
+
+/// The card's outer parchment frame: flat fill, the pixel-art nine-slice
+/// border on top, and a selection glow. Isolated from the content layout
+/// so the frame art can be swapped without touching the rest of the card.
 class _CardFrame extends StatelessWidget {
   final bool selected;
   final Color accentColor;
@@ -191,12 +199,7 @@ class _CardFrame extends StatelessWidget {
       width: CardWidget.cardWidth,
       height: CardWidget.cardHeight,
       decoration: BoxDecoration(
-        color: ArmorUpColors.cardBackground,
-        border: Border.all(
-          color: selected ? accentColor : ArmorUpColors.cardStroke,
-          width: 3,
-        ),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(4),
         boxShadow: [
           if (selected)
             BoxShadow(color: accentColor.withValues(alpha: 0.55), blurRadius: 8)
@@ -208,22 +211,32 @@ class _CardFrame extends StatelessWidget {
             ),
         ],
       ),
-      // Inset gold ring just inside the outer border: the "bevel" look.
-      child: Container(
-        margin: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          border: Border.all(color: ArmorUpColors.goldAccent, width: 1.5),
-          borderRadius: BorderRadius.circular(7),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          // Flat color at this scale, not textured: the source crop is
-          // small (64px) and stretching it across the whole card face
-          // would look soft/blurry. The reference card's paper texture
-          // is really only visible in the description panel anyway - see
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Padding matches the frame PNG's 12px corner inset (the part
+          // of centerSlice that stays at native pixel size rather than
+          // stretching), so content sits fully inside the border art
+          // instead of being covered by or leaving a gap from it. Flat
+          // color at this scale, not textured: the source crop is small
+          // (64px) and stretching it across the whole card face would
+          // look soft/blurry. The reference card's paper texture is
+          // really only visible in the description panel anyway - see
           // _DescriptionPanel below.
-          child: Container(color: ArmorUpColors.cardBackground, child: child),
-        ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Container(color: ArmorUpColors.cardBackground, child: child),
+          ),
+          // Nearest-neighbor, no smoothing - the frame is pixel art and
+          // must not blur when the nine-slice edges stretch to fit the
+          // card's actual size.
+          const Image(
+            image: AssetImage(_cardFrameAssetPath),
+            centerSlice: _cardFrameCenterSlice,
+            filterQuality: FilterQuality.none,
+            fit: BoxFit.fill,
+          ),
+        ],
       ),
     );
   }
