@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../state/app_mode_controller.dart';
 import '../state/game_providers.dart';
@@ -8,8 +9,6 @@ import '../state/turn_actor.dart';
 import '../theme/armor_up_colors.dart';
 import '../widgets/armor_widget.dart';
 import '../widgets/card_widget.dart';
-import '../widgets/event_log_widget.dart';
-import '../widgets/player_display.dart';
 import 'pass_device_screen.dart';
 import 'win_screen.dart';
 
@@ -20,6 +19,10 @@ part 'group_discard_prompt_view.dart';
 /// pass-the-phone screen and the active screen (game board or defense
 /// prompt) whenever [currentActorId] changes, and shows the win screen
 /// once the game ends.
+///
+/// Keeps the screen awake for the whole span of a game - players are
+/// reading cards and passing the device around, not tapping constantly,
+/// so the OS's idle-dim timeout would otherwise kick in mid-turn.
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
 
@@ -30,6 +33,18 @@ class GameScreen extends ConsumerStatefulWidget {
 class _GameScreenState extends ConsumerState<GameScreen> {
   String? _lastAcknowledgedActorId;
   bool _showingPassScreen = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WakelockPlus.enable();
+  }
+
+  @override
+  void dispose() {
+    WakelockPlus.disable();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +75,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       final reason = state.pendingGroupDiscard != null
           ? 'You need to discard a card.'
           : state.pendingInterrupt != null
-              ? 'An attack needs your response.'
-              : "It's your turn.";
+          ? 'An attack needs your response.'
+          : "It's your turn.";
       return PassDeviceScreen(
         nextPlayerName: actorName,
         reason: reason,
@@ -121,7 +136,6 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   CardInstance? _selectedCard;
   String? _selectedTargetPlayerId;
   ArmorType? _selectedTargetArmor;
-  bool _showEventLog = false;
 
   void _resetSelection() {
     setState(() {
@@ -147,73 +161,139 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
       }
     });
 
-    final canPlaySelection = state.hasDrawnThisTurn &&
+    final canPlaySelection =
+        state.hasDrawnThisTurn &&
         !state.hasPlayedCardThisTurn &&
         def != null &&
         _isSelectionComplete(def);
 
-    // In read-only mode the active player is someone else; name the turn
-    // after them, not after the local player whose board this is.
-    final activeName = state.activePlayer.name;
-    final title = widget.readOnly
-        ? "$activeName's turn - Turn ${state.turnNumber}"
-        : "${me.name}'s turn - Turn ${state.turnNumber}";
-
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 40,
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 15),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            tooltip: _showEventLog ? 'Hide game log' : 'Show game log',
-            isSelected: _showEventLog,
-            onPressed: () => setState(() => _showEventLog = !_showEventLog),
-          ),
-        ],
-      ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return Column(
               children: [
                 Expanded(
-                  child: _showEventLog
-                      ? Row(
-                          children: [
-                            Expanded(child: _buildPanels(state, me, def)),
-                            const VerticalDivider(width: 1),
-                            Expanded(
-                              flex: 2,
-                              child: EventLogWidget(state: state),
-                            ),
-                          ],
-                        )
-                      : _buildPanels(state, me, def),
+                  child: _buildPanels(state, me, def, constraints.maxWidth),
                 ),
                 const Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: widget.readOnly || state.hasDrawnThisTurn
-                              ? null
-                              : () =>
-                                  controller.dispatch(DrawCard(playerId: widget.actorId)),
-                          icon: const Icon(Icons.style),
-                          label: const Text('Draw'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: !widget.readOnly && canPlaySelection
-                              ? () {
+                Builder(
+                  builder: (context) {
+                    // On short (landscape phone) heights the fixed card size
+                    // would otherwise crowd out the panels above it - shrink
+                    // each card's real footprint (FittedBox around a bounded
+                    // CardWidget, not the scrollable list itself) so the
+                    // panels - the primary game-state view - always keep
+                    // most of the vertical space, with no overflow and
+                    // correctly mapped tap coordinates.
+                    const naturalHandHeight = CardWidget.cardHeight + 24 + 12;
+                    // The action buttons used to have their own full-width row
+                    // above the hand; folding them into a sidebar alongside the
+                    // pile counters gives that space back to the hand, so cards
+                    // can render bigger.
+                    final availableForHand = constraints.maxHeight * 0.42;
+                    final scale = (availableForHand / naturalHandHeight).clamp(
+                      0.55,
+                      1.2,
+                    );
+                    final handRowHeight = naturalHandHeight * scale;
+                    // On narrow (portrait phone) widths a fixed sidebar would
+                    // starve or overflow the scrollable hand list - shrink it
+                    // down (and let it wrap to icon-only buttons) rather than
+                    // hold a fixed width regardless of available space.
+                    final sidebarWidth = constraints.maxWidth < 500
+                        ? 96.0
+                        : 128.0;
+
+                    return SizedBox(
+                      height: handRowHeight,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              children: [
+                                for (final card in me.hand)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 4,
+                                    ),
+                                    child: SizedBox(
+                                      width: (CardWidget.cardWidth) * scale,
+                                      height: handRowHeight,
+                                      child: FittedBox(
+                                        fit: BoxFit.contain,
+                                        alignment: Alignment.topCenter,
+                                        child: SizedBox(
+                                          width: CardWidget.cardWidth,
+                                          height: naturalHandHeight,
+                                          child: _HandCard(
+                                            card: card,
+                                            selected:
+                                                _selectedCard?.instanceId ==
+                                                card.instanceId,
+                                            disabled:
+                                                widget.readOnly ||
+                                                me.isFasting ||
+                                                state.hasPlayedCardThisTurn ||
+                                                cardDefFor(card).type ==
+                                                    CardType.defense,
+                                            onTap: () {
+                                              setState(() {
+                                                if (_selectedCard?.instanceId ==
+                                                    card.instanceId) {
+                                                  _resetSelection();
+                                                } else {
+                                                  _selectedCard = card;
+                                                  _selectedTargetPlayerId =
+                                                      null;
+                                                  _selectedTargetArmor = null;
+                                                }
+                                              });
+                                            },
+                                            onDiscard:
+                                                !widget.readOnly &&
+                                                    state.hasDrawnThisTurn
+                                                ? () => controller.dispatch(
+                                                    DiscardCard(
+                                                      playerId: widget.actorId,
+                                                      cardInstanceId:
+                                                          card.instanceId,
+                                                    ),
+                                                  )
+                                                : null,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            child: SizedBox(
+                              width: sidebarWidth,
+                              child: _ActionSidebar(
+                                state: state,
+                                canDraw:
+                                    !widget.readOnly && !state.hasDrawnThisTurn,
+                                canPlay: !widget.readOnly && canPlaySelection,
+                                canEndTurn:
+                                    !widget.readOnly && state.hasDrawnThisTurn,
+                                mustDiscardFirst: me.hand.length > maxHandSize,
+                                onDraw: () => controller.dispatch(
+                                  DrawCard(playerId: widget.actorId),
+                                ),
+                                onPlay: () {
                                   controller.dispatch(
                                     PlayCard(
                                       playerId: widget.actorId,
@@ -223,106 +303,18 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                                     ),
                                   );
                                   _resetSelection();
-                                }
-                              : null,
-                          icon: const Icon(Icons.play_arrow),
-                          label: const Text('Play card'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: widget.readOnly || !state.hasDrawnThisTurn
-                              ? null
-                              : () =>
-                                  controller.dispatch(EndTurn(playerId: widget.actorId)),
-                          icon: const Icon(Icons.check),
-                          label: Text(
-                              me.hand.length > maxHandSize ? 'Discard first' : 'End turn'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Builder(builder: (context) {
-                  // On short (landscape phone) heights the fixed card size
-                  // would otherwise crowd out the panels above it - shrink
-                  // each card's real footprint (FittedBox around a bounded
-                  // CardWidget, not the scrollable list itself) so the
-                  // panels - the primary game-state view - always keep
-                  // most of the vertical space, with no overflow and
-                  // correctly mapped tap coordinates.
-                  const naturalHandHeight = CardWidget.cardHeight + 24 + 12;
-                  final availableForHand = constraints.maxHeight * 0.32;
-                  final scale =
-                      (availableForHand / naturalHandHeight).clamp(0.55, 1.0);
-                  final handRowHeight = naturalHandHeight * scale;
-
-                  return SizedBox(
-                    height: handRowHeight,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            children: [
-                              for (final card in me.hand)
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                                  child: SizedBox(
-                                    width: (CardWidget.cardWidth) * scale,
-                                    height: handRowHeight,
-                                    child: FittedBox(
-                                      fit: BoxFit.contain,
-                                      child: SizedBox(
-                                        width: CardWidget.cardWidth,
-                                        height: naturalHandHeight,
-                                        child: _HandCard(
-                                          card: card,
-                                          selected: _selectedCard?.instanceId ==
-                                              card.instanceId,
-                                          disabled: widget.readOnly ||
-                                              me.isFasting ||
-                                              state.hasPlayedCardThisTurn ||
-                                              cardDefFor(card).type == CardType.defense,
-                                          onTap: () {
-                                            setState(() {
-                                              if (_selectedCard?.instanceId ==
-                                                  card.instanceId) {
-                                                _resetSelection();
-                                              } else {
-                                                _selectedCard = card;
-                                                _selectedTargetPlayerId = null;
-                                                _selectedTargetArmor = null;
-                                              }
-                                            });
-                                          },
-                                          onDiscard: !widget.readOnly && state.hasDrawnThisTurn
-                                              ? () => controller.dispatch(
-                                                    DiscardCard(
-                                                        playerId: widget.actorId,
-                                                        cardInstanceId: card.instanceId),
-                                                  )
-                                              : null,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                },
+                                onEndTurn: () => controller.dispatch(
+                                  EndTurn(playerId: widget.actorId),
                                 ),
-                            ],
+                              ),
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: _PileCountersColumn(state: state),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ],
             );
           },
@@ -335,21 +327,50 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     GameState state,
     PlayerState me,
     CardDef? def,
+    double availableWidth,
   ) {
+    // The portrait panel has a natural fixed width; on narrow (portrait
+    // phone) widths that plus the center list panel's minimum no longer
+    // fits, so scale it down rather than let the Row overflow. The armor
+    // grid panel is gone - the active player's own armor now lives inside
+    // the portrait panel itself - so the center list panel gets everything
+    // else via Expanded.
+    const naturalPortraitWidth = 340.0;
+    const centerPanelMinWidth = 220.0;
+    const dividerAllowance = 1.0;
+    final naturalTotal =
+        naturalPortraitWidth + centerPanelMinWidth + dividerAllowance;
+    final portraitWidth =
+        naturalPortraitWidth * (availableWidth / naturalTotal).clamp(0.4, 1.0);
+
+    final activePlayer = widget.readOnly ? state.activePlayer : me;
+    final armorSelectable =
+        def != null &&
+        _targetRuleNeedsArmor(def.targetRule) &&
+        _targetRuleNeedsOwnPiece(def.targetRule);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
-          width: 190,
+          width: portraitWidth,
           child: _ActivePlayerPortraitPanel(
-            player: widget.readOnly ? state.activePlayer : me,
+            player: activePlayer,
             state: state,
+            selectable: armorSelectable,
+            selectedArmor: _selectedTargetArmor,
+            onSelectArmor: (armor) =>
+                setState(() => _selectedTargetArmor = armor),
+            isConditionSelectable: def == null
+                ? defaultIsConditionSelectable
+                : (condition) => _isConditionSelectable(def, condition),
           ),
         ),
         const VerticalDivider(width: 1),
         Expanded(
           child: _PlayerListPanel(
             actorId: widget.actorId,
+            hiddenPlayerId: activePlayer.id,
             players: state.players,
             def: def,
             selectedTargetPlayerId: _selectedTargetPlayerId,
@@ -357,22 +378,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                 setState(() => _selectedTargetPlayerId = playerId),
             targetRuleNeedsPlayer: _targetRuleNeedsPlayer,
             selectedTargetArmor: _selectedTargetArmor,
-            onSelectArmor: (armor) => setState(() => _selectedTargetArmor = armor),
-            isConditionSelectable: def == null
-                ? defaultIsConditionSelectable
-                : (condition) => _isConditionSelectable(def, condition),
-          ),
-        ),
-        const VerticalDivider(width: 1),
-        SizedBox(
-          width: 280,
-          child: _MyArmorGridPanel(
-            player: me,
-            selectable: def != null &&
-                _targetRuleNeedsArmor(def.targetRule) &&
-                _targetRuleNeedsOwnPiece(def.targetRule),
-            selectedArmor: _selectedTargetArmor,
-            onSelectArmor: (armor) => setState(() => _selectedTargetArmor = armor),
+            onSelectArmor: (armor) =>
+                setState(() => _selectedTargetArmor = armor),
             isConditionSelectable: def == null
                 ? defaultIsConditionSelectable
                 : (condition) => _isConditionSelectable(def, condition),
@@ -405,7 +412,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   bool _targetRuleNeedsArmor(TargetRule rule) =>
       rule == TargetRule.anyPieceOnPlayer || rule == TargetRule.ownArmorPiece;
 
-  bool _targetRuleNeedsOwnPiece(TargetRule rule) => rule == TargetRule.ownArmorPiece;
+  bool _targetRuleNeedsOwnPiece(TargetRule rule) =>
+      rule == TargetRule.ownArmorPiece;
 
   bool _isConditionSelectable(CardDef def, ArmorCondition condition) {
     switch (def.effect) {
@@ -464,14 +472,33 @@ class _HandCard extends StatelessWidget {
   }
 }
 
-/// Left panel: the active player's portrait, name, and a turn-status line.
-/// This is the single place turn/fasting/played-card status is shown - it
-/// used to be a footer message repeated under the hand row.
+/// Left panel: the active player's name, turn-status line, and their own
+/// armor as a single row of six full badges underneath. This is the single
+/// place turn/fasting/played-card status is shown - it used to be a footer
+/// message repeated under the hand row - and, since the right-hand armor
+/// grid panel was removed, the single place the active player's own armor
+/// detail is shown at all.
+///
+/// No portrait image yet - the background is a plain placeholder fill so a
+/// future full-panel character illustration can sit behind this text
+/// without restructuring, rather than a separate circular avatar competing
+/// with the armor row for the panel's limited height.
 class _ActivePlayerPortraitPanel extends StatelessWidget {
   final PlayerState player;
   final GameState state;
+  final bool selectable;
+  final ArmorType? selectedArmor;
+  final ValueChanged<ArmorType> onSelectArmor;
+  final bool Function(ArmorCondition condition) isConditionSelectable;
 
-  const _ActivePlayerPortraitPanel({required this.player, required this.state});
+  const _ActivePlayerPortraitPanel({
+    required this.player,
+    required this.state,
+    required this.selectable,
+    required this.selectedArmor,
+    required this.onSelectArmor,
+    required this.isConditionSelectable,
+  });
 
   String get _statusLine {
     if (player.isFasting) return 'Fasting this turn';
@@ -482,38 +509,57 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: ArmorUpColors.cardBackground.withValues(alpha: 0.2),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            player.name,
+            '${player.name} - Turn ${state.turnNumber} (active)',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 14,
               color: ArmorUpColors.cardStroke,
             ),
             textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
+          const SizedBox(height: 2),
           Text(
-            '(active)',
+            _statusLine,
             style: TextStyle(
               fontSize: 11,
-              color: ArmorUpColors.cardStroke.withValues(alpha: 0.6),
-            ),
-          ),
-          const SizedBox(height: 10),
-          PlayerPortrait(playerId: player.id, size: 76),
-          const SizedBox(height: 10),
-          Text(
-            'Status: $_statusLine',
-            style: TextStyle(
-              fontSize: 12,
               fontStyle: FontStyle.italic,
               color: ArmorUpColors.cardStroke.withValues(alpha: 0.75),
             ),
             textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          const Spacer(),
+          const Text(
+            'Your Armor',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              color: ArmorUpColors.cardStroke,
+            ),
+          ),
+          const SizedBox(height: 6),
+          // Six full-size badges are wider than this panel - scale the
+          // whole row down to fit rather than let it scroll out of view,
+          // so all six conditions stay glanceable at once.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: ArmorRow(
+              player: player,
+              selectable: selectable,
+              selectedArmor: selectedArmor,
+              onSelect: onSelectArmor,
+              isConditionSelectable: isConditionSelectable,
+            ),
           ),
         ],
       ),
@@ -521,13 +567,14 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
   }
 }
 
-/// Center panel: a glanceable, scrollable list of every player. The active
-/// player's row is minimal (name only) since their armor is already shown
-/// in full detail in the right-hand grid - repeating it here would show the
-/// same data twice. Other players get a compact armor-badge row and remain
-/// tap-to-target, unchanged from the previous per-player panel.
+/// Center panel: a glanceable, scrollable list of every player except
+/// [hiddenPlayerId] (the one whose detailed armor is already shown in the
+/// left portrait panel - repeating them here would show the same data
+/// twice). Every remaining player gets a compact armor-badge row and
+/// remains tap-to-target.
 class _PlayerListPanel extends StatelessWidget {
   final String actorId;
+  final String hiddenPlayerId;
   final List<PlayerState> players;
   final CardDef? def;
   final String? selectedTargetPlayerId;
@@ -539,6 +586,7 @@ class _PlayerListPanel extends StatelessWidget {
 
   const _PlayerListPanel({
     required this.actorId,
+    required this.hiddenPlayerId,
     required this.players,
     required this.def,
     required this.selectedTargetPlayerId,
@@ -556,25 +604,33 @@ class _PlayerListPanel extends StatelessWidget {
     // player themselves - so once that opponent is selected, their compact
     // armor row becomes the picker (their armor grid isn't shown anywhere
     // else, unlike the active player's).
-    final needsArmorPick = def != null && def!.targetRule == TargetRule.anyPieceOnPlayer;
+    final needsArmorPick =
+        def != null && def!.targetRule == TargetRule.anyPieceOnPlayer;
+    final visiblePlayers = players.where((p) => p.id != hiddenPlayerId);
 
     return ListView(
       padding: const EdgeInsets.all(10),
       children: [
-        for (final player in players)
+        for (final player in visiblePlayers)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: _PlayerListRow(
               player: player,
               isSelf: player.id == actorId,
               isSelectedTarget: player.id == selectedTargetPlayerId,
-              onSelectAsTarget: def != null &&
+              onSelectAsTarget:
+                  def != null &&
                       targetRuleNeedsPlayer(def!.targetRule) &&
                       player.id != actorId &&
                       !player.isEliminated
                   ? () => onSelectTarget(player.id)
                   : null,
-              armorSelectable: needsArmorPick && player.id == selectedTargetPlayerId,
+              armorSelectable:
+                  needsArmorPick && player.id == selectedTargetPlayerId,
+              // Once an opponent's armor is the thing being picked, every
+              // other opponent's row mutes down - only the actual target's
+              // pieces should read as live/actionable.
+              armorMuted: needsArmorPick && player.id != selectedTargetPlayerId,
               selectedArmor: selectedTargetArmor,
               onSelectArmor: onSelectArmor,
               isConditionSelectable: isConditionSelectable,
@@ -591,6 +647,7 @@ class _PlayerListRow extends StatelessWidget {
   final bool isSelectedTarget;
   final VoidCallback? onSelectAsTarget;
   final bool armorSelectable;
+  final bool armorMuted;
   final ArmorType? selectedArmor;
   final ValueChanged<ArmorType> onSelectArmor;
   final bool Function(ArmorCondition condition) isConditionSelectable;
@@ -601,6 +658,7 @@ class _PlayerListRow extends StatelessWidget {
     required this.isSelectedTarget,
     required this.onSelectAsTarget,
     required this.armorSelectable,
+    required this.armorMuted,
     required this.selectedArmor,
     required this.onSelectArmor,
     required this.isConditionSelectable,
@@ -625,49 +683,90 @@ class _PlayerListRow extends StatelessWidget {
       child: InkWell(
         onTap: onSelectAsTarget,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(
-              child: Text(
-                isSelf ? '${player.name} (you)' : player.name,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: ArmorUpColors.cardStroke.withValues(alpha: isSelf ? 0.55 : 1),
-                ),
+            // Plain ConstrainedBox, not Flexible: a Flexible sibling of the
+            // armor cluster's Expanded would reserve half the row's flex
+            // share for the name regardless of how little of it the text
+            // actually uses - Flutter doesn't hand unused flex space back
+            // to other flex children, it just sits blank in the Flexible's
+            // own slot. A non-flex box takes only its intrinsic width, so
+            // Expanded genuinely gets ~100% of what's left, which is what
+            // makes the armor row actually reach the panel's right edge.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 90),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isSelf ? '${player.name} (you)' : player.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: ArmorUpColors.cardStroke.withValues(
+                        alpha: isSelf ? 0.55 : 1,
+                      ),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  // Stacked under the name rather than inline before the
+                  // armor row: sharing a flex row with the badges made
+                  // them visibly shrink/grow depending on whether this
+                  // text was present, since both competed for the same
+                  // leftover width.
+                  if (onSelectAsTarget != null)
+                    Text(
+                      '(tap to target)',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                ],
               ),
             ),
-            if (player.isEliminated)
-              const Padding(
-                padding: EdgeInsets.only(left: 6),
-                child: Chip(label: Text('Eliminated'), visualDensity: VisualDensity.compact),
-              )
-            else if (!isSelf)
-              ArmorRow(
-                player: player,
-                compact: true,
-                selectable: armorSelectable,
-                selectedArmor: selectedArmor,
-                onSelect: armorSelectable ? onSelectArmor : null,
-                isConditionSelectable: isConditionSelectable,
-              )
-            else
-              Text(
-                'see your armor grid',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontStyle: FontStyle.italic,
-                  color: ArmorUpColors.cardStroke.withValues(alpha: 0.4),
-                ),
-              ),
-            if (onSelectAsTarget != null) ...[
-              const SizedBox(width: 6),
-              Text(
-                '(tap to target)',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
-                ),
-              ),
-            ],
+            const SizedBox(width: 6),
+            // Armor badges (or the placeholder/eliminated tag) claim all
+            // remaining space and right-align within it.
+            Expanded(
+              child: player.isEliminated
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: const [
+                        Chip(
+                          label: Text('Eliminated'),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    )
+                  // Expanded gives FittedBox a bounded width to scale down
+                  // against; without it FittedBox reports its child's
+                  // natural (unscaled) size when the incoming constraint is
+                  // loose, which overflows on narrow panels instead of
+                  // shrinking - the exact case this was meant to handle.
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: ArmorRow(
+                              player: player,
+                              compact: true,
+                              selectable: armorSelectable,
+                              muted: armorMuted,
+                              selectedArmor: selectedArmor,
+                              onSelect: armorSelectable ? onSelectArmor : null,
+                              isConditionSelectable: isConditionSelectable,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
           ],
         ),
       ),
@@ -675,99 +774,106 @@ class _PlayerListRow extends StatelessWidget {
   }
 }
 
-/// Right panel: the single detailed representation of the active player's
-/// own armor, as a 3x2 grid of full-size badges.
-class _MyArmorGridPanel extends StatelessWidget {
-  final PlayerState player;
-  final bool selectable;
-  final ArmorType? selectedArmor;
-  final ValueChanged<ArmorType> onSelectArmor;
-  final bool Function(ArmorCondition condition) isConditionSelectable;
+/// Right-of-hand sidebar: the three turn actions (Draw / Play card / End
+/// turn) stacked as compact icon buttons, with the draw/discard pile
+/// counts underneath. Replaces the old full-width button row so that
+/// space goes back to the hand, letting cards render bigger.
+class _ActionSidebar extends StatelessWidget {
+  final GameState state;
+  final bool canDraw;
+  final bool canPlay;
+  final bool canEndTurn;
+  final bool mustDiscardFirst;
+  final VoidCallback onDraw;
+  final VoidCallback onPlay;
+  final VoidCallback onEndTurn;
 
-  const _MyArmorGridPanel({
-    required this.player,
-    required this.selectable,
-    required this.selectedArmor,
-    required this.onSelectArmor,
-    required this.isConditionSelectable,
+  const _ActionSidebar({
+    required this.state,
+    required this.canDraw,
+    required this.canPlay,
+    required this.canEndTurn,
+    required this.mustDiscardFirst,
+    required this.onDraw,
+    required this.onPlay,
+    required this.onEndTurn,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
+    final pileStyle = TextStyle(
+      fontSize: 11,
+      color: ArmorUpColors.cardStroke.withValues(alpha: 0.8),
+    );
+    // The buttons keep a real tap target size rather than shrinking to fit,
+    // so on short heights this scrolls instead of overflowing - matching
+    // how the hand row already handles a horizontal equivalent.
+    return SingleChildScrollView(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Your Armor',
-            style: TextStyle(fontWeight: FontWeight.bold, color: ArmorUpColors.cardStroke),
+          _SidebarButton(
+            icon: Icons.style,
+            label: 'Draw',
+            filled: false,
+            onPressed: canDraw ? onDraw : null,
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                // ArmorBadge has a fixed natural size; on short landscape
-                // heights (real phones) the 2-row grid doesn't fit that
-                // size, and GridView silently clips the second row instead
-                // of erroring. Shrink each badge to fit its actual cell via
-                // FittedBox rather than let it clip - all 6 pieces should
-                // always be visible without scrolling.
-                const columns = 3;
-                const rows = 2;
-                const spacing = 8.0;
-                final cellWidth = (constraints.maxWidth - spacing * (columns - 1)) / columns;
-                final cellHeight = (constraints.maxHeight - spacing * (rows - 1)) / rows;
-
-                return GridView.count(
-                  crossAxisCount: columns,
-                  mainAxisSpacing: spacing,
-                  crossAxisSpacing: spacing,
-                  childAspectRatio: cellWidth / cellHeight,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    for (final piece in player.armor)
-                      FittedBox(
-                        fit: BoxFit.contain,
-                        child: ArmorBadge(
-                          piece: piece,
-                          selectable: selectable && isConditionSelectable(piece.condition),
-                          selected: selectedArmor == piece.type,
-                          onTap: () => onSelectArmor(piece.type),
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
+          const SizedBox(height: 4),
+          _SidebarButton(
+            icon: Icons.play_arrow,
+            label: 'Play card',
+            filled: true,
+            onPressed: canPlay ? onPlay : null,
           ),
+          const SizedBox(height: 4),
+          _SidebarButton(
+            icon: Icons.check,
+            label: mustDiscardFirst ? 'Discard first' : 'End turn',
+            filled: false,
+            onPressed: canEndTurn ? onEndTurn : null,
+          ),
+          const SizedBox(height: 6),
+          Text('Draw pile: ${state.drawPile.length}', style: pileStyle),
+          Text('Discard pile: ${state.discardPile.length}', style: pileStyle),
         ],
       ),
     );
   }
 }
 
-/// Bottom-right stat readout: cards remaining in the draw pile and cards
-/// in the discard pile. Simple, non-interactive.
-class _PileCountersColumn extends StatelessWidget {
-  final GameState state;
+class _SidebarButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool filled;
+  final VoidCallback? onPressed;
 
-  const _PileCountersColumn({required this.state});
+  const _SidebarButton({
+    required this.icon,
+    required this.label,
+    required this.filled,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final style = TextStyle(
-      fontSize: 12,
-      color: ArmorUpColors.cardStroke.withValues(alpha: 0.8),
+    final style = ButtonStyle(
+      padding: WidgetStateProperty.all(
+        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      ),
+      minimumSize: WidgetStateProperty.all(const Size(0, 0)),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
     );
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text('Draw pile: ${state.drawPile.length}', style: style),
-        const SizedBox(height: 4),
-        Text('Discard pile: ${state.discardPile.length}', style: style),
-      ],
+    final child = FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [Icon(icon, size: 16), const SizedBox(width: 6), Text(label)],
+      ),
     );
+    return filled
+        ? FilledButton(onPressed: onPressed, style: style, child: child)
+        : OutlinedButton(onPressed: onPressed, style: style, child: child);
   }
 }
