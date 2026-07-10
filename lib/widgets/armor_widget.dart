@@ -103,7 +103,7 @@ class ArmorBadge extends StatelessWidget {
               _shortName(piece.type),
               style: TextStyle(
                 fontSize: 8,
-                color: ArmorUpColors.cardStroke.withValues(
+                color: ArmorUpColors.fontColor.withValues(
                   alpha: isLost ? 0.5 : 0.9,
                 ),
               ),

@@ -57,7 +57,7 @@ class PlayerPortrait extends StatelessWidget {
             : Icon(
                 spec.iconPlaceholder,
                 size: size * 0.55,
-                color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
+                color: ArmorUpColors.fontColor.withValues(alpha: 0.55),
               ),
       ),
     );

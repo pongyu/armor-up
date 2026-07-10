@@ -58,21 +58,61 @@ String describeEffect(CardDef def) {
 
 /// A textured fill: one piece of parchment stretched/cropped to cover the
 /// whole area (not tiled - a repeating tile made the crop's crease mark
-/// read as an obvious wallpaper pattern) over the flat
-/// [ArmorUpColors.cardBackground] color if the asset exists, or just the
-/// flat color if it doesn't (no crash, no broken-image icon - the asset
-/// is optional until the user supplies one per assets/textures/README.md).
-BoxDecoration _texturedFill({BorderRadiusGeometry? borderRadius}) {
+/// read as an obvious wallpaper pattern) over the flat [fallbackColor]
+/// if the asset exists, or just the flat color if it doesn't (no crash,
+/// no broken-image icon - the asset is optional until the user supplies
+/// one per assets/textures/README.md).
+///
+/// [tint] runs the (light, warm-parchment-colored) source texture
+/// through `BlendMode.modulate`, same technique as `_TypeTintedFill`
+/// below - the parchment.png asset predates the dark re-theme and is
+/// still a light cream color, so drawing it untinted paints over
+/// whatever dark fallbackColor is passed and reads as a blank white
+/// panel. Pass the panel's own intended dark color as [tint] so the
+/// paper grain stays visible but darkens to match.
+BoxDecoration _texturedFill({
+  required Color tint,
+  BorderRadiusGeometry? borderRadius,
+}) {
   return BoxDecoration(
-    color: ArmorUpColors.cardBackground,
+    color: tint,
     borderRadius: borderRadius,
     image: DecorationImage(
       image: const AssetImage(_parchmentTextureAssetPath),
       fit: BoxFit.cover,
+      colorFilter: ColorFilter.mode(tint, BlendMode.modulate),
       onError:
           (error, stackTrace) {}, // Missing asset: flat color shows through.
     ),
   );
+}
+
+/// The card's main background, tinted toward its type color (attack/
+/// defense/restore/event) rather than the same neutral parchment for
+/// every card. Uses BlendMode.modulate on the parchment texture so the
+/// paper grain stays visible while its hue shifts - a plain color swap
+/// would lose the texture entirely. Falls back to a flat, muted tint
+/// (no texture) if the parchment asset hasn't been supplied yet.
+class _TypeTintedFill extends StatelessWidget {
+  final Color typeColor;
+
+  const _TypeTintedFill({required this.typeColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return ColorFiltered(
+      colorFilter: ColorFilter.mode(typeColor, BlendMode.modulate),
+      child: Image.asset(
+        _parchmentTextureAssetPath,
+        fit: BoxFit.cover,
+        // Missing asset: fall back to a flat tint instead of a
+        // broken-image icon, so the card still reads as type-colored
+        // even before the texture file is supplied.
+        errorBuilder: (context, error, stackTrace) =>
+            ColoredBox(color: typeColor.withValues(alpha: 0.6)),
+      ),
+    );
+  }
 }
 
 /// A single card: parchment frame, a circular illustration medallion, a
@@ -160,6 +200,13 @@ class CardWidget extends StatelessWidget {
                     name: def.name,
                     color: banner,
                     height: bannerHeight,
+                    // Wider than the medallion/description panel (their
+                    // -16 margin is for those two; the banner gets a
+                    // smaller -6 margin so it sits almost flush with the
+                    // card's inner frame edge instead of matching their
+                    // wider gap) - fixed regardless of name length rather
+                    // than shrinking to fit short names.
+                    width: constraints.maxWidth - 6,
                   ),
                 ),
               ],
@@ -171,13 +218,13 @@ class CardWidget extends StatelessWidget {
   }
 }
 
-/// Pixel-art nine-slice card border. A single 48x48 PNG: 12px corners
-/// (drawn with pixelated stair-step edges, never stretched), 12px-thick
+/// Pixel-art nine-slice card border. A single 48x48 PNG: 10px corners
+/// (drawn with pixelated stair-step edges, never stretched), 10px-thick
 /// straight edge segments (stretched to fit the card's actual size), and
-/// a fully transparent 24x24 center so the card's own content shows
-/// through. See assets/cards/README.md for the art spec.
+/// a transparent center so the card's own content shows through. See
+/// assets/cards/README.md for the art spec.
 const _cardFrameAssetPath = 'assets/cards/card_frame.png';
-const _cardFrameCenterSlice = Rect.fromLTRB(12, 12, 36, 36);
+const _cardFrameCenterSlice = Rect.fromLTRB(10, 10, 38, 38);
 
 /// The card's outer parchment frame: flat fill, the pixel-art nine-slice
 /// border on top, and a selection glow. Isolated from the content layout
@@ -214,18 +261,33 @@ class _CardFrame extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Padding matches the frame PNG's 12px corner inset (the part
+          // Padding matches the frame PNG's 10px corner inset (the part
           // of centerSlice that stays at native pixel size rather than
           // stretching), so content sits fully inside the border art
-          // instead of being covered by or leaving a gap from it. Flat
-          // color at this scale, not textured: the source crop is small
-          // (64px) and stretching it across the whole card face would
-          // look soft/blurry. The reference card's paper texture is
-          // really only visible in the description panel anyway - see
-          // _DescriptionPanel below.
+          // instead of being covered by or leaving a gap from it.
           Padding(
-            padding: const EdgeInsets.all(12),
-            child: Container(color: ArmorUpColors.cardBackground, child: child),
+            padding: const EdgeInsets.all(10),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _TypeTintedFill(typeColor: accentColor),
+                // Dark vignette: subtle at the center, darker toward the
+                // edges, so the type-tinted background reads as having
+                // depth rather than a flat color wash, and helps the
+                // medallion/text stay legible against it.
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: Alignment.center,
+                      radius: 0.9,
+                      colors: [Colors.transparent, Colors.black45],
+                      stops: [0.55, 1.0],
+                    ),
+                  ),
+                ),
+                child,
+              ],
+            ),
           ),
           // Nearest-neighbor, no smoothing - the frame is pixel art and
           // must not blur when the nine-slice edges stretch to fit the
@@ -234,7 +296,6 @@ class _CardFrame extends StatelessWidget {
             image: AssetImage(_cardFrameAssetPath),
             centerSlice: _cardFrameCenterSlice,
             filterQuality: FilterQuality.none,
-            fit: BoxFit.fill,
           ),
         ],
       ),
@@ -285,7 +346,7 @@ class _Medallion extends StatelessWidget {
                     child: Icon(
                       spec.iconPlaceholder,
                       size: diameter * 0.45,
-                      color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
+                      color: ArmorUpColors.fontColor.withValues(alpha: 0.55),
                     ),
                   ),
           ),
@@ -295,48 +356,113 @@ class _Medallion extends StatelessWidget {
   }
 }
 
-/// The card name banner: a rounded pill that floats over the medallion's
-/// bottom edge rather than spanning the card edge-to-edge.
+/// Pixel-art three-slice name banner: a 64x24 PNG, notched/tapered end
+/// caps (0-6px and 58-64px, drawn in full, never stretched) with a flat
+/// full-height middle (6-58px) that stretches horizontally to fit the
+/// name. Only stretches in one dimension - the centerSlice rect spans
+/// the image's entire height so nothing distorts vertically. See
+/// assets/cards/README.md for the art spec.
+const _nameBannerAssetPath = 'assets/cards/name_banner.png';
+const _nameBannerCenterSlice = Rect.fromLTRB(6, 0, 58, 24);
+
+/// Lightens the banner art's own dark navy first (an additive brightness
+/// boost, so the result isn't capped by how dark the source pixels
+/// already are - a plain multiply always is), then tints toward
+/// [typeColor]. A single 4x5 color matrix - separable, no compositing
+/// saveLayer, safe on-device unlike BlendMode.color/.hue/.saturation.
+ColorFilter _bannerTintMatrix(Color typeColor) {
+  final r = typeColor.r;
+  final g = typeColor.g;
+  final b = typeColor.b;
+  const brightnessBoost = 90.0;
+  return ColorFilter.matrix([
+    r,
+    0,
+    0,
+    0,
+    brightnessBoost * r,
+    0,
+    g,
+    0,
+    0,
+    brightnessBoost * g,
+    0,
+    0,
+    b,
+    0,
+    brightnessBoost * b,
+    0,
+    0,
+    0,
+    1,
+    0,
+  ]);
+}
+
+/// The card name banner: the pixel-art plaque asset, tinted toward the
+/// card's type color via [_bannerTintMatrix], floating over the
+/// medallion's bottom edge rather than spanning the card edge-to-edge.
+/// Fixed [width] regardless of name length (matching the description
+/// panel's width, minus a small side margin so it never touches the
+/// card's outer frame) rather than shrinking to fit short names.
 class _NameBanner extends StatelessWidget {
   final String name;
   final Color color;
   final double height;
+  final double width;
 
   const _NameBanner({
     required this.name,
     required this.color,
     required this.height,
+    required this.width,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(
-        minHeight: height,
-        maxWidth: CardWidget.cardWidth - 16,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(height / 2),
-        border: Border.all(color: ArmorUpColors.goldAccent, width: 1),
-        boxShadow: const [
-          BoxShadow(color: Colors.black26, blurRadius: 3, offset: Offset(0, 1)),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          name,
-          maxLines: 1,
-          style: const TextStyle(
-            color: ArmorUpColors.fontColor,
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-            shadows: ArmorUpColors.titleOutline,
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned.fill(
+            // Not BlendMode.color/.hue/.saturation: those non-separable
+            // blend modes need a compositing saveLayer and caused a
+            // full-screen render glitch on device. Not plain
+            // BlendMode.modulate either: the banner art's own dark navy
+            // caps how light a multiply can ever get, regardless of how
+            // light the tint color is. _bannerTintMatrix lightens the
+            // source's luminance first, then adds the type color - a
+            // single separable matrix filter, safe like modulate but not
+            // capped by the source art's darkness.
+            child: ColorFiltered(
+              colorFilter: _bannerTintMatrix(color),
+              child: const Image(
+                image: AssetImage(_nameBannerAssetPath),
+                centerSlice: _nameBannerCenterSlice,
+                filterQuality: FilterQuality.none,
+              ),
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                name.toUpperCase(),
+                maxLines: 1,
+                style: const TextStyle(
+                  color: ArmorUpColors.fontColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  letterSpacing: 0.5,
+                  shadows: ArmorUpColors.titleOutline,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -366,17 +492,15 @@ class _DescriptionPanel extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+      // No border radius: square corners match the pixel-art aesthetic
+      // even without a frame image on this panel (unlike the card's
+      // outer frame, this doesn't have a dedicated border asset yet).
+      decoration: _texturedFill(tint: ArmorUpColors.goldAccent).copyWith(
+        boxShadow: const [
+          BoxShadow(color: Colors.black38, blurRadius: 2, offset: Offset(0, 1)),
+        ],
+      ),
       padding: EdgeInsets.fromLTRB(6, textTopPadding, 6, 4),
-      decoration: _texturedFill(borderRadius: BorderRadius.circular(6))
-          .copyWith(
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black38,
-                blurRadius: 4,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
       // A long effect description (e.g. Pride's) can be taller than the
       // room left after the banner overlap eats into this panel -
       // FittedBox scales the whole text block down to fit rather than
@@ -393,6 +517,13 @@ class _DescriptionPanel extends StatelessWidget {
             children: [
               Text(
                 text,
+                // This panel is a light gold-tinted parchment (see
+                // _texturedFill's tint above), the one deliberately
+                // light surface in an otherwise dark card - fontColor
+                // (light-on-dark everywhere else) would be
+                // near-unreadable here, so this uses the dark ink
+                // color instead, same as the original light-parchment
+                // theme's text-on-paper contrast.
                 style: const TextStyle(
                   fontSize: 9,
                   height: 1.2,

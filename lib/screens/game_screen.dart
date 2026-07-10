@@ -168,9 +168,10 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         _isSelectionComplete(def);
 
     return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
+      body: _VignetteBoardBackground(
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
             return Column(
               children: [
                 Expanded(
@@ -246,9 +247,16 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                               children: [
                                 for (final card in me.hand)
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                      vertical: 4,
+                                    // Extra top room (vs. the 4px everywhere
+                                    // else) so the selected-card lift
+                                    // (AnimatedSlide in _HandCard) has space
+                                    // to paint into instead of getting
+                                    // clipped by the ListView's viewport.
+                                    padding: const EdgeInsets.fromLTRB(
+                                      4,
+                                      16,
+                                      4,
+                                      4,
                                     ),
                                     child: SizedBox(
                                       width: (CardWidget.cardWidth) * scale,
@@ -345,6 +353,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
               ],
             );
           },
+          ),
         ),
       ),
     );
@@ -456,6 +465,50 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   }
 }
 
+/// The game board's background: the flat [ArmorUpColors.boardBackground]
+/// fill under a radial vignette that darkens toward the screen edges,
+/// for a bit of depth without a busy texture competing with the panels.
+/// A tiled paper texture (Tiny Swords' SpecialPaper.png) was tried here
+/// and dropped - even its "plain" center cell showed visible tile seams
+/// and was too high-contrast against the dark UI panels. A lightweight
+/// stand-in for a fuller board frame - see the (currently unused, kept
+/// for later) hand-drawn stone-brick assets under
+/// assets/cards/templates/ for a heavier treatment considered and
+/// backed out of for now.
+class _VignetteBoardBackground extends StatelessWidget {
+  final Widget child;
+
+  const _VignetteBoardBackground({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(color: ArmorUpColors.boardBackground),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // radius 1.4 (vs. the default 0.5) reaches past the screen's
+          // corners on a wide landscape aspect ratio, so the darkening
+          // is actually visible rather than undershooting off-screen;
+          // stops start darkening at 0.3 so it reads clearly instead of
+          // only tinting the very outer edge.
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 1.4,
+                colors: [Colors.transparent, Colors.black87],
+                stops: [0.3, 1.0],
+              ),
+            ),
+          ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
 class _HandCard extends StatelessWidget {
   final CardInstance card;
   final bool selected;
@@ -478,10 +531,24 @@ class _HandCard extends StatelessWidget {
       children: [
         Opacity(
           opacity: disabled ? 0.5 : 1,
-          child: CardWidget(
-            def: def,
-            selected: selected,
-            onTap: disabled ? null : onTap,
+          // Selection used to rely solely on the frame's glow shadow, which
+          // reads poorly now that the frame itself is a busy pixel-art
+          // border - a physical lift makes the selected card unambiguous
+          // even before the glow registers.
+          child: AnimatedSlide(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            offset: selected ? const Offset(0, -0.08) : Offset.zero,
+            child: AnimatedScale(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              scale: selected ? 1.05 : 1.0,
+              child: CardWidget(
+                def: def,
+                selected: selected,
+                onTap: disabled ? null : onTap,
+              ),
+            ),
           ),
         ),
         if (onDiscard != null)
@@ -547,7 +614,7 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 14,
-              color: ArmorUpColors.cardStroke,
+              color: ArmorUpColors.fontColor,
             ),
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
@@ -559,7 +626,7 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontStyle: FontStyle.italic,
-              color: ArmorUpColors.cardStroke.withValues(alpha: 0.75),
+              color: ArmorUpColors.fontColor.withValues(alpha: 0.75),
             ),
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
@@ -571,7 +638,7 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 12,
-              color: ArmorUpColors.cardStroke,
+              color: ArmorUpColors.fontColor,
             ),
           ),
           const SizedBox(height: 6),
@@ -730,7 +797,7 @@ class _PlayerListRow extends StatelessWidget {
                     isSelf ? '${player.name} (you)' : player.name,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: ArmorUpColors.cardStroke.withValues(
+                      color: ArmorUpColors.fontColor.withValues(
                         alpha: isSelf ? 0.55 : 1,
                       ),
                     ),
@@ -747,7 +814,7 @@ class _PlayerListRow extends StatelessWidget {
                       '(tap to target)',
                       style: TextStyle(
                         fontSize: 10,
-                        color: ArmorUpColors.cardStroke.withValues(alpha: 0.55),
+                        color: ArmorUpColors.fontColor.withValues(alpha: 0.55),
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -830,7 +897,7 @@ class _ActionSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     final pileStyle = TextStyle(
       fontSize: 11,
-      color: ArmorUpColors.cardStroke.withValues(alpha: 0.8),
+      color: ArmorUpColors.fontColor.withValues(alpha: 0.8),
     );
     // The buttons keep a real tap target size rather than shrinking to fit,
     // so on short heights this scrolls instead of overflowing - matching

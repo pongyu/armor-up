@@ -29,17 +29,24 @@ void main() async {
   runApp(const ProviderScope(child: ArmorUpApp()));
 }
 
-/// Fixed warm/parchment brand theme. Only [MaterialApp.theme] is set (no
+/// Fixed dark/charcoal brand theme. Only [MaterialApp.theme] is set (no
 /// darkTheme) on purpose: the palette is brand color and must not shift
 /// with the system dark/light mode.
+///
+/// [ArmorUpColors.cardStroke] is now a near-black outline color (it
+/// doubled as "readable ink on light background" under the old
+/// parchment theme) - anything that needs to read as foreground
+/// text/icons/dividers against the dark [ArmorUpColors.boardBackground]
+/// uses [ArmorUpColors.fontColor] (light warm off-white) instead.
 ThemeData _buildArmorUpTheme() {
   final scheme = ColorScheme.fromSeed(
     seedColor: ArmorUpColors.descriptionBackground,
+    brightness: Brightness.dark,
   ).copyWith(
-    primary: ArmorUpColors.descriptionBackground,
-    onPrimary: ArmorUpColors.fontColor,
+    primary: ArmorUpColors.goldAccent,
+    onPrimary: ArmorUpColors.cardStroke,
     surface: ArmorUpColors.boardBackground,
-    onSurface: ArmorUpColors.cardStroke,
+    onSurface: ArmorUpColors.fontColor,
   );
   return ThemeData(
     useMaterial3: true,
@@ -57,17 +64,17 @@ ThemeData _buildArmorUpTheme() {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: ArmorUpColors.cardStroke,
-        side: BorderSide(color: ArmorUpColors.cardStroke.withValues(alpha: 0.6)),
+        foregroundColor: ArmorUpColors.fontColor,
+        side: BorderSide(color: ArmorUpColors.goldAccent.withValues(alpha: 0.6)),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: ArmorUpColors.descriptionBackground,
+        foregroundColor: ArmorUpColors.goldAccent,
       ),
     ),
     dividerTheme: DividerThemeData(
-      color: ArmorUpColors.cardStroke.withValues(alpha: 0.25),
+      color: ArmorUpColors.fontColor.withValues(alpha: 0.2),
     ),
   );
 }

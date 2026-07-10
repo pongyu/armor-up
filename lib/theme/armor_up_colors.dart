@@ -7,14 +7,15 @@ import 'package:flutter/material.dart';
 class ArmorUpColors {
   ArmorUpColors._();
 
-  // Card face.
-  static const cardBackground = Color(0xFFE8DFD0);
-  static const cardStroke = Color(0xFF2A1C0F); // outer border
+  // Card face - dark charcoal/slate theme (matches the reference card UI:
+  // near-black board, dark slate card interior, warm gold trim/text).
+  static const cardBackground = Color(0xFF262A35);
+  static const cardStroke = Color(0xFF14161C); // outer border
   static const cardInnerStroke = Color(
-    0xFFEDDDC3,
+    0xFFEDE6D6,
   ); // inner ring, same as font color
-  static const descriptionBackground = Color(0xFF7E584B);
-  static const fontColor = Color(0xFFEDDDC3);
+  static const descriptionBackground = Color(0xFF3A3F4E);
+  static const fontColor = Color(0xFFEDE6D6);
   static const fontStrokeColor = Colors.black;
 
   // Illustration medallion ring (the circular frame around card art,
@@ -36,9 +37,10 @@ class ArmorUpColors {
   static const armorWeakened = Color(0xFFC08A3E);
   static const armorLost = Color(0xFFA89A88);
 
-  // App chrome, derived from the same warm family: a parchment board
-  // surface lighter than the card face so cards still pop against it.
-  static const boardBackground = Color(0xFFF3EBDC);
+  // App chrome: a near-black board surface darker than the card face so
+  // cards still pop against it (inverted from the old light-parchment
+  // scheme, where the board was lighter than the card).
+  static const boardBackground = Color(0xFF14161C);
 
   /// Four offset shadows - up, down, left, right, no blur - that fake a
   /// text outline. Used on banner titles only; a real single-stroke
