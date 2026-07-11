@@ -533,12 +533,16 @@ class _DescriptionPanel extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   color: ArmorUpColors.cardStroke,
                 ),
-                // 4 lines (was 3) - EarlyGameBoy's wider glyphs wrap
-                // long descriptions (e.g. "Weaken/hit Breastplate of
-                // Righteousness") onto an extra line before FittedBox's
-                // scaleDown has fully kicked in, so the old 3-line cap
-                // started truncating text that used to fit.
-                maxLines: 4,
+                // 6 lines (was 4, originally 3) - maxLines caps the text
+                // BEFORE FittedBox's scaleDown gets a chance to shrink
+                // it, so a low cap truncates long descriptions
+                // (Fasting's "Skip your next turn; fully restore one
+                // piece" is the longest string describeEffect can
+                // return, at 47 chars) even though FittedBox has room to
+                // scale the whole block down to fit. 6 lines covers it
+                // with margin rather than chasing the exact wrap count
+                // of each string as new cards are added.
+                maxLines: 6,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
