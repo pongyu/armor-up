@@ -1,0 +1,20 @@
+name: net
+description: >
+  LAN multiplayer transport for Armor Up!. JSON serialization for GameAction
+  and player-filtered GameState, plus a host WebSocket server and client
+  connector built on dart:io. No Flutter dependency; the engine's rules stay
+  in game_engine and are never re-implemented here.
+version: 0.1.0
+publish_to: "none"
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  meta: ^1.15.0
+  game_engine:
+    path: ../game_engine
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0

@@ -12,7 +12,7 @@ class _GroupDiscardPromptView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gameStateProvider)!;
-    final controller = ref.read(gameControllerProvider.notifier);
+    final controller = ref.read(activeGameControllerProvider);
     final player = state.playerById(actorId);
 
     ref.listen(gameErrorProvider, (previous, next) {
@@ -25,41 +25,55 @@ class _GroupDiscardPromptView extends ConsumerWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(title: Text('Discard - ${player.name}')),
+      appBar: AppBar(title: Text('Discard - ${player.name}'), toolbarHeight: 40),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Card(
                 color: Colors.purple.withValues(alpha: 0.08),
                 child: const Padding(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.all(8),
                   child: Text('An event card requires every player to discard one card.'),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Text(
                 'Choose a card to discard:',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Expanded(
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (final card in player.hand)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: CardWidget(
-                          def: cardDefFor(card),
-                          onTap: () => controller.dispatch(
-                            DiscardCard(playerId: actorId, cardInstanceId: card.instanceId),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final scale =
+                        (constraints.maxHeight / CardWidget.cardHeight).clamp(0.0, 1.0);
+                    return ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (final card in player.hand)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: SizedBox(
+                              width: CardWidget.cardWidth * scale,
+                              height: constraints.maxHeight,
+                              child: FittedBox(
+                                fit: BoxFit.contain,
+                                child: CardWidget(
+                                  def: cardDefFor(card),
+                                  onTap: () => controller.dispatch(
+                                    DiscardCard(
+                                        playerId: actorId, cardInstanceId: card.instanceId),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ],

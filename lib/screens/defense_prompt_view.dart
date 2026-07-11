@@ -11,7 +11,7 @@ class _DefensePromptView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(gameStateProvider)!;
-    final controller = ref.read(gameControllerProvider.notifier);
+    final controller = ref.read(activeGameControllerProvider);
     final pending = state.pendingInterrupt!;
     final responder = state.playerById(actorId);
     final isHelper = actorId != pending.defenderId;
@@ -42,17 +42,20 @@ class _DefensePromptView extends ConsumerWidget {
     final defender = state.playerById(pending.defenderId);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Defense - ${responder.name}')),
+      appBar: AppBar(
+        title: Text('Defense - ${responder.name}'),
+        toolbarHeight: 40,
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Card(
                 color: Colors.red.withValues(alpha: 0.08),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   child: Text(
                     isHelper
                         ? '${attacker.name} attacked ${defender.name}\'s '
@@ -65,32 +68,50 @@ class _DefensePromptView extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Text(
                 defenseCards.isEmpty
                     ? 'You have no defense cards.'
                     : 'Choose a defense card to play, or decline:',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Expanded(
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (final card in defenseCards)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: CardWidget(
-                          def: cardDefFor(card),
-                          onTap: () => controller.dispatch(
-                            DeclareDefense(playerId: actorId, cardInstanceId: card.instanceId),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // CardWidget has a fixed natural size; on short
+                    // landscape heights (real phones) it doesn't fit -
+                    // shrink it to the available height via FittedBox
+                    // rather than let it clip against the Column below.
+                    final scale =
+                        (constraints.maxHeight / CardWidget.cardHeight).clamp(0.0, 1.0);
+                    return ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (final card in defenseCards)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: SizedBox(
+                              width: CardWidget.cardWidth * scale,
+                              height: constraints.maxHeight,
+                              child: FittedBox(
+                                fit: BoxFit.contain,
+                                child: CardWidget(
+                                  def: cardDefFor(card),
+                                  onTap: () => controller.dispatch(
+                                    DeclareDefense(
+                                        playerId: actorId, cardInstanceId: card.instanceId),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               OutlinedButton(
                 onPressed: () => controller.dispatch(DeclineDefense(playerId: actorId)),
                 child: Text(isHelper ? 'Decline to help' : 'Take the hit'),

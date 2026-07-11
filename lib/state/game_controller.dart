@@ -17,11 +17,21 @@ class GameUiState {
       );
 }
 
+/// Common shape shared by [GameController] (hotseat, local `applyAction`)
+/// and `NetGameController` (LAN, dispatches over a `GameClient`), so
+/// screens can send input through whichever one is currently active
+/// (`activeGameControllerProvider` in `app_mode_controller.dart`) without
+/// knowing which mode they're in.
+abstract class GameActionDispatcher {
+  bool dispatch(GameAction action);
+  void clearError();
+}
+
 /// Owns the single [GameState] for the current hotseat game and is the
 /// only place in the Flutter app that calls [applyAction]. Every user
 /// input in the UI becomes a [GameAction] passed to [dispatch], mirroring
 /// exactly how a future networked client would drive the same engine.
-class GameController extends StateNotifier<GameUiState?> {
+class GameController extends StateNotifier<GameUiState?> implements GameActionDispatcher {
   GameController() : super(null);
 
   void startGame({required List<String> playerNames, int? seed}) {
@@ -35,6 +45,7 @@ class GameController extends StateNotifier<GameUiState?> {
   /// Applies [action]. Returns true if it succeeded. On failure, the
   /// reason is stored in [GameUiState.lastError] for the UI to display,
   /// and the game state itself is left unchanged.
+  @override
   bool dispatch(GameAction action) {
     final current = state;
     if (current == null) return false;
@@ -50,6 +61,7 @@ class GameController extends StateNotifier<GameUiState?> {
     }
   }
 
+  @override
   void clearError() {
     final current = state;
     if (current != null) {
