@@ -193,6 +193,23 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       // _HandCard's actual content exactly - any slack here
                       // shows up as dead space under the cards once scaled up.
                       const naturalHandHeight = CardWidget.cardHeight + 24;
+                      // Duplicate cards (countInDeck is 4 per attack card,
+                      // so multiple copies in hand are common, not an edge
+                      // case) collapse into one card widget with a count
+                      // badge rather than rendering N identical cards side
+                      // by side - groupBy defId, keep the first instance per
+                      // group as the tap/discard target ("one at a time" is
+                      // enough; a multi-discard picker would be more work
+                      // for limited benefit). Computed here, before the
+                      // sizing math below, since that math needs the
+                      // collapsed count, not the raw hand length, or cards
+                      // would shrink more than actually necessary once
+                      // duplicates stop taking up their own slot.
+                      final groupedHand = <String, List<CardInstance>>{};
+                      for (final card in me.hand) {
+                        groupedHand.putIfAbsent(card.defId, () => []).add(card);
+                      }
+                      final handStacks = groupedHand.values.toList();
                       // The action buttons used to have their own full-width row
                       // above the hand; folding them into a sidebar alongside the
                       // pile counters gives that space back to the hand, so cards
@@ -225,9 +242,14 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                         const cardHorizontalSlot = CardWidget.cardWidth + 8;
                         final availableRowWidth =
                             constraints.maxWidth - sidebarWidth - 24 - 16;
+                        // handStacks.length (rendered slots), not
+                        // me.hand.length (raw card count) - duplicates
+                        // collapse into one slot with a count badge, so
+                        // the width math needs to match what's actually
+                        // on screen or cards shrink more than necessary.
                         final widthScale =
                             availableRowWidth /
-                            (cardHorizontalSlot * me.hand.length);
+                            (cardHorizontalSlot * handStacks.length);
                         scale = scale < widthScale ? scale : widthScale;
                         scale = scale.clamp(0.4, 1.35);
                       }
@@ -245,7 +267,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                                   horizontal: 8,
                                 ),
                                 children: [
-                                  for (final card in me.hand)
+                                  for (final stack in handStacks)
                                     Padding(
                                       // Extra top room (vs. the 4px everywhere
                                       // else) so the selected-card lift
@@ -264,46 +286,80 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                                         child: FittedBox(
                                           fit: BoxFit.contain,
                                           alignment: Alignment.topCenter,
+                                          // FittedBox clips its child by
+                                          // default - the count badge is
+                                          // meant to hang partially off
+                                          // the card's top-right corner
+                                          // (like a wax seal), which
+                                          // needs to paint outside this
+                                          // box's exact bounds instead of
+                                          // being silently clipped.
+                                          clipBehavior: Clip.none,
                                           child: SizedBox(
                                             width: CardWidget.cardWidth,
                                             height: naturalHandHeight,
-                                            child: _HandCard(
-                                              card: card,
-                                              selected:
-                                                  _selectedCard?.instanceId ==
-                                                  card.instanceId,
-                                              disabled:
-                                                  widget.readOnly ||
-                                                  me.isFasting ||
-                                                  state.hasPlayedCardThisTurn ||
-                                                  cardDefFor(card).type ==
-                                                      CardType.defense,
-                                              onTap: () {
-                                                setState(() {
-                                                  if (_selectedCard
-                                                          ?.instanceId ==
-                                                      card.instanceId) {
-                                                    _resetSelection();
-                                                  } else {
-                                                    _selectedCard = card;
-                                                    _selectedTargetPlayerId =
-                                                        null;
-                                                    _selectedTargetArmor = null;
-                                                  }
-                                                });
+                                            child: Builder(
+                                              builder: (context) {
+                                                // Tap/discard always act on
+                                                // the stack's first instance -
+                                                // "one at a time" is enough
+                                                // (see the groupedHand
+                                                // comment above); if a
+                                                // *different* instance in
+                                                // this stack is the selected
+                                                // one (e.g. after playing/
+                                                // discarding the first),
+                                                // still show the stack as
+                                                // selected rather than
+                                                // losing the highlight.
+                                                final card = stack.first;
+                                                final selectedInStack =
+                                                    _selectedCard != null &&
+                                                    stack.any(
+                                                      (c) =>
+                                                          c.instanceId ==
+                                                          _selectedCard!
+                                                              .instanceId,
+                                                    );
+                                                return _HandCard(
+                                                  card: card,
+                                                  count: stack.length,
+                                                  selected: selectedInStack,
+                                                  disabled:
+                                                      widget.readOnly ||
+                                                      me.isFasting ||
+                                                      state.hasPlayedCardThisTurn ||
+                                                      cardDefFor(card).type ==
+                                                          CardType.defense,
+                                                  onTap: () {
+                                                    setState(() {
+                                                      if (selectedInStack) {
+                                                        _resetSelection();
+                                                      } else {
+                                                        _selectedCard = card;
+                                                        _selectedTargetPlayerId =
+                                                            null;
+                                                        _selectedTargetArmor =
+                                                            null;
+                                                      }
+                                                    });
+                                                  },
+                                                  onDiscard:
+                                                      !widget.readOnly &&
+                                                          state.hasDrawnThisTurn
+                                                      ? () => controller
+                                                            .dispatch(
+                                                              DiscardCard(
+                                                                playerId: widget
+                                                                    .actorId,
+                                                                cardInstanceId:
+                                                                    card
+                                                                        .instanceId,
+                                                              ),
+                                                            )
+                                                      : null,
+                                                );
                                               },
-                                              onDiscard:
-                                                  !widget.readOnly &&
-                                                      state.hasDrawnThisTurn
-                                                  ? () => controller.dispatch(
-                                                      DiscardCard(
-                                                        playerId:
-                                                            widget.actorId,
-                                                        cardInstanceId:
-                                                            card.instanceId,
-                                                      ),
-                                                    )
-                                                  : null,
                                             ),
                                           ),
                                         ),
@@ -517,6 +573,7 @@ class _VignetteBoardBackground extends StatelessWidget {
 
 class _HandCard extends StatelessWidget {
   final CardInstance card;
+  final int count;
   final bool selected;
   final bool disabled;
   final VoidCallback onTap;
@@ -524,6 +581,7 @@ class _HandCard extends StatelessWidget {
 
   const _HandCard({
     required this.card,
+    required this.count,
     required this.selected,
     required this.disabled,
     required this.onTap,
@@ -549,10 +607,29 @@ class _HandCard extends StatelessWidget {
               duration: const Duration(milliseconds: 150),
               curve: Curves.easeOut,
               scale: selected ? 1.05 : 1.0,
-              child: CardWidget(
-                def: def,
-                selected: selected,
-                onTap: disabled ? null : onTap,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CardWidget(
+                    def: def,
+                    selected: selected,
+                    onTap: disabled ? null : onTap,
+                  ),
+                  // Duplicate-card count badge - only shown when the
+                  // player actually holds more than one copy, per the
+                  // groupedHand collapsing in _MainBoardViewState.build.
+                  // Hangs partially off the card's top-right corner (like
+                  // a wax seal) rather than sitting inset - the
+                  // surrounding FittedBox needed clipBehavior: Clip.none
+                  // (see that widget) for this negative offset to
+                  // actually paint instead of getting clipped away.
+                  if (count > 1)
+                    Positioned(
+                      top: -6,
+                      right: -14,
+                      child: _CountBadge(count: count),
+                    ),
+                ],
               ),
             ),
           ),
@@ -568,6 +645,65 @@ class _HandCard extends StatelessWidget {
             child: const Text('Discard', style: TextStyle(fontSize: 11)),
           ),
       ],
+    );
+  }
+}
+
+/// Small circular "xN" badge on a hand card's corner, shown when the
+/// player holds more than one copy of that card - see _HandCard's
+/// count field and the groupedHand collapsing in
+/// _MainBoardViewState.build.
+class _CountBadge extends StatelessWidget {
+  final int count;
+
+  const _CountBadge({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+      decoration: BoxDecoration(
+        color: ArmorUpColors.goldAccent,
+        shape: count > 9 ? BoxShape.rectangle : BoxShape.circle,
+        borderRadius: count > 9 ? BorderRadius.circular(14) : null,
+        // cardInnerStroke (light warm off-white, same ring color used
+        // elsewhere in the card chrome) instead of the dark cardStroke -
+        // a lighter ring reads better against the badge's own gold fill
+        // and the dark card art it sits on top of.
+        border: Border.all(color: ArmorUpColors.cardInnerStroke, width: 2),
+      ),
+      alignment: Alignment.center,
+      // White text instead of dark-on-gold - dark text on gold read too
+      // low-contrast against the busy card art behind the badge,
+      // especially at this size. Outline uses cardStroke (warm dark
+      // ink, matching the badge's own border) rather than
+      // ArmorUpColors.titleOutline's pure black, so the whole badge
+      // reads as one warm-toned unit instead of a black-outlined patch
+      // stuck on top.
+      child: Text(
+        'x$count',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+          height: 1,
+          // 8-directional (cardinal + diagonal), not just 4 - a thicker
+          // stroke than ArmorUpColors.titleOutline's cardinal-only
+          // version, since this text sits smaller and needed to read
+          // clearly at a glance against busy card art behind it.
+          shadows: [
+            Shadow(offset: const Offset(1, 0), color: ArmorUpColors.cardStroke),
+            Shadow(offset: const Offset(-1, 0), color: ArmorUpColors.cardStroke),
+            Shadow(offset: const Offset(0, 1), color: ArmorUpColors.cardStroke),
+            Shadow(offset: const Offset(0, -1), color: ArmorUpColors.cardStroke),
+            Shadow(offset: const Offset(1, 1), color: ArmorUpColors.cardStroke),
+            Shadow(offset: const Offset(-1, -1), color: ArmorUpColors.cardStroke),
+            Shadow(offset: const Offset(1, -1), color: ArmorUpColors.cardStroke),
+            Shadow(offset: const Offset(-1, 1), color: ArmorUpColors.cardStroke),
+          ],
+        ),
+      ),
     );
   }
 }
