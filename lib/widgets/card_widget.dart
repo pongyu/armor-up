@@ -34,8 +34,11 @@ String describeEffect(CardDef def) {
           : 'Weaken/hit any piece',
     TargetRule.singlePlayer => 'Steal a random card',
     TargetRule.ownArmorPiece => switch (def.effect) {
-      EffectPrimitive.restoreOneStep => 'Weakened -> Strong on your piece',
-      EffectPrimitive.restoreFullyFromLost => 'Lost -> Strong on your piece',
+      // "to", not "->" - EarlyGameBoy (the app's pixel font, set in
+      // main.dart) doesn't render the > glyph cleanly, same reason
+      // parens were dropped from other card/UI text elsewhere.
+      EffectPrimitive.restoreOneStep => 'Weakened to Strong on your piece',
+      EffectPrimitive.restoreFullyFromLost => 'Lost to Strong on your piece',
       EffectPrimitive.skipNextTurnAndRestore =>
         'Skip your next turn; fully restore one piece',
       _ => '',
