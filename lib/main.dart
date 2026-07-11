@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'screens/game_screen.dart';
@@ -18,14 +17,12 @@ import 'theme/armor_up_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // The board layout is landscape-only; other screens (setup, pass-device,
-  // defense prompt) aren't restyled yet, but locking orientation for the
-  // whole session avoids a jarring rotate-back-and-forth as those appear
-  // between turns.
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
+  // Orientation is no longer locked: the game board now has a portrait
+  // layout branch (see _MainBoardView's LayoutBuilder in game_screen.dart)
+  // alongside the original landscape one, and every other screen (setup,
+  // pass-device, defense/discard prompts) is a plain centered Column/
+  // ListView with no wide-short assumptions, so they render fine in
+  // either orientation without changes.
   runApp(const ProviderScope(child: ArmorUpApp()));
 }
 
