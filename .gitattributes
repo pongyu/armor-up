@@ -1,0 +1,9 @@
+# Flutter auto-generated plugin registration files.
+# These get rewritten by `flutter pub get`/build on every platform, and were
+# showing up as modified purely due to LF/CRLF mismatches. Force LF so the
+# working tree matches what's committed regardless of local autocrlf config.
+macos/Flutter/GeneratedPluginRegistrant.swift text eol=lf
+windows/flutter/generated_plugin_registrant.cc text eol=lf
+windows/flutter/generated_plugins.cmake text eol=lf
+linux/flutter/generated_plugin_registrant.cc text eol=lf
+linux/flutter/generated_plugins.cmake text eol=lf
