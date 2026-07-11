@@ -161,6 +161,13 @@ final class PublicPlayerView {
 /// the single choke point for hand redaction: call it once per connected
 /// client, right before sending, and never send a raw [GameState] (or a
 /// [PlayerState] belonging to someone else) over the wire.
+///
+/// Also the choke point for per-event redaction (e.g. [CardStolen] ->
+/// [CardStolenRedacted] for anyone but the thief, per [GameEvent.visibleTo]):
+/// every viewer's [FilteredGameState.eventLog] has the same length and
+/// ordering as [GameState.eventLog], just with restricted entries swapped
+/// for their [GameEvent.redacted] form rather than dropped, so log
+/// position/count never itself leaks which turns had a restricted event.
 FilteredGameState filterStateForPlayer(GameState state, String viewerId) {
   return FilteredGameState(
     viewerId: viewerId,
@@ -181,7 +188,12 @@ FilteredGameState filterStateForPlayer(GameState state, String viewerId) {
     drawPileCount: state.drawPile.length,
     discardPile: state.discardPile,
     turnNumber: state.turnNumber,
-    eventLog: state.eventLog,
+    eventLog: [
+      for (final event in state.eventLog)
+        (event.visibleTo == null || event.visibleTo!.contains(viewerId))
+            ? event
+            : event.redacted(),
+    ],
     winner: state.winner,
     pendingInterrupt: state.pendingInterrupt,
     pendingGroupDiscard: state.pendingGroupDiscard,

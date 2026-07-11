@@ -26,6 +26,7 @@ sealed class NetMessage {
       case 'state':
         return StateMessage(
           FilteredGameState.fromJson(json['state'] as Map<String, dynamic>),
+          responseDeadlineEpochMs: json['responseDeadlineEpochMs'] as int?,
         );
       case 'error':
         return ErrorMessage(json['reason'] as String);
@@ -73,15 +74,27 @@ final class ActionMessage extends NetMessage {
 
 /// Host -> one client: the authoritative state, already filtered down to
 /// what that specific client is allowed to see.
+///
+/// [responseDeadlineEpochMs] is envelope-level (not part of [GameState] or
+/// [FilteredGameState]) since it is wall-clock data: the epoch-millisecond
+/// instant [HostServer]'s defense-response or group-discard timeout will
+/// fire for the current pending actor, or null if no such deadline is
+/// currently running (no pending interrupt/group-discard, or the deadline
+/// mechanism is disabled/suppressed). Purely informational for a future
+/// countdown UI - clients never act on it directly; only the host's own
+/// timer actually enforces anything.
 final class StateMessage extends NetMessage {
   final FilteredGameState state;
+  final int? responseDeadlineEpochMs;
 
-  const StateMessage(this.state);
+  const StateMessage(this.state, {this.responseDeadlineEpochMs});
 
   @override
   Map<String, dynamic> toJson() => {
         'type': 'state',
         'state': state.toJson(),
+        if (responseDeadlineEpochMs != null)
+          'responseDeadlineEpochMs': responseDeadlineEpochMs,
       };
 }
 

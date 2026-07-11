@@ -255,6 +255,29 @@ extension GameEventJson on GameEvent {
             'victimId': victimId,
             'cardDefId': cardDefId,
           },
+        CardStolenRedacted(:final turnNumber, :final thiefId, :final victimId) => {
+            'kind': 'CardStolenRedacted',
+            'turnNumber': turnNumber,
+            'thiefId': thiefId,
+            'victimId': victimId,
+          },
+        DefenseTimedOut(:final turnNumber, :final playerId, :final wasHelper) => {
+            'kind': 'DefenseTimedOut',
+            'turnNumber': turnNumber,
+            'playerId': playerId,
+            'wasHelper': wasHelper,
+          },
+        PlayerEliminated(
+          :final turnNumber,
+          :final playerId,
+          :final cardsDiscarded,
+        ) =>
+          {
+            'kind': 'PlayerEliminated',
+            'turnNumber': turnNumber,
+            'playerId': playerId,
+            'cardsDiscarded': cardsDiscarded,
+          },
         DeckReshuffled(:final turnNumber) => {
             'kind': 'DeckReshuffled',
             'turnNumber': turnNumber,
@@ -336,6 +359,24 @@ GameEvent gameEventFromJson(Map<String, dynamic> json) {
         thiefId: json['thiefId'] as String,
         victimId: json['victimId'] as String,
         cardDefId: json['cardDefId'] as String,
+      );
+    case 'CardStolenRedacted':
+      return CardStolenRedacted(
+        turnNumber: turnNumber,
+        thiefId: json['thiefId'] as String,
+        victimId: json['victimId'] as String,
+      );
+    case 'DefenseTimedOut':
+      return DefenseTimedOut(
+        turnNumber: turnNumber,
+        playerId: json['playerId'] as String,
+        wasHelper: json['wasHelper'] as bool,
+      );
+    case 'PlayerEliminated':
+      return PlayerEliminated(
+        turnNumber: turnNumber,
+        playerId: json['playerId'] as String,
+        cardsDiscarded: json['cardsDiscarded'] as int,
       );
     case 'DeckReshuffled':
       return DeckReshuffled(turnNumber: turnNumber);

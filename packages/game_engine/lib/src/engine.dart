@@ -533,6 +533,21 @@ ActionResult _declineDefense(GameState state, DeclineDefense action) {
     );
   }
 
+  // A system decline (net-layer response-deadline expiry) resolves via
+  // the exact same logic below as a player choosing to decline - only an
+  // extra DefenseTimedOut log entry distinguishes it, so UI built on the
+  // event log can show "ran out of time" instead of implying a choice.
+  var working = state;
+  if (action.isSystemDecline) {
+    working = working.appendEvent(
+      DefenseTimedOut(
+        turnNumber: working.turnNumber,
+        playerId: action.playerId,
+        wasHelper: isHelper,
+      ),
+    );
+  }
+
   if (isHelper) {
     if (pending.helpersDeclined.contains(action.playerId)) {
       return const ActionFailure('This player has already declined to help');
@@ -554,10 +569,10 @@ ActionResult _declineDefense(GameState state, DeclineDefense action) {
       // over and the defender falls back to their own defense window.
       fellowshipRequested: !everyoneElseDeclined,
     );
-    return ActionSuccess(state.copyWith(pendingInterrupt: updatedPending));
+    return ActionSuccess(working.copyWith(pendingInterrupt: updatedPending));
   }
 
-  return ActionSuccess(_checkEliminationWin(landPendingAttack(state)));
+  return ActionSuccess(_checkEliminationWin(landPendingAttack(working)));
 }
 
 /// Last one standing: checked after anything that could eliminate a

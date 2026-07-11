@@ -175,6 +175,43 @@ GameState landPendingAttack(GameState state) {
           ),
   );
 
+  return _discardHandsOfNewlyEliminated(before: state, after: working);
+}
+
+/// Compares [before] and [after] for players who just crossed from not
+/// eliminated to eliminated, moves each such player's hand to the discard
+/// pile, and logs a [PlayerEliminated] event per player. An eliminated
+/// player never gets another turn to play or discard their hand
+/// themselves, so it would otherwise sit as unreachable dead state for
+/// the rest of the game.
+///
+/// Compares against [before] (not just "hand non-empty") so a player who
+/// was already eliminated earlier in the game - and thus already had
+/// their hand cleared - is never re-processed, even though their hand is
+/// empty either way.
+GameState _discardHandsOfNewlyEliminated({
+  required GameState before,
+  required GameState after,
+}) {
+  var working = after;
+  for (final player in after.players) {
+    final wasEliminated = before.playerById(player.id).isEliminated;
+    if (wasEliminated || !player.isEliminated || player.hand.isEmpty) {
+      continue;
+    }
+    final discarded = player.hand;
+    working = working.updatePlayer(player.id, (p) => p.copyWith(hand: const []));
+    working = working.copyWith(
+      discardPile: [...working.discardPile, ...discarded],
+    );
+    working = working.appendEvent(
+      PlayerEliminated(
+        turnNumber: working.turnNumber,
+        playerId: player.id,
+        cardsDiscarded: discarded.length,
+      ),
+    );
+  }
   return working;
 }
 
@@ -264,7 +301,11 @@ GameState _jerichoMarch(GameState state) {
       }
     }
   }
-  return working;
+  // A single Jericho March can push more than one player's last piece to
+  // Lost in the same resolution (unlike a single-target attack), so this
+  // must check every player against their pre-march elimination status,
+  // not just the last one touched.
+  return _discardHandsOfNewlyEliminated(before: state, after: working);
 }
 
 GameState _roadToDamascus({

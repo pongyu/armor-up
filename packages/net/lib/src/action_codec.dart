@@ -37,9 +37,10 @@ extension GameActionJson on GameAction {
             'playerId': playerId,
             'cardInstanceId': cardInstanceId,
           },
-        DeclineDefense(:final playerId) => {
+        DeclineDefense(:final playerId, :final isSystemDecline) => {
             'kind': 'DeclineDefense',
             'playerId': playerId,
+            if (isSystemDecline) 'isSystemDecline': true,
           },
       };
 }
@@ -84,7 +85,10 @@ GameAction gameActionFromJson(Map<String, dynamic> json) {
       }
       return DeclareDefense(playerId: playerId, cardInstanceId: cardInstanceId);
     case 'DeclineDefense':
-      return DeclineDefense(playerId: playerId);
+      return DeclineDefense(
+        playerId: playerId,
+        isSystemDecline: json['isSystemDecline'] as bool? ?? false,
+      );
     default:
       throw FormatException('Unknown GameAction kind: $kind');
   }

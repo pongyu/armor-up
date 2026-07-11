@@ -23,8 +23,20 @@ String describeEvent(GameEvent event, GameState state) {
     CardDrawn(:final playerId) => '${nameOf(playerId)} drew a card',
     CardDiscarded(:final playerId, :final cardDefId) =>
       '${nameOf(playerId)} discarded ${cardDefById(cardDefId).name}',
-    CardStolen(:final thiefId, :final victimId, :final cardDefId) =>
-      '${nameOf(thiefId)} stole ${cardDefById(cardDefId).name} from ${nameOf(victimId)}',
+    // Redacted unconditionally, even on hotseat's single shared screen
+    // where the engine holds the real CardStolen with cardDefId filled
+    // in: the table sees THAT a card was stolen, never WHICH one, so the
+    // thief's own knowledge of what they took is limited to seeing it in
+    // their hand during their own turn (protected by the existing
+    // pass-device gating), not to this log. A LAN client that isn't the
+    // thief never even receives more than this - see
+    // filterStateForPlayer's per-viewer event redaction - so this
+    // renders identically for both transports.
+    CardStolen(:final thiefId, :final victimId) ||
+    CardStolenRedacted(:final thiefId, :final victimId) =>
+      '${nameOf(thiefId)} stole a card from ${nameOf(victimId)}',
+    DefenseTimedOut(:final playerId) => '${nameOf(playerId)} ran out of time to respond',
+    PlayerEliminated(:final playerId) => '${nameOf(playerId)} was eliminated',
     DeckReshuffled() => 'The discard pile was reshuffled into the draw pile',
     GameEnded(:final winnerId, :final winType) =>
       '${nameOf(winnerId)} wins by ${switch (winType) {

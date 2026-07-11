@@ -68,9 +68,29 @@ class HostServer {
   /// seconds.
   final Duration reconnectGracePeriod;
 
+  /// How long a connected-but-idle player is given to respond to a pending
+  /// defense interrupt or group-discard obligation before the host acts on
+  /// their behalf (a system [DeclineDefense] or a random [DiscardCard]).
+  /// Null disables the mechanism entirely (the table waits forever, as
+  /// before this feature). Applies only while the current actor's socket
+  /// is connected - see [_responseTimer] for the interaction with
+  /// [reconnectGracePeriod].
+  final Duration? defenseResponseTimeout;
+
+  /// The player id the response timer is currently running for (the
+  /// current pending-interrupt or group-discard actor at the time the
+  /// timer was last (re)started), so a broadcast can tell whether the
+  /// actor changed and the timer needs restarting. Null when no timer is
+  /// running (no pending obligation, or it's suppressed - see
+  /// [_syncResponseTimer]).
+  String? _responseTimerActorId;
+  Timer? _responseTimer;
+  DateTime? _responseDeadline;
+
   HostServer({
     required this.hostDisplayName,
     this.reconnectGracePeriod = const Duration(seconds: 60),
+    this.defenseResponseTimeout = const Duration(seconds: 20),
     Random? random,
   }) : _random = random ?? Random.secure();
 
@@ -194,6 +214,12 @@ class HostServer {
     _listenOn(entry, route);
 
     if (_gameStarted) {
+      // Reconnecting flips this seat from "no timer" (suppressed while
+      // disconnected) back to a fresh deadline if they're the current
+      // pending actor - run before _sendStateTo so the deadline in the
+      // state this client receives is the newly (re)started one, not
+      // stale/absent.
+      _syncResponseTimer();
       _sendStateTo(entry);
     } else {
       _broadcastRoster();
@@ -222,6 +248,12 @@ class HostServer {
     // behalf - no explicit "freeze" bookkeeping is needed beyond not
     // accepting actions from a socket that no longer exists.
     entry.graceTimer = Timer(reconnectGracePeriod, () => _handlePlayerLeft(entry));
+
+    // If the response timer was running for this now-disconnected player,
+    // suppress it in favor of reconnectGracePeriod (a connected-but-idle
+    // player is a very different situation from one who dropped
+    // entirely) - reconnecting will start a fresh deadline for them.
+    _syncResponseTimer();
   }
 
   void _handlePlayerLeft(_RosterEntry entry) {
@@ -307,6 +339,7 @@ class HostServer {
   }
 
   void _broadcastState() {
+    _syncResponseTimer();
     for (final entry in _roster) {
       _sendStateTo(entry);
     }
@@ -314,7 +347,151 @@ class HostServer {
 
   void _sendStateTo(_RosterEntry entry) {
     if (_state == null) return;
-    _send(entry, StateMessage(filterStateForPlayer(_state!, entry.playerId)));
+    _send(
+      entry,
+      StateMessage(
+        filterStateForPlayer(_state!, entry.playerId),
+        responseDeadlineEpochMs: _responseDeadline?.millisecondsSinceEpoch,
+      ),
+    );
+  }
+
+  /// The player id whose response the engine is currently waiting on for a
+  /// pending defense interrupt or group-discard obligation, or null if
+  /// neither is outstanding. Mirrors `currentActorId` in the Flutter app's
+  /// `lib/state/turn_actor.dart` (not reachable from this package), scoped
+  /// to just the two obligations the response timer cares about - normal
+  /// turn-order play (draw/play/end turn) has no per-actor deadline.
+  String? _currentPendingActorId(GameState state) {
+    final groupDiscard = state.pendingGroupDiscard;
+    if (groupDiscard != null) {
+      return groupDiscard.owedPlayerIds.first;
+    }
+
+    final pending = state.pendingInterrupt;
+    if (pending == null) return null;
+
+    if (pending.fellowshipRequested) {
+      final undecided = state.players.where(
+        (p) =>
+            p.id != pending.defenderId &&
+            p.id != pending.attackerId &&
+            !p.isEliminated &&
+            !pending.helpersDeclined.contains(p.id),
+      );
+      if (undecided.isNotEmpty) return undecided.first.id;
+    }
+
+    return pending.defenderId;
+  }
+
+  /// (Re)starts, suppresses, or cancels the response-deadline timer to
+  /// match the current state, called after every state transition
+  /// ([_broadcastState]) and every connect/disconnect ([_listenOn] /
+  /// [_handleDisconnect]) that could change who the timer should be
+  /// running for or whether it should be running at all.
+  ///
+  /// A fresh timer is (re)started whenever the current pending actor
+  /// differs from who it was last running for (a brand new interrupt, or
+  /// a Fellowship request passing to the next helper) - restarting on
+  /// every call would let a chatty client indefinitely postpone a
+  /// deadline by causing unrelated broadcasts, but the actor only changes
+  /// at exactly the moments the spec calls for a restart. Suppressed
+  /// entirely while that actor's socket is disconnected (their own
+  /// [reconnectGracePeriod] governs that case instead - see
+  /// [_handleDisconnect]); reconnecting restarts the deadline fresh via
+  /// the same actor-changed check failing to short-circuit next time
+  /// [_syncResponseTimer] runs, since [_responseTimerActorId] is cleared
+  /// by [_cancelResponseTimer] when disconnection suppresses the timer.
+  void _syncResponseTimer() {
+    final timeout = defenseResponseTimeout;
+    final state = _state;
+    if (timeout == null || state == null) {
+      _cancelResponseTimer();
+      return;
+    }
+
+    final actorId = _currentPendingActorId(state);
+    if (actorId == null) {
+      _cancelResponseTimer();
+      return;
+    }
+
+    final entry = _roster.where((e) => e.playerId == actorId).firstOrNull;
+    if (entry == null || !entry.isConnected) {
+      // Disconnected (or, defensively, unknown) actor: the reconnect
+      // grace period governs this seat instead: no response timer while
+      // there is nobody there to respond. Reconnecting will observe the
+      // actor "changed" (from suppressed back to active) on the next
+      // sync and start a fresh deadline.
+      _cancelResponseTimer();
+      return;
+    }
+
+    if (_responseTimerActorId == actorId) {
+      // Same actor as last sync - an in-flight timer (if any) already
+      // covers them; leave its original deadline alone.
+      return;
+    }
+
+    _responseTimer?.cancel();
+    _responseTimerActorId = actorId;
+    _responseDeadline = DateTime.now().add(timeout);
+    _responseTimer = Timer(timeout, () => _handleResponseTimeout(actorId));
+  }
+
+  void _cancelResponseTimer() {
+    _responseTimer?.cancel();
+    _responseTimer = null;
+    _responseTimerActorId = null;
+    _responseDeadline = null;
+  }
+
+  /// Fires when [actorId] fails to respond to a pending defense interrupt
+  /// or group-discard obligation within [defenseResponseTimeout]. Applies
+  /// a system action through the normal [applyAction] path - identical
+  /// legality/resolution rules as if the player had acted themselves - and
+  /// broadcasts the result, which in turn re-syncs the timer for whatever
+  /// obligation (if any) is outstanding next.
+  void _handleResponseTimeout(String actorId) {
+    // The obligation may have already resolved (e.g. the player responded
+    // in the instant before the timer fired, racing the cancel in
+    // _syncResponseTimer) or the actor may no longer be who the timer was
+    // started for (a broadcast already moved the obligation on). Either
+    // way there is nothing to force.
+    if (_responseTimerActorId != actorId) return;
+    final state = _state;
+    if (state == null) return;
+    if (_currentPendingActorId(state) != actorId) return;
+
+    final GameAction systemAction;
+    if (state.pendingGroupDiscard != null) {
+      final hand = state.playerById(actorId).hand;
+      // A stalled group discard always has at least one owed player with
+      // a non-empty hand (resolveEffect only ever adds players who have
+      // cards to owedPlayerIds, and owedPlayerIds shrinks to null the
+      // instant it's empty), so hand is guaranteed non-empty here.
+      final randomIndex = _random.nextInt(hand.length);
+      systemAction = DiscardCard(
+        playerId: actorId,
+        cardInstanceId: hand[randomIndex].instanceId,
+      );
+    } else {
+      systemAction = DeclineDefense(playerId: actorId, isSystemDecline: true);
+    }
+
+    final result = applyAction(state, systemAction);
+    switch (result) {
+      case ActionSuccess(:final state):
+        _state = state;
+        _broadcastState();
+      case ActionFailure():
+        // The engine itself refused the system action (should not happen
+        // given the actor/obligation checks above, but fail safe rather
+        // than throw from a timer callback): drop the timer so a stuck
+        // obligation doesn't spin retrying the same rejected action.
+        _cancelResponseTimer();
+    }
   }
 
   void _broadcastToAll(NetMessage message) {
@@ -361,6 +538,7 @@ class HostServer {
     if (_stopped) return;
     _stopped = true;
 
+    _cancelResponseTimer();
     for (final entry in _roster) {
       entry.graceTimer?.cancel();
     }
