@@ -11,6 +11,7 @@ import '../theme/armor_up_colors.dart';
 import '../widgets/armor_widget.dart';
 import '../widgets/card_widget.dart';
 import 'pass_device_screen.dart';
+import 'rules_sheet.dart';
 import 'win_screen.dart';
 
 part 'defense_prompt_view.dart';
@@ -185,33 +186,46 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     return Scaffold(
       body: _VignetteBoardBackground(
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Portrait vs. landscape branch, sharing all the same
-              // selection state/helpers (_selectedCard,
-              // _isSelectionComplete, etc.) and low-level widgets
-              // (_HandCard, ArmorRow, CardWidget, _ActionSidebar) rather
-              // than forking into a separate StatefulWidget - see the
-              // portrait-support plan discussed in conversation for why.
-              if (constraints.maxHeight > constraints.maxWidth) {
-                return _buildPortraitBoard(
-                  state,
-                  me,
-                  def,
-                  controller,
-                  canPlaySelection,
-                  constraints,
-                );
-              }
-              return _buildLandscapeBoard(
-                state,
-                me,
-                def,
-                controller,
-                canPlaySelection,
-                constraints,
-              );
-            },
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // Portrait vs. landscape branch, sharing all the same
+                  // selection state/helpers (_selectedCard,
+                  // _isSelectionComplete, etc.) and low-level widgets
+                  // (_HandCard, ArmorRow, CardWidget, _ActionSidebar) rather
+                  // than forking into a separate StatefulWidget - see the
+                  // portrait-support plan discussed in conversation for why.
+                  if (constraints.maxHeight > constraints.maxWidth) {
+                    return _buildPortraitBoard(
+                      state,
+                      me,
+                      def,
+                      controller,
+                      canPlaySelection,
+                      constraints,
+                    );
+                  }
+                  return _buildLandscapeBoard(
+                    state,
+                    me,
+                    def,
+                    controller,
+                    canPlaySelection,
+                    constraints,
+                  );
+                },
+              ),
+              // Reachable any time during play, not just for a brand new
+              // player - card games regularly need a rules lookup mid-game
+              // (e.g. "what does Weakened mean again"), so this sits above
+              // both layout branches rather than being tucked into a menu.
+              const Positioned(
+                top: 4,
+                right: 4,
+                child: _RulesButton(),
+              ),
+            ],
           ),
         ),
       ),
@@ -862,6 +876,26 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
       default:
         return condition != ArmorCondition.lost;
     }
+  }
+}
+
+/// Small "?" icon button pinned over the board that opens [showRulesSheet]
+/// - a quick-reference summary reachable at any point in a game, not just
+/// for a brand new player.
+class _RulesButton extends StatelessWidget {
+  const _RulesButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: ArmorUpColors.cardBackground.withValues(alpha: 0.7),
+      shape: const CircleBorder(),
+      child: IconButton(
+        icon: const Icon(Icons.help_outline, color: ArmorUpColors.fontColor, size: 20),
+        tooltip: 'How to play',
+        onPressed: () => showRulesSheet(context),
+      ),
+    );
   }
 }
 
