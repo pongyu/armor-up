@@ -31,11 +31,15 @@ class ArmorUpColors {
   static const bannerRestore = Color(0xFF989550);
 
   // Armor piece condition. Strong reuses the Restore banner olive so
-  // "healthy" reads as "restoration"; Weakened is a warm bronze in the
-  // same family; Lost is desaturated parchment-gray.
+  // "healthy" reads as "restoration"; Weakened is a pale/washed-out
+  // bronze - lighter than a true bronze so it reads as "dulling," a
+  // midpoint between full-shine Strong and near-black Lost rather than
+  // a saturated metal tone; Lost is a dark charcoal (was a light
+  // parchment-gray, which looked wrong once the icon itself started
+  // rendering near-black - the border needs to match).
   static const armorStrong = Color(0xFF989550);
-  static const armorWeakened = Color(0xFFC08A3E);
-  static const armorLost = Color(0xFFA89A88);
+  static const armorWeakened = Color(0xFFC7A379);
+  static const armorLost = Color(0xFF3A3630);
 
   // App chrome: a near-black board surface darker than the card face so
   // cards still pop against it (inverted from the old light-parchment

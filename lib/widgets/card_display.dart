@@ -18,14 +18,38 @@ class CardDisplaySpec {
 /// art - keep them simple.
 const cardDisplaySpecs = <String, CardDisplaySpec>{
   // Attacks (Trials).
-  'doubt': CardDisplaySpec(Icons.help_outline),
-  'deception': CardDisplaySpec(Icons.visibility_off),
-  'pride': CardDisplaySpec(Icons.workspace_premium),
-  'discouragement': CardDisplaySpec(Icons.cloud),
-  'strife': CardDisplaySpec(Icons.sports_kabaddi),
-  'confusion': CardDisplaySpec(Icons.shuffle),
-  'fiery_dart': CardDisplaySpec(Icons.local_fire_department),
-  'goliaths_taunt': CardDisplaySpec(Icons.campaign),
+  'doubt': CardDisplaySpec(
+    Icons.help_outline,
+    illustrationAssetPath: 'assets/cards/doubt.png',
+  ),
+  'deception': CardDisplaySpec(
+    Icons.visibility_off,
+    illustrationAssetPath: 'assets/cards/deception.png',
+  ),
+  'pride': CardDisplaySpec(
+    Icons.workspace_premium,
+    illustrationAssetPath: 'assets/cards/pride.png',
+  ),
+  'discouragement': CardDisplaySpec(
+    Icons.cloud,
+    illustrationAssetPath: 'assets/cards/discouragement.png',
+  ),
+  'strife': CardDisplaySpec(
+    Icons.sports_kabaddi,
+    illustrationAssetPath: 'assets/cards/strife.png',
+  ),
+  'confusion': CardDisplaySpec(
+    Icons.shuffle,
+    illustrationAssetPath: 'assets/cards/confusion.png',
+  ),
+  'fiery_dart': CardDisplaySpec(
+    Icons.local_fire_department,
+    illustrationAssetPath: 'assets/cards/fiery_dart.png',
+  ),
+  'goliaths_taunt': CardDisplaySpec(
+    Icons.campaign,
+    illustrationAssetPath: 'assets/cards/goliaths_taunt.png',
+  ),
   // Defenses.
   'prayer': CardDisplaySpec(
     Icons.front_hand,
@@ -40,13 +64,31 @@ const cardDisplaySpecs = <String, CardDisplaySpec>{
     illustrationAssetPath: 'assets/cards/fellowship.png',
   ),
   // Restores.
-  'fasting': CardDisplaySpec(Icons.hourglass_empty),
-  'renewal': CardDisplaySpec(Icons.eco),
-  'armor_bearer': CardDisplaySpec(Icons.shield),
+  'fasting': CardDisplaySpec(
+    Icons.hourglass_empty,
+    illustrationAssetPath: 'assets/cards/fasting.png',
+  ),
+  'renewal': CardDisplaySpec(
+    Icons.eco,
+    illustrationAssetPath: 'assets/cards/renewal.png',
+  ),
+  'armor_bearer': CardDisplaySpec(
+    Icons.shield,
+    illustrationAssetPath: 'assets/cards/armor_bearer.png',
+  ),
   // Events.
-  'jericho_march': CardDisplaySpec(Icons.castle),
-  'wilderness_season': CardDisplaySpec(Icons.terrain),
-  'road_to_damascus': CardDisplaySpec(Icons.wb_sunny),
+  'jericho_march': CardDisplaySpec(
+    Icons.castle,
+    illustrationAssetPath: 'assets/cards/jericho_march.png',
+  ),
+  'wilderness_season': CardDisplaySpec(
+    Icons.terrain,
+    illustrationAssetPath: 'assets/cards/wilderness_season.png',
+  ),
+  'road_to_damascus': CardDisplaySpec(
+    Icons.wb_sunny,
+    illustrationAssetPath: 'assets/cards/road_to_damascus.png',
+  ),
 };
 
 const _fallbackSpec = CardDisplaySpec(Icons.style);

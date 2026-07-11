@@ -530,7 +530,12 @@ class _DescriptionPanel extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   color: ArmorUpColors.cardStroke,
                 ),
-                maxLines: 3,
+                // 4 lines (was 3) - EarlyGameBoy's wider glyphs wrap
+                // long descriptions (e.g. "Weaken/hit Breastplate of
+                // Righteousness") onto an extra line before FittedBox's
+                // scaleDown has fully kicked in, so the old 3-line cap
+                // started truncating text that used to fit.
+                maxLines: 4,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),

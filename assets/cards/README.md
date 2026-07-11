@@ -4,6 +4,56 @@ Drop one PNG per card into this folder, named exactly `<card_id>.png` (ids
 below, matching `CardDef.id` / the keys in
 [`lib/widgets/card_display.dart`](../../lib/widgets/card_display.dart)).
 
+## Project palette
+
+Pulled directly from [`ArmorUpColors`](../../lib/theme/armor_up_colors.dart),
+plus the gold bevel ramp used on the card frame. This is the exact set
+loaded into every Aseprite template (`assets/cards/templates/*.aseprite`)
+via `armor_up_palette.gpl` - draw new art from these colors so nothing
+clashes with the existing frame/banner/UI chrome.
+
+**Gold ramp** (frame bevel, medallion ring, accents):
+
+| Swatch | Hex | RGB | Name |
+|---|---|---|---|
+| 🟫 | `#2A1404` | 42, 20, 4 | gold_deepest_shadow |
+| 🟤 | `#6B3D12` | 107, 61, 18 | gold_shadow |
+| 🟨 | `#B9852E` | 185, 133, 46 | gold_base (`goldAccent`) |
+| 🟡 | `#E3C15B` | 227, 193, 91 | gold_highlight |
+| ⬜ | `#FFF1AE` | 255, 241, 174 | gold_specular |
+
+**Core theme** (dark charcoal):
+
+| Swatch | Hex | RGB | Name |
+|---|---|---|---|
+| ⬛ | `#262A35` | 38, 42, 53 | cardBackground |
+| ⬛ | `#14161C` | 20, 22, 28 | cardStroke / boardBackground |
+| ⬜ | `#EDE6D6` | 237, 230, 214 | fontColor / cardInnerStroke |
+| 🟦 | `#3A3F4E` | 58, 63, 78 | descriptionBackground / medallionRing |
+
+**Banner tints** (per card type):
+
+| Swatch | Hex | RGB | Type |
+|---|---|---|---|
+| 🟥 | `#9B4040` | 155, 64, 64 | bannerAttack (Trial) |
+| 🟪 | `#8A56A0` | 138, 86, 160 | bannerEvent |
+| 🟦 | `#78A8BA` | 120, 168, 186 | bannerDefense |
+| 🟩 | `#989550` | 152, 149, 80 | bannerRestore / armorStrong |
+
+**Armor condition:**
+
+| Swatch | Hex | RGB | Condition |
+|---|---|---|---|
+| 🟩 | `#989550` | 152, 149, 80 | Strong (same as bannerRestore) |
+| 🟧 | `#C08A3E` | 192, 138, 62 | Weakened |
+| ⬜ | `#A89A88` | 168, 154, 136 | Lost |
+
+**Utility:**
+
+| Swatch | Hex | RGB | Use |
+|---|---|---|---|
+| ⬛ | `#000000` | 0, 0, 0 | Pure black, deep crevice/outline accent |
+
 ## Card frame border (`card_frame.png`)
 
 The pixelated card border/corners is a separate nine-slice asset, already
@@ -161,14 +211,23 @@ PNG.
 Then append the subject for the specific card. Full prompt = prefix + subject.
 
 ### Attacks (Trials) - lean toward `bannerAttack` red/brown, ominous mood
+
+One focal shape per card, like the rest of this list - a second or third
+distinct object (a helmet *and* a cloud *and* a visor) reads as a blob at
+32x32 even though it's easy to picture at full size. `jericho_march` hit
+this same problem (a whole city wall with multiple towers) and got
+redrawn down to one collapsing tower - same fix applied here to
+`discouragement`, which used to be "helmet + drooping visor + storm
+cloud behind it."
+
 - **doubt** - "a cracked round shield with a jagged fracture through the
   center, one shard falling away"
 - **deception** - "a two-faced theater mask, one smiling side and one
   sneering side, split down the middle"
 - **pride** - "an ornate gold crown tipping sideways about to fall, cracked
   jewel on top"
-- **discouragement** - "a dented helmet with its visor drooping and a dark
-  storm cloud looming behind it"
+- **discouragement** - "a dented helmet with its visor drooping low over
+  the eyes, slumped forward"
 - **strife** - "two crossed broken swords clashing, sparks flying at the
   point of impact"
 - **confusion** - "a tangled spiral maze of arrows pointing in every

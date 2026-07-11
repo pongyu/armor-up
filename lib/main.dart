@@ -51,6 +51,13 @@ ThemeData _buildArmorUpTheme() {
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
+    // Pixel-art retro font app-wide (assets/fonts/EarlyGameBoy.ttf) so
+    // text matches the hand-drawn card/armor art instead of the
+    // platform default. Drop shadows are opted into per-TextStyle via
+    // ArmorUpColors.titleOutline (see its own doc comment) rather than
+    // forced here - a shadow on every small body-text label would go
+    // muddy, so only headers/titles that call for it use it.
+    fontFamily: 'EarlyGameBoy',
     scaffoldBackgroundColor: ArmorUpColors.boardBackground,
     appBarTheme: const AppBarTheme(
       backgroundColor: ArmorUpColors.cardStroke,

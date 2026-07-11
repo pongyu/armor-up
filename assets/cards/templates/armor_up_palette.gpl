@@ -1,0 +1,21 @@
+GIMP Palette
+Name: Armor Up
+Columns: 5
+#
+42  20   4	gold_deepest_shadow
+107  61  18	gold_shadow
+185 133  46	gold_base
+227 193  91	gold_highlight
+255 241 174	gold_specular
+42  28  15	cardStroke_outerBorder
+126  88  75	descriptionBackground_medallionRing
+237 221 195	fontColor_cardInnerStroke
+232 223 208	cardBackground_reference
+243 235 220	boardBackground_reference
+155  64  64	bannerAttack
+138  86 160	bannerEvent
+120 168 186	bannerDefense
+152 149  80	bannerRestore_armorStrong
+192 138  62	armorWeakened
+168 154 136	armorLost
+0    0   0	black_deepCrevice

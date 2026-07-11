@@ -172,187 +172,193 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-            return Column(
-              children: [
-                Expanded(
-                  child: _buildPanels(state, me, def, constraints.maxWidth),
-                ),
-                const Divider(height: 1),
-                Builder(
-                  builder: (context) {
-                    // On short (landscape phone) heights the fixed card size
-                    // would otherwise crowd out the panels above it - shrink
-                    // each card's real footprint (FittedBox around a bounded
-                    // CardWidget, not the scrollable list itself) so the
-                    // panels - the primary game-state view - always keep
-                    // most of the vertical space, with no overflow and
-                    // correctly mapped tap coordinates.
-                    // 24: the Discard button's minimumSize height below the
-                    // card. No other padding sits between the card and
-                    // button, or after the button, so this must match
-                    // _HandCard's actual content exactly - any slack here
-                    // shows up as dead space under the cards once scaled up.
-                    const naturalHandHeight = CardWidget.cardHeight + 24;
-                    // The action buttons used to have their own full-width row
-                    // above the hand; folding them into a sidebar alongside the
-                    // pile counters gives that space back to the hand, so cards
-                    // can render bigger. Give the hand a bigger share of the
-                    // vertical space than the top panels - the hand is what
-                    // the player is actually reading/interacting with turn to
-                    // turn, so it's fine for the portrait/opponent-list panels
-                    // to run a bit shorter.
-                    final availableForHand = constraints.maxHeight * 0.55;
-                    var scale = (availableForHand / naturalHandHeight).clamp(
-                      0.55,
-                      1.35,
-                    );
-                    // On narrow (portrait phone) widths a fixed sidebar would
-                    // starve or overflow the scrollable hand list - shrink it
-                    // down (and let it wrap to icon-only buttons) rather than
-                    // hold a fixed width regardless of available space.
-                    final sidebarWidth = constraints.maxWidth < 500
-                        ? 96.0
-                        : 128.0;
-                    // Hand size is normally capped at maxHandSize, but a
-                    // just-drawn hand can briefly sit one over that limit
-                    // until the player discards back down. Rather than let
-                    // that transient extra card force horizontal scrolling,
-                    // shrink every card just enough for all of them to fit
-                    // the row width without scrolling - no fan/overlap
-                    // layout (noted as a future idea), just a smaller flat
-                    // row for the one turn it's needed.
-                    if (me.hand.length > maxHandSize) {
-                      const cardHorizontalSlot = CardWidget.cardWidth + 8;
-                      final availableRowWidth =
-                          constraints.maxWidth - sidebarWidth - 24 - 16;
-                      final widthScale =
-                          availableRowWidth /
-                          (cardHorizontalSlot * me.hand.length);
-                      scale = scale < widthScale ? scale : widthScale;
-                      scale = scale.clamp(0.4, 1.35);
-                    }
-                    final handRowHeight = naturalHandHeight * scale;
+              return Column(
+                children: [
+                  Expanded(
+                    child: _buildPanels(state, me, def, constraints.maxWidth),
+                  ),
+                  const Divider(height: 1),
+                  Builder(
+                    builder: (context) {
+                      // On short (landscape phone) heights the fixed card size
+                      // would otherwise crowd out the panels above it - shrink
+                      // each card's real footprint (FittedBox around a bounded
+                      // CardWidget, not the scrollable list itself) so the
+                      // panels - the primary game-state view - always keep
+                      // most of the vertical space, with no overflow and
+                      // correctly mapped tap coordinates.
+                      // 24: the Discard button's minimumSize height below the
+                      // card. No other padding sits between the card and
+                      // button, or after the button, so this must match
+                      // _HandCard's actual content exactly - any slack here
+                      // shows up as dead space under the cards once scaled up.
+                      const naturalHandHeight = CardWidget.cardHeight + 24;
+                      // The action buttons used to have their own full-width row
+                      // above the hand; folding them into a sidebar alongside the
+                      // pile counters gives that space back to the hand, so cards
+                      // can render bigger. Give the hand a bigger share of the
+                      // vertical space than the top panels - the hand is what
+                      // the player is actually reading/interacting with turn to
+                      // turn, so it's fine for the portrait/opponent-list panels
+                      // to run a bit shorter.
+                      final availableForHand = constraints.maxHeight * 0.55;
+                      var scale = (availableForHand / naturalHandHeight).clamp(
+                        0.55,
+                        1.35,
+                      );
+                      // On narrow (portrait phone) widths a fixed sidebar would
+                      // starve or overflow the scrollable hand list - shrink it
+                      // down (and let it wrap to icon-only buttons) rather than
+                      // hold a fixed width regardless of available space.
+                      final sidebarWidth = constraints.maxWidth < 500
+                          ? 96.0
+                          : 128.0;
+                      // Hand size is normally capped at maxHandSize, but a
+                      // just-drawn hand can briefly sit one over that limit
+                      // until the player discards back down. Rather than let
+                      // that transient extra card force horizontal scrolling,
+                      // shrink every card just enough for all of them to fit
+                      // the row width without scrolling - no fan/overlap
+                      // layout (noted as a future idea), just a smaller flat
+                      // row for the one turn it's needed.
+                      if (me.hand.length > maxHandSize) {
+                        const cardHorizontalSlot = CardWidget.cardWidth + 8;
+                        final availableRowWidth =
+                            constraints.maxWidth - sidebarWidth - 24 - 16;
+                        final widthScale =
+                            availableRowWidth /
+                            (cardHorizontalSlot * me.hand.length);
+                        scale = scale < widthScale ? scale : widthScale;
+                        scale = scale.clamp(0.4, 1.35);
+                      }
+                      final handRowHeight = naturalHandHeight * scale;
 
-                    return SizedBox(
-                      height: handRowHeight,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
-                              children: [
-                                for (final card in me.hand)
-                                  Padding(
-                                    // Extra top room (vs. the 4px everywhere
-                                    // else) so the selected-card lift
-                                    // (AnimatedSlide in _HandCard) has space
-                                    // to paint into instead of getting
-                                    // clipped by the ListView's viewport.
-                                    padding: const EdgeInsets.fromLTRB(
-                                      4,
-                                      16,
-                                      4,
-                                      4,
-                                    ),
-                                    child: SizedBox(
-                                      width: (CardWidget.cardWidth) * scale,
-                                      height: handRowHeight,
-                                      child: FittedBox(
-                                        fit: BoxFit.contain,
-                                        alignment: Alignment.topCenter,
-                                        child: SizedBox(
-                                          width: CardWidget.cardWidth,
-                                          height: naturalHandHeight,
-                                          child: _HandCard(
-                                            card: card,
-                                            selected:
-                                                _selectedCard?.instanceId ==
-                                                card.instanceId,
-                                            disabled:
-                                                widget.readOnly ||
-                                                me.isFasting ||
-                                                state.hasPlayedCardThisTurn ||
-                                                cardDefFor(card).type ==
-                                                    CardType.defense,
-                                            onTap: () {
-                                              setState(() {
-                                                if (_selectedCard?.instanceId ==
-                                                    card.instanceId) {
-                                                  _resetSelection();
-                                                } else {
-                                                  _selectedCard = card;
-                                                  _selectedTargetPlayerId =
-                                                      null;
-                                                  _selectedTargetArmor = null;
-                                                }
-                                              });
-                                            },
-                                            onDiscard:
-                                                !widget.readOnly &&
-                                                    state.hasDrawnThisTurn
-                                                ? () => controller.dispatch(
-                                                    DiscardCard(
-                                                      playerId: widget.actorId,
-                                                      cardInstanceId:
-                                                          card.instanceId,
-                                                    ),
-                                                  )
-                                                : null,
+                      return SizedBox(
+                        height: handRowHeight,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                children: [
+                                  for (final card in me.hand)
+                                    Padding(
+                                      // Extra top room (vs. the 4px everywhere
+                                      // else) so the selected-card lift
+                                      // (AnimatedSlide in _HandCard) has space
+                                      // to paint into instead of getting
+                                      // clipped by the ListView's viewport.
+                                      padding: const EdgeInsets.fromLTRB(
+                                        4,
+                                        16,
+                                        4,
+                                        4,
+                                      ),
+                                      child: SizedBox(
+                                        width: (CardWidget.cardWidth) * scale,
+                                        height: handRowHeight,
+                                        child: FittedBox(
+                                          fit: BoxFit.contain,
+                                          alignment: Alignment.topCenter,
+                                          child: SizedBox(
+                                            width: CardWidget.cardWidth,
+                                            height: naturalHandHeight,
+                                            child: _HandCard(
+                                              card: card,
+                                              selected:
+                                                  _selectedCard?.instanceId ==
+                                                  card.instanceId,
+                                              disabled:
+                                                  widget.readOnly ||
+                                                  me.isFasting ||
+                                                  state.hasPlayedCardThisTurn ||
+                                                  cardDefFor(card).type ==
+                                                      CardType.defense,
+                                              onTap: () {
+                                                setState(() {
+                                                  if (_selectedCard
+                                                          ?.instanceId ==
+                                                      card.instanceId) {
+                                                    _resetSelection();
+                                                  } else {
+                                                    _selectedCard = card;
+                                                    _selectedTargetPlayerId =
+                                                        null;
+                                                    _selectedTargetArmor = null;
+                                                  }
+                                                });
+                                              },
+                                              onDiscard:
+                                                  !widget.readOnly &&
+                                                      state.hasDrawnThisTurn
+                                                  ? () => controller.dispatch(
+                                                      DiscardCard(
+                                                        playerId:
+                                                            widget.actorId,
+                                                        cardInstanceId:
+                                                            card.instanceId,
+                                                      ),
+                                                    )
+                                                  : null,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
+                              ),
+                              child: SizedBox(
+                                width: sidebarWidth,
+                                child: _ActionSidebar(
+                                  state: state,
+                                  canDraw:
+                                      !widget.readOnly &&
+                                      !state.hasDrawnThisTurn,
+                                  canPlay: !widget.readOnly && canPlaySelection,
+                                  canEndTurn:
+                                      !widget.readOnly &&
+                                      state.hasDrawnThisTurn,
+                                  mustDiscardFirst:
+                                      me.hand.length > maxHandSize,
+                                  onDraw: () => controller.dispatch(
+                                    DrawCard(playerId: widget.actorId),
                                   ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
-                            ),
-                            child: SizedBox(
-                              width: sidebarWidth,
-                              child: _ActionSidebar(
-                                state: state,
-                                canDraw:
-                                    !widget.readOnly && !state.hasDrawnThisTurn,
-                                canPlay: !widget.readOnly && canPlaySelection,
-                                canEndTurn:
-                                    !widget.readOnly && state.hasDrawnThisTurn,
-                                mustDiscardFirst: me.hand.length > maxHandSize,
-                                onDraw: () => controller.dispatch(
-                                  DrawCard(playerId: widget.actorId),
-                                ),
-                                onPlay: () {
-                                  controller.dispatch(
-                                    PlayCard(
-                                      playerId: widget.actorId,
-                                      cardInstanceId: _selectedCard!.instanceId,
-                                      targetPlayerId: _selectedTargetPlayerId,
-                                      targetArmor: _selectedTargetArmor,
-                                    ),
-                                  );
-                                  _resetSelection();
-                                },
-                                onEndTurn: () => controller.dispatch(
-                                  EndTurn(playerId: widget.actorId),
+                                  onPlay: () {
+                                    controller.dispatch(
+                                      PlayCard(
+                                        playerId: widget.actorId,
+                                        cardInstanceId:
+                                            _selectedCard!.instanceId,
+                                        targetPlayerId: _selectedTargetPlayerId,
+                                        targetArmor: _selectedTargetArmor,
+                                      ),
+                                    );
+                                    _resetSelection();
+                                  },
+                                  onEndTurn: () => controller.dispatch(
+                                    EndTurn(playerId: widget.actorId),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
-            );
-          },
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -609,16 +615,30 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '${player.name} - Turn ${state.turnNumber} (active)',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: ArmorUpColors.fontColor,
+          // FittedBox rather than a fixed fontSize: EarlyGameBoy's
+          // letterforms are noticeably wider than the platform default
+          // font this size was tuned for, so a fixed size started
+          // truncating names/turn numbers that used to fit - scaling
+          // down only as much as actually needed keeps the text as
+          // large as possible instead of a blanket smaller size.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              // Dash, not "(active)" - EarlyGameBoy doesn't render
+              // parenthesis glyphs cleanly (shows as a stray box/symbol
+              // instead), so parens are avoided in this font wherever
+              // the text isn't user-authored content (card names, etc.
+              // sourced from data are left alone).
+              '${player.name} - Turn ${state.turnNumber} - Active',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: ArmorUpColors.fontColor,
+                shadows: ArmorUpColors.titleOutline,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
             ),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
           ),
           const SizedBox(height: 2),
           Text(
@@ -793,16 +813,28 @@ class _PlayerListRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    isSelf ? '${player.name} (you)' : player.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: ArmorUpColors.fontColor.withValues(
-                        alpha: isSelf ? 0.55 : 1,
+                  // FittedBox rather than a fixed fontSize: EarlyGameBoy's
+                  // glyphs are wide enough that even a smaller fixed size
+                  // still truncated longer names within this row's fixed
+                  // 90px maxWidth - scaling down only as much as actually
+                  // needed keeps the name fully readable instead of
+                  // guessing a size that happens to fit every name.
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      // Dash, not "(you)" - see the turn-header comment
+                      // above on EarlyGameBoy's broken parenthesis glyph.
+                      isSelf ? '${player.name} - You' : player.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: ArmorUpColors.fontColor.withValues(
+                          alpha: isSelf ? 0.55 : 1,
+                        ),
                       ),
+                      maxLines: 1,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
                   ),
                   // Stacked under the name rather than inline before the
                   // armor row: sharing a flex row with the badges made
@@ -810,14 +842,22 @@ class _PlayerListRow extends StatelessWidget {
                   // text was present, since both competed for the same
                   // leftover width.
                   if (onSelectAsTarget != null)
-                    Text(
-                      '(tap to target)',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: ArmorUpColors.fontColor.withValues(alpha: 0.55),
+                    // Same FittedBox fix as the name label above -
+                    // EarlyGameBoy's glyphs are too wide for this row's
+                    // fixed 90px maxWidth at a fixed font size.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '-tap to target-',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: ArmorUpColors.fontColor.withValues(
+                            alpha: 0.55,
+                          ),
+                        ),
+                        maxLines: 1,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
                 ],
               ),
@@ -951,13 +991,22 @@ class _SidebarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ButtonStyle.textStyle doesn't reliably fall through to
+    // ThemeData.fontFamily the way a plain Text widget does - a
+    // TextStyle with fontFamily left null here rendered in the
+    // platform default font instead of the app's pixel font, so the
+    // family is set explicitly, read from the ambient theme so it
+    // can't drift out of sync if the app font changes again.
+    final fontFamily = Theme.of(context).textTheme.bodyMedium?.fontFamily;
     final style = ButtonStyle(
       padding: WidgetStateProperty.all(
         const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       ),
       minimumSize: WidgetStateProperty.all(const Size(0, 0)),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
+      textStyle: WidgetStateProperty.all(
+        TextStyle(fontSize: 12, fontFamily: fontFamily),
+      ),
     );
     final child = FittedBox(
       fit: BoxFit.scaleDown,
