@@ -4,6 +4,7 @@ import 'package:game_engine/game_engine.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../state/app_mode_controller.dart';
+import '../state/game_controller.dart';
 import '../state/game_providers.dart';
 import '../state/turn_actor.dart';
 import '../theme/armor_up_colors.dart';
@@ -137,6 +138,14 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   String? _selectedTargetPlayerId;
   ArmorType? _selectedTargetArmor;
 
+  // Estimated natural height of one _PlayerListRow (8px top/bottom
+  // padding + ~26px name/tap-target text column + 8px bottom spacing
+  // from _PlayerListPanel's own per-row Padding) - used to size the
+  // portrait carousel so up to maxPlayers-1 opponent rows fit without
+  // scrolling on a typical phone, rather than a fixed fraction of
+  // whatever height happens to be left over.
+  static const double _playerRowHeight = 64;
+
   void _resetSelection() {
     setState(() {
       _selectedCard = null;
@@ -161,10 +170,16 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
       }
     });
 
+    // def.type != CardType.defense: selecting a card no longer implies
+    // it's playable now that disabled (unplayable) cards stay tappable
+    // in the fanned hand so they can still be discarded (see
+    // _HandCard's onTap comment) - previously this fell out for free
+    // because a disabled card could never become _selectedCard at all.
     final canPlaySelection =
         state.hasDrawnThisTurn &&
         !state.hasPlayedCardThisTurn &&
         def != null &&
+        def.type != CardType.defense &&
         _isSelectionComplete(def);
 
     return Scaffold(
@@ -172,14 +187,342 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              return Column(
-                children: [
-                  Expanded(
-                    child: _buildPanels(state, me, def, constraints.maxWidth),
+              // Portrait vs. landscape branch, sharing all the same
+              // selection state/helpers (_selectedCard,
+              // _isSelectionComplete, etc.) and low-level widgets
+              // (_HandCard, ArmorRow, CardWidget, _ActionSidebar) rather
+              // than forking into a separate StatefulWidget - see the
+              // portrait-support plan discussed in conversation for why.
+              if (constraints.maxHeight > constraints.maxWidth) {
+                return _buildPortraitBoard(
+                  state,
+                  me,
+                  def,
+                  controller,
+                  canPlaySelection,
+                  constraints,
+                );
+              }
+              return _buildLandscapeBoard(
+                state,
+                me,
+                def,
+                controller,
+                canPlaySelection,
+                constraints,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Portrait layout (Stage 2: player-row carousel + turn header,
+  /// replacing Stage 1's stacked _ActivePlayerPortraitPanel/
+  /// _PlayerListPanel split). Order matches the reference mockup: turn
+  /// header, then a scrollable list of every OTHER player's compact
+  /// armor row (_PlayerListPanel, same widget landscape already uses
+  /// for its opponent list - just given more vertical room here since
+  /// portrait has no side panel competing for width), then the active
+  /// player's own full-size "Your Armor" row, then the hand.
+  Widget _buildPortraitBoard(
+    GameState state,
+    PlayerState me,
+    CardDef? def,
+    GameActionDispatcher controller,
+    bool canPlaySelection,
+    BoxConstraints outerConstraints,
+  ) {
+    final armorSelectable =
+        def != null &&
+        _targetRuleNeedsArmor(def.targetRule) &&
+        _targetRuleNeedsOwnPiece(def.targetRule);
+    final statusLine = me.isFasting
+        ? 'Fasting this turn'
+        : state.hasPlayedCardThisTurn
+        ? 'Already played a card'
+        : !state.hasDrawnThisTurn
+        ? 'Draw to begin your turn'
+        : 'Choose a card to play';
+
+    // Duplicate cards collapse into one card widget with a count badge -
+    // see the identical comment on the landscape hand row below for why.
+    final groupedHand = <String, List<CardInstance>>{};
+    for (final card in me.hand) {
+      groupedHand.putIfAbsent(card.defId, () => []).add(card);
+    }
+    final handStacks = groupedHand.values.toList();
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '${state.activePlayer.name} - Turn ${state.turnNumber} - Active',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: ArmorUpColors.fontColor,
+                    shadows: ArmorUpColors.titleOutline,
                   ),
-                  const Divider(height: 1),
-                  Builder(
-                    builder: (context) {
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                statusLine,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                  color: ArmorUpColors.fontColor.withValues(alpha: 0.75),
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        // Scrollable player-row carousel - every player except the
+        // active one, same _PlayerListPanel/_PlayerListRow already used
+        // for landscape's opponent list. Sized to comfortably fit the
+        // max player count (6, so up to 5 opponent rows) without
+        // needing to scroll on a typical phone screen, rather than a
+        // fixed fraction of whatever height happens to be left over -
+        // the fanned hand below only needs its own natural card height,
+        // not an open-ended Expanded share, so giving the carousel more
+        // room up front doesn't starve the hand. Clamped against the
+        // screen's actual height (reserving ~430px for everything else
+        // - header, armor row, fan, action bar, pile text) so a short
+        // screen shrinks the carousel rather than overflowing; the
+        // carousel's own ListView already scrolls internally, so
+        // shrinking it here just means more scrolling, not lost
+        // content.
+        SizedBox(
+          height: ((maxPlayers - 1) * _playerRowHeight).clamp(
+            _playerRowHeight,
+            (outerConstraints.maxHeight - 430).clamp(
+              _playerRowHeight,
+              double.infinity,
+            ),
+          ),
+          child: _PlayerListPanel(
+            actorId: widget.actorId,
+            hiddenPlayerId: widget.actorId,
+            players: state.players,
+            def: def,
+            selectedTargetPlayerId: _selectedTargetPlayerId,
+            onSelectTarget: (playerId) =>
+                setState(() => _selectedTargetPlayerId = playerId),
+            targetRuleNeedsPlayer: _targetRuleNeedsPlayer,
+            selectedTargetArmor: _selectedTargetArmor,
+            onSelectArmor: (armor) =>
+                setState(() => _selectedTargetArmor = armor),
+            isConditionSelectable: def == null
+                ? defaultIsConditionSelectable
+                : (condition) => _isConditionSelectable(def, condition),
+          ),
+        ),
+        const Divider(height: 1),
+        // "Your Armor" row - the active player's own full-size (not
+        // compact) badges, matching the mockup's dedicated row between
+        // the player carousel and the hand.
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            children: [
+              const Text(
+                'Your Armor',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: ArmorUpColors.fontColor,
+                ),
+              ),
+              const SizedBox(height: 6),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: ArmorRow(
+                  player: me,
+                  selectable: armorSelectable,
+                  selectedArmor: _selectedTargetArmor,
+                  onSelect: (armor) =>
+                      setState(() => _selectedTargetArmor = armor),
+                  isConditionSelectable: def == null
+                      ? defaultIsConditionSelectable
+                      : (condition) => _isConditionSelectable(def, condition),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        // Fixed height (was Expanded, claiming all leftover space) -
+        // the fan only ever needs its own natural footprint
+        // (CardWidget.cardHeight plus _FannedHand's topInset/yDrop
+        // headroom), not an open-ended share of whatever's left after
+        // the carousel/armor row above it, which was leaving a large
+        // dead gap between "Your Armor" and the action bar below on
+        // taller screens or smaller player counts.
+        SizedBox(
+          height: CardWidget.cardHeight + 60,
+          child: _FannedHand(
+            stacks: handStacks,
+            selectedCard: _selectedCard,
+            isCardDisabled: (card) =>
+                widget.readOnly ||
+                me.isFasting ||
+                state.hasPlayedCardThisTurn ||
+                cardDefFor(card).type == CardType.defense,
+            onTapCard: (card, selectedInStack) {
+              setState(() {
+                if (selectedInStack) {
+                  _resetSelection();
+                } else {
+                  _selectedCard = card;
+                  _selectedTargetPlayerId = null;
+                  _selectedTargetArmor = null;
+                }
+              });
+            },
+          ),
+        ),
+        const Divider(height: 1),
+        // Action row: the same 3 actions as _ActionSidebar, laid out
+        // horizontally instead of stacked in a narrow sidebar column -
+        // portrait's width is the plentiful dimension here, not height.
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              Expanded(
+                child: _SidebarButton(
+                  icon: Icons.style,
+                  label: 'Draw',
+                  filled: false,
+                  onPressed: !widget.readOnly && !state.hasDrawnThisTurn
+                      ? () => controller.dispatch(
+                          DrawCard(playerId: widget.actorId),
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _SidebarButton(
+                  icon: Icons.play_arrow,
+                  label: 'Play card',
+                  filled: true,
+                  onPressed: !widget.readOnly && canPlaySelection
+                      ? () {
+                          controller.dispatch(
+                            PlayCard(
+                              playerId: widget.actorId,
+                              cardInstanceId: _selectedCard!.instanceId,
+                              targetPlayerId: _selectedTargetPlayerId,
+                              targetArmor: _selectedTargetArmor,
+                            ),
+                          );
+                          _resetSelection();
+                        }
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    // When over the hand limit, this button already
+                    // told the player "Discard first" - but used to
+                    // just dispatch EndTurn regardless (which the
+                    // engine rejects with an error snackbar until the
+                    // hand's back under the limit). Once a card is
+                    // actually selected while over the limit, the
+                    // button now really performs that discard instead
+                    // of just describing what needs to happen -
+                    // removes the redundant separate Discard button a
+                    // per-card rotated one couldn't replace (see
+                    // _FannedHand's onDiscard comment) without adding a
+                    // 4th button to an already-3-wide row.
+                    final overLimit = me.hand.length > maxHandSize;
+                    final mustDiscardSelected = overLimit && _selectedCard != null;
+
+                    return _SidebarButton(
+                      icon: mustDiscardSelected
+                          ? Icons.delete_outline
+                          : Icons.check,
+                      label: mustDiscardSelected
+                          ? 'Discard'
+                          : overLimit
+                          ? 'Discard first'
+                          : 'End turn',
+                      filled: false,
+                      onPressed: !widget.readOnly && state.hasDrawnThisTurn
+                          ? () {
+                              if (mustDiscardSelected) {
+                                controller.dispatch(
+                                  DiscardCard(
+                                    playerId: widget.actorId,
+                                    cardInstanceId: _selectedCard!.instanceId,
+                                  ),
+                                );
+                                _resetSelection();
+                              } else {
+                                controller.dispatch(
+                                  EndTurn(playerId: widget.actorId),
+                                );
+                              }
+                            }
+                          : null,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            'Draw pile: ${state.drawPile.length}   Discard pile: ${state.discardPile.length}',
+            style: TextStyle(
+              fontSize: 11,
+              color: ArmorUpColors.fontColor.withValues(alpha: 0.8),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Today's original board layout: portrait/opponent panels side by
+  /// side above a horizontal hand row + action sidebar. Unchanged in
+  /// substance from before portrait support was added - only extracted
+  /// into its own method so build() can branch on aspect ratio.
+  Widget _buildLandscapeBoard(
+    GameState state,
+    PlayerState me,
+    CardDef? def,
+    GameActionDispatcher controller,
+    bool canPlaySelection,
+    BoxConstraints outerConstraints,
+  ) {
+    return Column(
+      children: [
+        Expanded(
+          child: _buildPanels(state, me, def, outerConstraints.maxWidth),
+        ),
+        const Divider(height: 1),
+        Builder(
+          builder: (context) {
                       // On short (landscape phone) heights the fixed card size
                       // would otherwise crowd out the panels above it - shrink
                       // each card's real footprint (FittedBox around a bounded
@@ -218,7 +561,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       // the player is actually reading/interacting with turn to
                       // turn, so it's fine for the portrait/opponent-list panels
                       // to run a bit shorter.
-                      final availableForHand = constraints.maxHeight * 0.55;
+                      final availableForHand = outerConstraints.maxHeight * 0.55;
                       var scale = (availableForHand / naturalHandHeight).clamp(
                         0.55,
                         1.35,
@@ -227,7 +570,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       // starve or overflow the scrollable hand list - shrink it
                       // down (and let it wrap to icon-only buttons) rather than
                       // hold a fixed width regardless of available space.
-                      final sidebarWidth = constraints.maxWidth < 500
+                      final sidebarWidth = outerConstraints.maxWidth < 500
                           ? 96.0
                           : 128.0;
                       // Hand size is normally capped at maxHandSize, but a
@@ -241,7 +584,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       if (me.hand.length > maxHandSize) {
                         const cardHorizontalSlot = CardWidget.cardWidth + 8;
                         final availableRowWidth =
-                            constraints.maxWidth - sidebarWidth - 24 - 16;
+                            outerConstraints.maxWidth - sidebarWidth - 24 - 16;
                         // handStacks.length (rendered slots), not
                         // me.hand.length (raw card count) - duplicates
                         // collapse into one slot with a count badge, so
@@ -412,12 +755,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       );
                     },
                   ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
+      ],
     );
   }
 
@@ -441,7 +779,6 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     final portraitWidth =
         naturalPortraitWidth * (availableWidth / naturalTotal).clamp(0.4, 1.0);
 
-    final activePlayer = widget.readOnly ? state.activePlayer : me;
     final armorSelectable =
         def != null &&
         _targetRuleNeedsArmor(def.targetRule) &&
@@ -453,7 +790,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         SizedBox(
           width: portraitWidth,
           child: _ActivePlayerPortraitPanel(
-            player: activePlayer,
+            player: me,
+            turnPlayer: state.activePlayer,
             state: state,
             selectable: armorSelectable,
             selectedArmor: _selectedTargetArmor,
@@ -468,7 +806,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         Expanded(
           child: _PlayerListPanel(
             actorId: widget.actorId,
-            hiddenPlayerId: activePlayer.id,
+            hiddenPlayerId: widget.actorId,
             players: state.players,
             def: def,
             selectedTargetPlayerId: _selectedTargetPlayerId,
@@ -571,6 +909,198 @@ class _VignetteBoardBackground extends StatelessWidget {
   }
 }
 
+/// Portrait's fanned hand: cards overlap and rotate around a shared
+/// bottom-center pivot, like a hand of real playing cards, instead of
+/// the flat horizontal ListView landscape uses. The single genuinely
+/// new geometry in this codebase's portrait-support work - no
+/// precedent to follow, tuned by eye rather than derived.
+///
+/// Each card's position is computed relative to hand-center: card index
+/// `i` of `n` gets a signed "slot" `i - (n-1)/2` (0 for the middle card,
+/// negative left, positive right), which drives both the rotation angle
+/// and the horizontal offset linearly - a plain fan, not a curved/arced
+/// one (no per-card vertical lift). `Transform.rotate` pivots from
+/// `Alignment.bottomCenter`, not the default center, so cards fan out
+/// from a single point at the bottom like they're actually held in a
+/// hand.
+///
+/// Selection reuses _HandCard's existing AnimatedSlide/AnimatedScale
+/// lift unchanged, nested inside this widget's own rotation transform -
+/// the lift still translates along the card's own (rotated) local Y
+/// axis, which reads fine even at the fan's outer angles since the
+/// lift distance is small relative to the rotation.
+class _FannedHand extends StatelessWidget {
+  final List<List<CardInstance>> stacks;
+  final CardInstance? selectedCard;
+  final bool Function(CardInstance card) isCardDisabled;
+  final void Function(CardInstance card, bool selectedInStack) onTapCard;
+
+  const _FannedHand({
+    required this.stacks,
+    required this.selectedCard,
+    required this.isCardDisabled,
+    required this.onTapCard,
+  });
+
+  // Total angular spread across the whole hand, and how far apart
+  // (horizontally) adjacent cards sit - tuned by eye, not derived from
+  // anything. Capped rather than growing unbounded with hand size (a
+  // 10-card hand fanned at these same per-card values would spread off
+  // both edges of the screen), matching the same
+  // "shrink rather than overflow" philosophy the landscape hand row
+  // already uses for its own over-maxHandSize case.
+  static const double _maxTotalSpreadDegrees = 44;
+  static const double _maxOverlapStep = 46;
+  // How far outer cards drop below the center one, per slot^2 - see
+  // the yDrop comment below for why this needs to be a parabola, not a
+  // flat/linear offset.
+  static const double _dropPerSlotSquared = 3.5;
+
+  @override
+  Widget build(BuildContext context) {
+    final n = stacks.length;
+    if (n == 0) {
+      return const SizedBox.shrink();
+    }
+
+    // Fewer cards can use the full per-card spacing; a big hand needs
+    // to compress both the angle-per-card and the offset-per-card so
+    // the whole fan still fits within a couple hundred px of width
+    // rather than running off-screen - same shrink-not-scroll approach
+    // as the landscape hand row's own overflow handling.
+    final anglePerCard = n > 1
+        ? (_maxTotalSpreadDegrees / (n - 1)).clamp(4.0, 14.0)
+        : 0.0;
+    final overlapStep = n > 1
+        ? (_maxOverlapStep - (n - 5).clamp(0, 6) * 4).clamp(24.0, _maxOverlapStep)
+        : 0.0;
+
+    // Paint order: left-to-right by default (so each card's right-hand
+    // neighbor overlaps it, matching a normal held-card fan), but with
+    // whichever stack is currently selected moved to the very end - a
+    // Stack has no explicit z-index, only child order, and without this
+    // a selected card near either edge of the fan would lift/scale up
+    // but stay visually buried under its unselected neighbors toward
+    // the center.
+    final paintOrder = List<int>.generate(n, (i) => i);
+    if (selectedCard != null) {
+      final selectedIndex = paintOrder.indexWhere(
+        (i) => stacks[i].any((c) => c.instanceId == selectedCard!.instanceId),
+      );
+      if (selectedIndex != -1) {
+        paintOrder
+          ..removeAt(selectedIndex)
+          ..add(selectedIndex);
+      }
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final centerX = constraints.maxWidth / 2;
+        // Anchored near the TOP of this widget's available space, not
+        // the bottom - _FannedHand sits in an Expanded (so the action
+        // bar below it stays pinned to the screen's true bottom
+        // regardless of how much leftover height there is), but a
+        // small hand doesn't need to visually float in the middle of
+        // that space - it should hug the divider right above it. 16:
+        // the same top-inset the old flat ListView used for the
+        // selection-lift headroom.
+        const topInset = 16.0;
+        // Clamp the outermost card's horizontal offset (not just the
+        // per-card overlapStep) to the actual available width, so a
+        // wide hand shrinks its spread further rather than letting
+        // cards run off either edge of the screen - overlapStep alone
+        // already compresses somewhat as hand size grows, but that
+        // compression is independent of how narrow the actual screen
+        // is, so it isn't enough on its own.
+        final maxOuterOffset = n > 1
+            ? (constraints.maxWidth - CardWidget.cardWidth) / 2
+            : 0.0;
+        final naturalOuterOffset = n > 1 ? (n - 1) / 2 * overlapStep : 0.0;
+        final widthClamp = naturalOuterOffset > maxOuterOffset && n > 1
+            ? maxOuterOffset / naturalOuterOffset
+            : 1.0;
+        final clampedOverlapStep = overlapStep * widthClamp;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            for (final i in paintOrder)
+              // Keyed on the card's own instanceId, not list position -
+              // paintOrder reshuffles which index paints last whenever
+              // selection changes, and without a stable key Flutter's
+              // Stack reconciles children by position, not identity,
+              // so a Builder/AnimatedSlide/AnimatedScale could get
+              // silently reassigned to a DIFFERENT underlying card
+              // than the one it was animating a moment ago - the
+              // reported bug (the rightmost card visibly "bouncing"
+              // when a different, unrelated card was tapped) was
+              // exactly this: Flutter matched the wrong element across
+              // the reorder and replayed/misapplied its animation.
+              Builder(
+                key: ValueKey(stacks[i].first.instanceId),
+                builder: (context) {
+                  final stack = stacks[i];
+                  final card = stack.first;
+                  final selectedInStack =
+                      selectedCard != null &&
+                      stack.any((c) => c.instanceId == selectedCard!.instanceId);
+
+                  // Signed slot: 0 at the hand's center, negative to
+                  // the left, positive to the right - drives both angle
+                  // and horizontal offset from the same value so they
+                  // stay proportional to each other regardless of hand
+                  // size. Uses the card's original index i (its actual
+                  // fan position), not its position in paintOrder,
+                  // since reordering for painting shouldn't move the
+                  // card itself.
+                  final slot = i - (n - 1) / 2;
+                  final angleDegrees = slot * anglePerCard;
+                  final xOffset = slot * clampedOverlapStep;
+                  // Shallow parabolic drop (slot^2, not linear) so
+                  // outer cards sit lower than the center one - without
+                  // this, rotating a card around its own bottom-center
+                  // pivot visually lifts its outer top corner higher
+                  // than an unrotated card's top edge, making the two
+                  // ends of the fan look taller than the middle instead
+                  // of forming a proper downward arc like a real held
+                  // hand. _dropPerSlotSquared tuned by eye.
+                  final yDrop = slot * slot * _dropPerSlotSquared;
+
+                  return Positioned(
+                    left: centerX + xOffset - CardWidget.cardWidth / 2,
+                    top: topInset + yDrop,
+                    child: Transform.rotate(
+                      angle: angleDegrees * (3.14159265 / 180),
+                      alignment: Alignment.bottomCenter,
+                      child: SizedBox(
+                        width: CardWidget.cardWidth,
+                        child: _HandCard(
+                          card: card,
+                          count: stack.length,
+                          selected: selectedInStack,
+                          disabled: isCardDisabled(card),
+                          onTap: () => onTapCard(card, selectedInStack),
+                          // Not shown here: a rotated per-card Discard
+                          // button (like landscape's _HandCard uses)
+                          // becomes illegible/overlapping once the
+                          // whole card is tilted in the fan - discard
+                          // moves to the bottom action bar instead, see
+                          // _buildPortraitBoard's action row.
+                          onDiscard: null,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _HandCard extends StatelessWidget {
   final CardInstance card;
   final int count;
@@ -588,52 +1118,78 @@ class _HandCard extends StatelessWidget {
     required this.onDiscard,
   });
 
+  // Standard luminance-weighted grayscale matrix (same family as the
+  // armor icon's weakened/lost desaturation filters in armor_widget.dart)
+  // - replaces a flat opacity fade for "not currently playable" cards.
+  // A full-opacity fade made the card read as untappable/broken once
+  // disabled cards became selectable again (for discard - see the
+  // onTap comment below); desaturating keeps the card fully visible
+  // and clearly interactive while still reading as "muted."
+  static const _disabledFilter = ColorFilter.matrix(<double>[
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0, 0, 0, 1, 0,
+  ]);
+
   @override
   Widget build(BuildContext context) {
     final def = cardDefFor(card);
+    // Selection used to rely solely on the frame's glow shadow, which
+    // reads poorly now that the frame itself is a busy pixel-art
+    // border - a physical lift makes the selected card unambiguous
+    // even before the glow registers.
+    final animatedCard = AnimatedSlide(
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+      offset: selected ? const Offset(0, -0.08) : Offset.zero,
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        scale: selected ? 1.05 : 1.0,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // onTap always fires, even when disabled - "disabled" means
+            // "not currently playable" (defense card, no turn drawn
+            // yet, etc.), shown via the grayscale filter below, but the
+            // card still needs to be selectable so it can be
+            // discarded. Landscape's per-card Discard TextButton
+            // sidesteps this (it's a separate always-enabled widget,
+            // not gated on selection at all), but portrait's fanned
+            // hand removed that button in favor of routing discard
+            // through the bottom action bar's selection-gated button
+            // (see _buildPortraitBoard), which only works if a
+            // disabled card can still be tapped to select it in the
+            // first place.
+            CardWidget(def: def, selected: selected, onTap: onTap),
+            // Duplicate-card count badge - only shown when the player
+            // actually holds more than one copy, per the groupedHand
+            // collapsing in _MainBoardViewState.build. Hangs partially
+            // off the card's top-right corner (like a wax seal) rather
+            // than sitting inset - the surrounding FittedBox needed
+            // clipBehavior: Clip.none (see that widget) for this
+            // negative offset to actually paint instead of getting
+            // clipped away.
+            if (count > 1)
+              Positioned(
+                top: -6,
+                right: -14,
+                child: _CountBadge(count: count),
+              ),
+          ],
+        ),
+      ),
+    );
+
     return Column(
       children: [
-        Opacity(
-          opacity: disabled ? 0.5 : 1,
-          // Selection used to rely solely on the frame's glow shadow, which
-          // reads poorly now that the frame itself is a busy pixel-art
-          // border - a physical lift makes the selected card unambiguous
-          // even before the glow registers.
-          child: AnimatedSlide(
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOut,
-            offset: selected ? const Offset(0, -0.08) : Offset.zero,
-            child: AnimatedScale(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
-              scale: selected ? 1.05 : 1.0,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  CardWidget(
-                    def: def,
-                    selected: selected,
-                    onTap: disabled ? null : onTap,
-                  ),
-                  // Duplicate-card count badge - only shown when the
-                  // player actually holds more than one copy, per the
-                  // groupedHand collapsing in _MainBoardViewState.build.
-                  // Hangs partially off the card's top-right corner (like
-                  // a wax seal) rather than sitting inset - the
-                  // surrounding FittedBox needed clipBehavior: Clip.none
-                  // (see that widget) for this negative offset to
-                  // actually paint instead of getting clipped away.
-                  if (count > 1)
-                    Positioned(
-                      top: -6,
-                      right: -14,
-                      child: _CountBadge(count: count),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        // Grayscale, not a flat opacity fade - see _disabledFilter's
+        // doc comment above for why. Only wraps the card art itself,
+        // not the Discard button below, since that button is always
+        // meant to read as clearly actionable regardless of the card's
+        // playability.
+        disabled ? ColorFiltered(colorFilter: _disabledFilter, child: animatedCard) : animatedCard,
         if (onDiscard != null)
           TextButton(
             onPressed: onDiscard,
@@ -708,11 +1264,15 @@ class _CountBadge extends StatelessWidget {
   }
 }
 
-/// Left panel: the active player's name, turn-status line, and their own
-/// armor as a single row of six full badges underneath. This is the single
+/// Left panel: [turnPlayer]'s name and turn-status line above [player]'s
+/// own armor as a single row of six full badges. The two differ in LAN
+/// read-only spectating - the title still names whoever's turn it
+/// actually is, but the armor/status below always belongs to the local
+/// viewer ([player]), never whoever they're watching. In hotseat and
+/// interactive LAN turns the two are the same player. This is the single
 /// place turn/fasting/played-card status is shown - it used to be a footer
 /// message repeated under the hand row - and, since the right-hand armor
-/// grid panel was removed, the single place the active player's own armor
+/// grid panel was removed, the single place the local player's own armor
 /// detail is shown at all.
 ///
 /// No portrait image yet - the background is a plain placeholder fill so a
@@ -721,6 +1281,12 @@ class _CountBadge extends StatelessWidget {
 /// with the armor row for the panel's limited height.
 class _ActivePlayerPortraitPanel extends StatelessWidget {
   final PlayerState player;
+
+  /// Whoever's turn it actually is - only used for the "Turn N - Active"
+  /// title. In LAN read-only spectating, [player] is always the local
+  /// viewer (their own armor stays "Your Armor" regardless of whose turn
+  /// it is), so this can differ from [player] and needs its own name.
+  final PlayerState turnPlayer;
   final GameState state;
   final bool selectable;
   final ArmorType? selectedArmor;
@@ -729,6 +1295,7 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
 
   const _ActivePlayerPortraitPanel({
     required this.player,
+    required this.turnPlayer,
     required this.state,
     required this.selectable,
     required this.selectedArmor,
@@ -765,7 +1332,7 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
               // instead), so parens are avoided in this font wherever
               // the text isn't user-authored content (card names, etc.
               // sourced from data are left alone).
-              '${player.name} - Turn ${state.turnNumber} - Active',
+              '${turnPlayer.name} - Turn ${state.turnNumber} - Active',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
@@ -818,10 +1385,11 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
 }
 
 /// Center panel: a glanceable, scrollable list of every player except
-/// [hiddenPlayerId] (the one whose detailed armor is already shown in the
-/// left portrait panel - repeating them here would show the same data
-/// twice). Every remaining player gets a compact armor-badge row and
-/// remains tap-to-target.
+/// [hiddenPlayerId] (the local/viewing player - they're never their own
+/// opponent, and in read-only LAN spectating their armor isn't the one
+/// shown in the portrait panel above anyway, so listing them there too
+/// would be confusing rather than just redundant). Every remaining player
+/// gets a compact armor-badge row and remains tap-to-target.
 class _PlayerListPanel extends StatelessWidget {
   final String actorId;
   final String hiddenPlayerId;
