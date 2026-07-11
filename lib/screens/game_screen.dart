@@ -234,12 +234,11 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     bool canPlaySelection,
     BoxConstraints outerConstraints,
   ) {
-    final activePlayer = widget.readOnly ? state.activePlayer : me;
     final armorSelectable =
         def != null &&
         _targetRuleNeedsArmor(def.targetRule) &&
         _targetRuleNeedsOwnPiece(def.targetRule);
-    final statusLine = activePlayer.isFasting
+    final statusLine = me.isFasting
         ? 'Fasting this turn'
         : state.hasPlayedCardThisTurn
         ? 'Already played a card'
@@ -264,7 +263,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  '${activePlayer.name} - Turn ${state.turnNumber} - Active',
+                  '${state.activePlayer.name} - Turn ${state.turnNumber} - Active',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -316,7 +315,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
           ),
           child: _PlayerListPanel(
             actorId: widget.actorId,
-            hiddenPlayerId: activePlayer.id,
+            hiddenPlayerId: widget.actorId,
             players: state.players,
             def: def,
             selectedTargetPlayerId: _selectedTargetPlayerId,
@@ -351,7 +350,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
               FittedBox(
                 fit: BoxFit.scaleDown,
                 child: ArmorRow(
-                  player: activePlayer,
+                  player: me,
                   selectable: armorSelectable,
                   selectedArmor: _selectedTargetArmor,
                   onSelect: (armor) =>
@@ -780,7 +779,6 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     final portraitWidth =
         naturalPortraitWidth * (availableWidth / naturalTotal).clamp(0.4, 1.0);
 
-    final activePlayer = widget.readOnly ? state.activePlayer : me;
     final armorSelectable =
         def != null &&
         _targetRuleNeedsArmor(def.targetRule) &&
@@ -792,7 +790,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         SizedBox(
           width: portraitWidth,
           child: _ActivePlayerPortraitPanel(
-            player: activePlayer,
+            player: me,
+            turnPlayer: state.activePlayer,
             state: state,
             selectable: armorSelectable,
             selectedArmor: _selectedTargetArmor,
@@ -807,7 +806,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
         Expanded(
           child: _PlayerListPanel(
             actorId: widget.actorId,
-            hiddenPlayerId: activePlayer.id,
+            hiddenPlayerId: widget.actorId,
             players: state.players,
             def: def,
             selectedTargetPlayerId: _selectedTargetPlayerId,
@@ -1265,11 +1264,15 @@ class _CountBadge extends StatelessWidget {
   }
 }
 
-/// Left panel: the active player's name, turn-status line, and their own
-/// armor as a single row of six full badges underneath. This is the single
+/// Left panel: [turnPlayer]'s name and turn-status line above [player]'s
+/// own armor as a single row of six full badges. The two differ in LAN
+/// read-only spectating - the title still names whoever's turn it
+/// actually is, but the armor/status below always belongs to the local
+/// viewer ([player]), never whoever they're watching. In hotseat and
+/// interactive LAN turns the two are the same player. This is the single
 /// place turn/fasting/played-card status is shown - it used to be a footer
 /// message repeated under the hand row - and, since the right-hand armor
-/// grid panel was removed, the single place the active player's own armor
+/// grid panel was removed, the single place the local player's own armor
 /// detail is shown at all.
 ///
 /// No portrait image yet - the background is a plain placeholder fill so a
@@ -1278,6 +1281,12 @@ class _CountBadge extends StatelessWidget {
 /// with the armor row for the panel's limited height.
 class _ActivePlayerPortraitPanel extends StatelessWidget {
   final PlayerState player;
+
+  /// Whoever's turn it actually is - only used for the "Turn N - Active"
+  /// title. In LAN read-only spectating, [player] is always the local
+  /// viewer (their own armor stays "Your Armor" regardless of whose turn
+  /// it is), so this can differ from [player] and needs its own name.
+  final PlayerState turnPlayer;
   final GameState state;
   final bool selectable;
   final ArmorType? selectedArmor;
@@ -1286,6 +1295,7 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
 
   const _ActivePlayerPortraitPanel({
     required this.player,
+    required this.turnPlayer,
     required this.state,
     required this.selectable,
     required this.selectedArmor,
@@ -1322,7 +1332,7 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
               // instead), so parens are avoided in this font wherever
               // the text isn't user-authored content (card names, etc.
               // sourced from data are left alone).
-              '${player.name} - Turn ${state.turnNumber} - Active',
+              '${turnPlayer.name} - Turn ${state.turnNumber} - Active',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
@@ -1375,10 +1385,11 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
 }
 
 /// Center panel: a glanceable, scrollable list of every player except
-/// [hiddenPlayerId] (the one whose detailed armor is already shown in the
-/// left portrait panel - repeating them here would show the same data
-/// twice). Every remaining player gets a compact armor-badge row and
-/// remains tap-to-target.
+/// [hiddenPlayerId] (the local/viewing player - they're never their own
+/// opponent, and in read-only LAN spectating their armor isn't the one
+/// shown in the portrait panel above anyway, so listing them there too
+/// would be confusing rather than just redundant). Every remaining player
+/// gets a compact armor-badge row and remains tap-to-target.
 class _PlayerListPanel extends StatelessWidget {
   final String actorId;
   final String hiddenPlayerId;
