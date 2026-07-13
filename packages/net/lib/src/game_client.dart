@@ -27,12 +27,14 @@ class GameClient {
   bool _closing = false;
   List<LobbyPlayer> _latestRoster = const [];
   FilteredGameState? _latestState;
+  int? _latestResponseDeadlineEpochMs;
 
   final _lobbyRosterController = StreamController<List<LobbyPlayer>>.broadcast();
   final _lobbyStartedController = StreamController<void>.broadcast();
   final _lobbyStartedCompleter = Completer<void>();
   final _joinRejectedController = StreamController<String>.broadcast();
   final _stateController = StreamController<FilteredGameState>.broadcast();
+  final _responseDeadlineController = StreamController<int?>.broadcast();
   final _errorController = StreamController<String>.broadcast();
   final _hostDisconnectedController = StreamController<void>.broadcast();
   final _playerLeftController = StreamController<String>.broadcast();
@@ -88,6 +90,21 @@ class GameClient {
   /// first event is still coming. Null before the first [StateMessage]
   /// arrives.
   FilteredGameState? get latestState => _latestState;
+
+  /// The response-deadline envelope field from the most recent
+  /// [StateMessage] - see that class's doc comment for what it means.
+  /// Broadcast alongside (not folded into) [states], since it changes
+  /// independently of [FilteredGameState] content (e.g. ticking toward
+  /// its instant needs no state change to justify a UI rebuild) and a
+  /// widget only interested in the countdown shouldn't need to rebuild on
+  /// every unrelated state broadcast to get it.
+  Stream<int?> get responseDeadlines => _responseDeadlineController.stream;
+
+  /// The most recently received deadline, synchronously available - same
+  /// "seed from this, don't assume the stream's first event is still
+  /// coming" rationale as [latestState]. Null before the first
+  /// [StateMessage] arrives, or whenever no deadline is currently running.
+  int? get latestResponseDeadlineEpochMs => _latestResponseDeadlineEpochMs;
 
   /// One-shot [ActionFailure] reasons for actions this client sent.
   Stream<String> get errors => _errorController.stream;
@@ -160,9 +177,13 @@ class GameClient {
     }
 
     switch (message) {
-      case StateMessage(:final state):
+      case StateMessage(:final state, :final responseDeadlineEpochMs):
         _latestState = state;
+        _latestResponseDeadlineEpochMs = responseDeadlineEpochMs;
         if (!_stateController.isClosed) _stateController.add(state);
+        if (!_responseDeadlineController.isClosed) {
+          _responseDeadlineController.add(responseDeadlineEpochMs);
+        }
       case ErrorMessage(:final reason):
         if (!_errorController.isClosed) _errorController.add(reason);
       case HostDisconnectedMessage():
@@ -205,6 +226,7 @@ class GameClient {
     await _lobbyStartedController.close();
     await _joinRejectedController.close();
     await _stateController.close();
+    await _responseDeadlineController.close();
     await _errorController.close();
     await _hostDisconnectedController.close();
     await _playerLeftController.close();

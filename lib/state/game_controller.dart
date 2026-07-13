@@ -8,12 +8,28 @@ class GameUiState {
   final GameState state;
   final String? lastError;
 
-  const GameUiState({required this.state, this.lastError});
+  /// Mirrors [StateMessage.responseDeadlineEpochMs] in LAN mode - the
+  /// epoch-millisecond instant the host's defense-response/group-discard
+  /// timeout will fire for the current pending actor, or null if none is
+  /// running. Always null in hotseat, where [GameController] has no host
+  /// or timer concept at all and never sets this field.
+  final int? responseDeadlineEpochMs;
 
-  GameUiState copyWith({GameState? state, String? lastError, bool clearError = false}) =>
+  const GameUiState({required this.state, this.lastError, this.responseDeadlineEpochMs});
+
+  GameUiState copyWith({
+    GameState? state,
+    String? lastError,
+    bool clearError = false,
+    int? responseDeadlineEpochMs,
+    bool clearResponseDeadline = false,
+  }) =>
       GameUiState(
         state: state ?? this.state,
         lastError: clearError ? null : (lastError ?? this.lastError),
+        responseDeadlineEpochMs: clearResponseDeadline
+            ? null
+            : (responseDeadlineEpochMs ?? this.responseDeadlineEpochMs),
       );
 }
 

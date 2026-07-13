@@ -22,6 +22,7 @@ import 'game_controller.dart';
 class NetGameController extends StateNotifier<GameUiState?> implements GameActionDispatcher {
   GameClient? _client;
   StreamSubscription<FilteredGameState>? _statesSub;
+  StreamSubscription<int?>? _responseDeadlinesSub;
   StreamSubscription<String>? _errorsSub;
 
   NetGameController() : super(null);
@@ -39,10 +40,29 @@ class NetGameController extends StateNotifier<GameUiState?> implements GameActio
     // push isn't silently missed, then keep listening for further updates.
     final latest = client.latestState;
     if (latest != null) {
-      state = GameUiState(state: reconstructFromFiltered(latest), lastError: null);
+      state = GameUiState(
+        state: reconstructFromFiltered(latest),
+        responseDeadlineEpochMs: client.latestResponseDeadlineEpochMs,
+      );
     }
     _statesSub = client.states.listen((filtered) {
-      state = GameUiState(state: reconstructFromFiltered(filtered), lastError: null);
+      state = GameUiState(
+        state: reconstructFromFiltered(filtered),
+        responseDeadlineEpochMs: client.latestResponseDeadlineEpochMs,
+      );
+    });
+    // Broadcast separately from states (see GameClient.responseDeadlines'
+    // doc comment) - preserves the existing GameState rather than
+    // reconstructing it, since a deadline update carries no state change
+    // of its own.
+    _responseDeadlinesSub = client.responseDeadlines.listen((deadline) {
+      final current = state;
+      if (current != null) {
+        state = current.copyWith(
+          responseDeadlineEpochMs: deadline,
+          clearResponseDeadline: deadline == null,
+        );
+      }
     });
     _errorsSub = client.errors.listen((reason) {
       final current = state;
@@ -82,8 +102,10 @@ class NetGameController extends StateNotifier<GameUiState?> implements GameActio
   /// for calling [GameClient.close] separately.
   void reset() {
     _statesSub?.cancel();
+    _responseDeadlinesSub?.cancel();
     _errorsSub?.cancel();
     _statesSub = null;
+    _responseDeadlinesSub = null;
     _errorsSub = null;
     _client = null;
     state = null;
@@ -92,6 +114,7 @@ class NetGameController extends StateNotifier<GameUiState?> implements GameActio
   @override
   void dispose() {
     _statesSub?.cancel();
+    _responseDeadlinesSub?.cancel();
     _errorsSub?.cancel();
     super.dispose();
   }

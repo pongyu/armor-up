@@ -1,3 +1,205 @@
+# Phase 4: Defense Prompt & LAN Response UX
+
+Polishes the reactive defense-response experience - the moment an attack
+pauses the game waiting for a response. `lib/`-only in intent; one small
+net-package plumbing change was needed to carry an already-existing wire
+field (`StateMessage.responseDeadlineEpochMs`, added in Phase 1 but never
+read anywhere in `lib/`) through to the Flutter layer - no new wire
+format, no engine/behavior change, purely forwarding a value that was
+already being decoded and discarded. See "Net plumbing" below for the
+exact diff. No engine or card-definition changes.
+
+## Net plumbing — carrying `responseDeadlineEpochMs` into `lib/`
+
+**Files:** `packages/net/lib/src/game_client.dart`,
+`lib/state/game_controller.dart`, `lib/state/net_game_controller.dart`,
+`lib/state/game_providers.dart`
+
+- `GameClient` gained `responseDeadlines` (a broadcast `Stream<int?>`,
+  separate from `states` since the deadline changes independently of
+  `FilteredGameState` content) and `latestResponseDeadlineEpochMs` (a
+  synchronous getter, same "seed from this so a late subscriber doesn't
+  miss the first push" rationale as the existing `latestState`). The
+  `StateMessage` case in `_handleIncoming` now destructures and forwards
+  `responseDeadlineEpochMs` instead of discarding it.
+- `GameUiState` gained a `responseDeadlineEpochMs` field, always null in
+  hotseat (`GameController` never sets it - there is no host/timer
+  concept in-process). `NetGameController.attach` listens to
+  `responseDeadlines` alongside `states`/`errors` and folds updates into
+  the existing `GameUiState` via `copyWith`, preserving the current
+  `GameState` rather than reconstructing it for a deadline-only update.
+- New `responseDeadlineEpochMsProvider` in `game_providers.dart`, gated on
+  `AppMode.netPlaying` exactly like the existing `localPlayerIdProvider`.
+
+## Part 1 — LAN countdown display
+
+**Files:** `lib/screens/defense_prompt_view.dart`
+
+- New `_ResponseCountdownBar`: a thin shrinking `LinearProgressIndicator`
+  shown in `_DefensePromptView`'s `AppBar.bottom`, only when
+  `responseDeadlineEpochMsProvider` is non-null. Since `_DefensePromptView`
+  is only ever constructed for the actual current responder (see
+  `_buildBody`/`_buildNetworked` in `game_screen.dart` - this was already
+  true before this phase), no extra identity check is needed to keep this
+  from ever appearing for a bystander.
+- Resyncs against the synced epoch on a `Timer.periodic` (100ms) rather
+  than free-running from a locally-started `Duration` - only the gap
+  between "now" and the host's own epoch matters, so client-clock drift
+  never accumulates. A new deadline (Fellowship passing to the next
+  helper, each of whom gets their own fresh window) is detected via
+  `didUpdateWidget` and resyncs immediately rather than waiting for the
+  next tick.
+- Color escalates calm (green) -> amber -> red over the final 5 seconds
+  (`Color.lerp`), kept as a plain color ramp rather than a flashing/pulsing
+  effect per the spec's "readable, not alarming - this is still a kids'
+  game."
+- The bar's fill fraction is approximated against the default 20s
+  response timeout (the client only ever receives the deadline *instant*,
+  not the original duration) - slightly wrong if the host is configured
+  with a non-default timeout, but the bar still correctly reaches empty
+  exactly at the real deadline and still escalates color in the true
+  final 5 seconds regardless, which is what matters for pacing.
+- New one-shot "Time's up!" flash (`_DefensePromptView` converted from
+  `ConsumerWidget` to `ConsumerStatefulWidget` to hold this): fires the
+  instant this client's own countdown reaches zero, deliberately *ahead*
+  of the shared resolution beat (Part 3), which only appears once the
+  host's timeout has actually fired and the resulting state has round-
+  tripped back to this client - without it, the responder who ran out the
+  clock would see nothing happen for a beat and could read the gap as a
+  glitch.
+- Hotseat path verified genuinely untouched: `responseDeadlineEpochMsProvider`
+  is gated on `AppMode.netPlaying` before it ever looks at `GameUiState`, so
+  hotseat's `_DefensePromptView` never even evaluates a null-vs-set
+  question - confirmed via a widget test using a hotseat `GameController`
+  with a hand-crafted `pendingInterrupt` (no real host/client involved at
+  all).
+
+## Part 2 — Spectator "waiting" states (LAN)
+
+**Files:** `lib/screens/game_screen.dart`
+
+- New `_WaitingForResponseView`: shown by `_buildNetworked` to every
+  connected client except whoever `currentActorId` currently names as the
+  responder, whenever `pendingInterrupt != null` (previously every
+  bystander just saw the plain read-only `_MainBoardView`, which gave no
+  indication anything was happening). Reads `pendingInterrupt`/
+  `currentActorId` directly from state each rebuild, not a one-shot event,
+  so a client that connects or reconnects mid-interrupt renders the
+  correct view immediately, and the message updates on its own as
+  Fellowship passes from helper to helper without any bystander input.
+- Names the attacker, defender, and (during a Fellowship request) the
+  specific helper currently being asked - "Waiting for X to help Y..." or
+  "...Waiting for Y to respond..." - never hand contents, and never
+  implies how likely a response is.
+- Out of scope (left as before): group-discard bystanders still see the
+  plain read-only board - the task specifically scoped this phase to
+  defense responses.
+
+## Part 3 — Public resolution moment
+
+**Files:** `lib/screens/game_screen.dart`
+
+- New `_ResolutionBeatHost` (mounted at the top-level `Stack` in
+  `_GameScreenState.build`, alongside the existing
+  `_RestorationImminentBannerHost` - same event-log-length-diffing/
+  auto-dismiss-`Timer` shape as that class, kept as a separate host rather
+  than merged since the two watch disjoint event types and sharing one
+  host would let an unrelated announcement's timer interfere with this
+  one's): classifies newly-appended events into one shared, brief (~2.5s),
+  non-blocking beat - visible to every connected LAN client (all sync the
+  same event log) or on hotseat's one shared screen.
+  - A landed hit (`ArmorWeakened`/`ArmorLost`, optionally preceded by
+    `DefenseTimedOut` in the same event batch) reads "X ran out of time -
+    the attack landed. Y's Armor Piece was weakened/lost." or just the
+    second sentence for a deliberate decline.
+  - `AttackBlocked` reads "Card Name blocked the attack!"
+  - `AttackReflected` reads "Card Name! Attack reflected to Y!" (a
+    reflection that doesn't immediately re-land keeps `pendingInterrupt`
+    non-null for the new defender's own response window - this beat still
+    announces the reflection itself, per the spec's own example wording).
+- Does not itself animate any armor slot - `ArmorRow`/`ArmorBadge` (Phase
+  3) already do that automatically from the same state change via their
+  own `didUpdateWidget` condition diff, for whichever of them happen to be
+  mounted when the state updates (true today for LAN bystanders' read-only
+  board and any device already showing the main board; hotseat's
+  screen-swap flow away from `_DefensePromptView` means the badge itself
+  may not be mounted at the exact instant of the transition there, but the
+  beat's own text still delivers the outcome).
+- Purely informational overlay (`IgnorePointer`, no tap-to-dismiss
+  required) - matches the existing convention set by
+  `_RestorationImminentBanner` (tap-dismissible but never tap-*required*)
+  rather than introducing a new tap-to-continue pattern.
+
+## Part 4 — Tests & manual verification
+
+**Files:** `test/defense_response_lan_ux_test.dart` (new)
+
+- Drives a **real** `HostServer` + two `GameClient`s over a loopback
+  socket (same convention as `packages/net/test/defense_timeout_test.dart`
+  and `test/waiting_for_host_screen_test.dart`, via `tester.runAsync`),
+  attached to two independent `ProviderContainer`s so both the responder's
+  and a bystander's rendered `GameScreen` can be asserted on from the same
+  live game. This also functions as an end-to-end check that
+  `responseDeadlineEpochMs` genuinely survives the full
+  `GameClient -> NetGameController -> GameUiState -> provider` chain added
+  in this phase, not just that the UI renders correctly given a
+  hand-fed value.
+- Covers: the actual responder sees the countdown; a non-responder never
+  does; a non-responder sees the calm waiting view (not the interactive
+  card chooser); no hand data leaks into the bystander's reconstructed
+  `GameState` (asserted directly against the data source - every card in
+  another player's hand is the `__hidden__` placeholder - not just absence
+  of specific text); a system timeout produces the shared "ran out of
+  time" beat and auto-dismisses without a tap; a block produces the shared
+  beat naming the defense card; hotseat never shows a countdown even with
+  a hand-crafted `pendingInterrupt` in play.
+- One test-infrastructure wrinkle worth recording: `GameScreen.initState`
+  calls `WakelockPlus.enable()/.disable()` over a Pigeon platform channel
+  with no test-harness mock by default, which throws once a real async gap
+  (`tester.runAsync`) lets the awaited error surface - fixed with a mock
+  message handler replying success, registered once at the top of this
+  file's `main()`. Also required care around `_ResponseCountdownBar`'s
+  `Timer.periodic` and `_ResolutionBeatHost`'s auto-dismiss `Timer`: each
+  test that triggers one either drains it (`tester.pump` past its
+  duration) or fully unmounts the widget and settles before finishing, to
+  satisfy `flutter_test`'s no-pending-timers-after-teardown invariant.
+- Full suite: all pre-existing Flutter tests (55) plus 7 new (62 total)
+  pass; `packages/net`'s own suite (38 tests, including the pre-existing
+  raw-envelope `responseDeadlineEpochMs` test) unaffected; `flutter analyze
+  lib/ test/` and `dart analyze` (net package) both clean.
+- **Manual verification checklist - flag which parts genuinely need a
+  real 2-device LAN test, since a single machine (or the loopback-socket
+  tests above) can't fully exercise clock-sync drift or disconnect-adjacent
+  timing:**
+  - [ ] *(needs 2 real devices)* Countdown bar counts down in real
+        wall-clock time on the responder's device and visibly escalates
+        color in the last ~5 seconds, with no perceptible drift against
+        the host's own clock over a full ~20s window.
+  - [ ] *(needs 2 real devices)* A bystander's device never shows a
+        countdown number or bar at any point during someone else's
+        response window.
+  - [ ] *(single device/emulator sufficient)* Waiting-for-response text
+        updates correctly as a Fellowship request passes from helper to
+        helper, with no tap required from any bystander.
+  - [ ] *(needs 2 real devices)* Letting the responder's real countdown
+        run out on an actual device shows the "Time's up!" flash promptly,
+        followed by the shared "ran out of time" resolution beat once the
+        host's own timeout round-trips back.
+  - [ ] *(single device/emulator sufficient)* Block/reflect/land all show
+        correctly worded resolution beats, auto-dismissing after ~2-3s
+        without blocking input on the board underneath.
+  - [ ] *(needs 2 real devices, ideally with one device backgrounded/
+        locked briefly)* A client that reconnects mid-interrupt (grace-
+        period path) renders the correct waiting-or-responder view
+        immediately on reconnect, without a stale or blank screen.
+  - [ ] *(single device sufficient)* Hotseat's pass-and-play flow shows no
+        countdown UI anywhere, confirmed by playing a full attack/defense
+        exchange pass-and-play.
+
+**Do NOT (per spec, and honored in this pass):** no engine logic changes,
+no card-definition changes, no new wire message types or fields beyond
+forwarding the one that already existed.
+
 # Phase 3: Armor State Visuals & Targeting UX
 
 `lib/`-only. Reworks the three armor conditions (Strong/Weakened/Lost) to be

@@ -111,6 +111,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       children: [
         _buildBody(context, state),
         _RestorationImminentBannerHost(state: state),
+        _ResolutionBeatHost(state: state),
       ],
     );
   }
@@ -130,7 +131,72 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ? _DefensePromptView(actorId: localPlayerId)
           : _MainBoardView(actorId: localPlayerId);
     }
+    // A bystander during a pending interrupt gets the calm "waiting for
+    // X" status (Phase 4 Part 2) instead of the plain read-only board -
+    // reads current pendingInterrupt/currentActorId state directly (not a
+    // one-shot event), so a client that connects or reconnects mid-
+    // interrupt renders the right waiting view immediately, and it
+    // updates on its own as Fellowship passes from helper to helper
+    // without any bystander action. Group discard bystanders are
+    // out of scope for this phase and keep seeing the plain read-only
+    // board, same as before.
+    if (state.pendingInterrupt != null) {
+      return _WaitingForResponseView(state: state, respondingPlayerId: actorId);
+    }
     return _MainBoardView(actorId: localPlayerId, readOnly: true);
+  }
+}
+
+/// Shown to every connected LAN client except whoever must currently
+/// respond to the pending attack - a calm, informational "waiting for X"
+/// status instead of the plain read-only board, so bystanders know who's
+/// being asked without it looking like nothing is happening. Never
+/// reveals hand contents or how likely a response is; only names the
+/// attacker, defender, and (if a Fellowship request is open) which helper
+/// is currently being asked.
+class _WaitingForResponseView extends StatelessWidget {
+  final GameState state;
+  final String respondingPlayerId;
+
+  const _WaitingForResponseView({required this.state, required this.respondingPlayerId});
+
+  @override
+  Widget build(BuildContext context) {
+    final pending = state.pendingInterrupt!;
+    final attacker = state.playerById(pending.attackerId);
+    final defender = state.playerById(pending.defenderId);
+    final responder = state.playerById(respondingPlayerId);
+    final isHelperStep = respondingPlayerId != pending.defenderId;
+
+    final message = isHelperStep
+        ? 'Waiting for ${responder.name} to help ${defender.name}...'
+        : '${attacker.name} attacked ${defender.name}\'s '
+            '${pending.targetArmor.displayName}.\n'
+            'Waiting for ${defender.name} to respond...';
+
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: ArmorUpColors.fontColor),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -308,6 +374,176 @@ class _FullyArmoredMarker extends StatelessWidget {
         size: size,
         color: ArmorUpColors.goldAccent,
         shadows: ArmorUpColors.titleOutline,
+      ),
+    );
+  }
+}
+
+/// One classified, displayable outcome of a defense-interrupt resolution
+/// step - the shared "what just happened" beat described in Phase 4 Part
+/// 3. Deliberately narrower than the raw event union: several event
+/// combinations map to the same displayed beat (e.g. a system-timeout
+/// decline followed by ArmorWeakened/ArmorLost both read as "ran out of
+/// time - the attack landed", the wasHelper distinction is folded into
+/// the message rather than becoming a separate outcome kind).
+class _ResolutionBeat {
+  final String text;
+
+  const _ResolutionBeat(this.text);
+}
+
+/// Watches [state]'s event log for newly-appended interrupt-resolution
+/// events (block/reflect/land, with or without a timeout) and shows a
+/// brief, shared, non-blocking beat naming the outcome - visible to every
+/// connected client in LAN (each syncs the same event log) or on the one
+/// shared screen in hotseat. Same length-diffing/auto-dismiss-Timer shape
+/// as [_RestorationImminentBannerHost] (see that class's doc comment for
+/// why length-based, not level-based) - deliberately not merged with it
+/// into one host, since the two watch disjoint event types and showing
+/// both from a single generic "any new event" host would make an
+/// unrelated announcement dismiss this one's timer or vice versa.
+///
+/// Does not itself animate the affected armor slot - [ArmorRow]/
+/// [ArmorBadge] already do that automatically from the same state change
+/// (their own `didUpdateWidget` condition diff), for any of them that
+/// happen to be mounted when the state updates. This host only supplies
+/// the outcome text.
+class _ResolutionBeatHost extends StatefulWidget {
+  final GameState state;
+
+  const _ResolutionBeatHost({required this.state});
+
+  @override
+  State<_ResolutionBeatHost> createState() => _ResolutionBeatHostState();
+}
+
+class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
+  int _lastSeenEventCount = 0;
+  _ResolutionBeat? _activeBeat;
+  Timer? _autoDismissTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Same "don't replay history on mount/resume" rule as
+    // _RestorationImminentBannerHostState.
+    _lastSeenEventCount = widget.state.eventLog.length;
+  }
+
+  @override
+  void didUpdateWidget(covariant _ResolutionBeatHost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final events = widget.state.eventLog;
+    if (events.length > _lastSeenEventCount) {
+      final newEvents = events.sublist(_lastSeenEventCount);
+      final beat = _classify(newEvents, widget.state);
+      if (beat != null) {
+        _autoDismissTimer?.cancel();
+        setState(() => _activeBeat = beat);
+        _autoDismissTimer = Timer(const Duration(milliseconds: 2500), _dismiss);
+      }
+    }
+    _lastSeenEventCount = events.length;
+  }
+
+  /// Picks the single most relevant beat out of a batch of newly-appended
+  /// events. A landed attack always appends ArmorWeakened/ArmorLost
+  /// (optionally preceded by DefenseTimedOut in the same batch, when a
+  /// system decline is what caused it to land) - checked first so a
+  /// timed-out landing gets the "ran out of time" wording instead of the
+  /// plain block/reflect checks below matching nothing and falling
+  /// through to no beat at all. AttackBlocked and AttackReflected are
+  /// each a complete batch on their own (see effects.dart's
+  /// resolveDefense - reflection that doesn't immediately re-land is
+  /// *not* accompanied by a damage event in the same batch, since the new
+  /// defender still has to respond in turn).
+  _ResolutionBeat? _classify(List<GameEvent> newEvents, GameState state) {
+    String nameOf(String playerId) => state.playerById(playerId).name;
+
+    final timedOut = newEvents.whereType<DefenseTimedOut>().firstOrNull;
+    final weakened = newEvents.whereType<ArmorWeakened>().firstOrNull;
+    final lost = newEvents.whereType<ArmorLost>().firstOrNull;
+    if (weakened != null || lost != null) {
+      final playerId = weakened?.playerId ?? lost!.playerId;
+      final armor = weakened?.armor ?? lost!.armor;
+      final prefix = timedOut != null
+          ? '${nameOf(timedOut.playerId)} ran out of time - the attack landed. '
+          : '';
+      return _ResolutionBeat(
+        '$prefix${nameOf(playerId)}\'s ${armor.displayName} was '
+        '${weakened != null ? 'weakened' : 'lost'}.',
+      );
+    }
+
+    final blocked = newEvents.whereType<AttackBlocked>().firstOrNull;
+    if (blocked != null) {
+      return _ResolutionBeat(
+        '${cardDefById(blocked.byCardDefId).name} blocked the attack!',
+      );
+    }
+
+    final reflected = newEvents.whereType<AttackReflected>().firstOrNull;
+    if (reflected != null) {
+      return _ResolutionBeat(
+        '${cardDefById(reflected.attackCardDefId).name}! Attack reflected to '
+        '${nameOf(reflected.newDefenderId)}!',
+      );
+    }
+
+    return null;
+  }
+
+  void _dismiss() {
+    _autoDismissTimer?.cancel();
+    _autoDismissTimer = null;
+    if (mounted) setState(() => _activeBeat = null);
+  }
+
+  @override
+  void dispose() {
+    _autoDismissTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final beat = _activeBeat;
+    if (beat == null) return const SizedBox.shrink();
+
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: IgnorePointer(
+        // Purely informational - never blocks taps on the board beneath
+        // it, and requires no tap to dismiss (auto-clears via the timer
+        // above), per the spec's "non-blocking past its duration" and
+        // this app's existing convention (no tap-to-continue pattern
+        // exists elsewhere for a transient beat like this - the closest
+        // precedent, _RestorationImminentBanner, is tap-*dismissible* but
+        // never tap-*required*, which this matches).
+        child: Align(
+          alignment: const Alignment(0, -0.5),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: ArmorUpColors.boardBackground.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: ArmorUpColors.goldAccent, width: 2),
+            ),
+            child: Text(
+              beat.text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: ArmorUpColors.fontColor,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

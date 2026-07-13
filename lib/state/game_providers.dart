@@ -33,6 +33,17 @@ final hasPendingInterruptProvider = Provider<bool>((ref) {
   return ref.watch(gameStateProvider)?.pendingInterrupt != null;
 });
 
+/// The epoch-millisecond instant the host's defense-response/group-discard
+/// timeout will fire for the current pending actor, or null if none is
+/// running - see [GameUiState.responseDeadlineEpochMs]. Always null in
+/// hotseat mode (mirrors [localPlayerIdProvider]'s gating, since hotseat's
+/// [GameController] has no host/timer concept at all).
+final responseDeadlineEpochMsProvider = Provider<int?>((ref) {
+  final mode = ref.watch(appModeControllerProvider).mode;
+  if (mode != AppMode.netPlaying) return null;
+  return ref.watch(netGameControllerProvider)?.responseDeadlineEpochMs;
+});
+
 /// In LAN mode, this device's own engine player id - the player whose
 /// hand/board this device must always render, regardless of whose turn it
 /// is. Null in hotseat mode, where there is no single "local" player and
