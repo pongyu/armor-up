@@ -65,7 +65,7 @@ void main() {
       expect(result.players[0].armorOf(ArmorType.sword).condition, ArmorCondition.strong);
     });
 
-    test('Fasting: fully restores a Lost piece and schedules a skipped next turn', () {
+    test('Fasting: playing it does NOT restore immediately, only schedules the fast and target', () {
       final state = buildTestState(
         playerNames: ['Alice', 'Bob'],
         hands: {
@@ -84,12 +84,15 @@ void main() {
         ),
       );
 
-      expect(afterPlay.players[0].armorOf(ArmorType.helmet).condition, ArmorCondition.strong);
+      // Nothing heals yet - the piece is still exactly as it was.
+      expect(afterPlay.players[0].armorOf(ArmorType.helmet).condition, ArmorCondition.lost);
       expect(afterPlay.players[0].fastingScheduled, isTrue);
+      expect(afterPlay.players[0].fastingRestoreTarget, ArmorType.helmet);
       expect(afterPlay.players[0].isFasting, isFalse);
+      expect(afterPlay.eventLog.whereType<ArmorRestored>(), isEmpty);
     });
 
-    test('Fasting can target a Strong piece (any condition is valid)', () {
+    test('Fasting can target a Strong piece (any condition is valid) - still no immediate effect', () {
       final state = buildTestState(
         playerNames: ['Alice', 'Bob'],
         hands: {
@@ -107,9 +110,10 @@ void main() {
 
       expect(result.players[0].armorOf(ArmorType.helmet).condition, ArmorCondition.strong);
       expect(result.players[0].fastingScheduled, isTrue);
+      expect(result.players[0].fastingRestoreTarget, ArmorType.helmet);
     });
 
-    test('Fasting can target a Weakened piece', () {
+    test('Fasting can target a Weakened piece - still no immediate effect', () {
       final state = buildTestState(
         playerNames: ['Alice', 'Bob'],
         hands: {
@@ -128,8 +132,9 @@ void main() {
         ),
       );
 
-      expect(result.players[0].armorOf(ArmorType.shield).condition, ArmorCondition.strong);
+      expect(result.players[0].armorOf(ArmorType.shield).condition, ArmorCondition.weakened);
       expect(result.players[0].fastingScheduled, isTrue);
+      expect(result.players[0].fastingRestoreTarget, ArmorType.shield);
     });
 
     test('fasting player still draws but cannot play on their skipped turn', () {
@@ -390,6 +395,96 @@ void main() {
       expect(result.players[0].hand, isEmpty);
       expect(result.isGameOver, isTrue);
       expect(result.winner!.type, WinType.deckExhausted);
+    });
+
+    test('maxReshuffles=null (default) preserves unlimited-reshuffle behavior', () {
+      var state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {0: [], 1: []},
+        drawPileDefIds: [],
+      );
+      state = state.copyWith(
+        discardPile: [
+          const CardInstance(instanceId: 'd0', defId: 'prayer'),
+          const CardInstance(instanceId: 'd1', defId: 'renewal'),
+        ],
+        hasDrawnThisTurn: false,
+      );
+      expect(state.maxReshuffles, isNull);
+
+      final result = expectSuccess(applyAction(state, const DrawCard(playerId: 'p0')));
+
+      expect(result.isGameOver, isFalse);
+      expect(result.eventLog.whereType<DeckReshuffled>(), hasLength(1));
+    });
+
+    test('maxReshuffles=0: the very first reshuffle attempt is treated as exhaustion instead', () {
+      var state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {0: [], 1: []},
+        drawPileDefIds: [],
+      );
+      state = state.copyWith(
+        discardPile: [
+          const CardInstance(instanceId: 'd0', defId: 'prayer'),
+          const CardInstance(instanceId: 'd1', defId: 'renewal'),
+        ],
+        hasDrawnThisTurn: false,
+        maxReshuffles: 0,
+      );
+
+      final result = expectSuccess(applyAction(state, const DrawCard(playerId: 'p0')));
+
+      expect(result.isGameOver, isTrue);
+      expect(result.winner!.type, WinType.deckExhausted);
+      // No reshuffle actually happened - the cap intercepted it before
+      // _drawOne ever ran, so the discard pile is untouched.
+      expect(result.eventLog.whereType<DeckReshuffled>(), isEmpty);
+      expect(result.discardPile, hasLength(2));
+    });
+
+    test('maxReshuffles=1: the first reshuffle is allowed, the second (once both piles empty again) ends the game', () {
+      var state = buildTestState(
+        playerNames: ['Alice', 'Bob'],
+        hands: {0: [], 1: []},
+        drawPileDefIds: [],
+      );
+      state = state.copyWith(
+        discardPile: [
+          const CardInstance(instanceId: 'd0', defId: 'prayer'),
+        ],
+        hasDrawnThisTurn: false,
+        maxReshuffles: 1,
+      );
+
+      // First draw: draw pile is empty, discard has 1 card, reshuffleCount
+      // (0) is below the cap (1), so this reshuffles normally.
+      var result = expectSuccess(applyAction(state, const DrawCard(playerId: 'p0')));
+      expect(result.isGameOver, isFalse);
+      expect(result.eventLog.whereType<DeckReshuffled>(), hasLength(1));
+      expect(result.reshuffleCount, 1);
+      expect(result.players[0].hand, hasLength(1));
+      expect(result.drawPile, isEmpty);
+      expect(result.discardPile, isEmpty);
+
+      // Discard the just-drawn card so both piles are empty again, then
+      // attempt to draw once more: reshuffleCount (1) has now met the cap
+      // (1), so this must end the game via deck-exhaustion ranking rather
+      // than reshuffling a second time.
+      result = result.copyWith(hasPlayedCardThisTurn: false);
+      final drawnCardId = result.players[0].hand.first.instanceId;
+      result = expectSuccess(
+        applyAction(result, DiscardCard(playerId: 'p0', cardInstanceId: drawnCardId)),
+      );
+      result = result.copyWith(hasDrawnThisTurn: false);
+
+      result = expectSuccess(applyAction(result, const DrawCard(playerId: 'p0')));
+
+      expect(result.isGameOver, isTrue);
+      expect(result.winner!.type, WinType.deckExhausted);
+      // Still only 1 DeckReshuffled ever logged - the cap intercepted the
+      // second attempt before a reshuffle happened.
+      expect(result.eventLog.whereType<DeckReshuffled>(), hasLength(1));
     });
   });
 }

@@ -40,18 +40,19 @@ GameState resolveEffect({
       );
 
     case EffectPrimitive.skipNextTurnAndRestore:
-      // The TurnSkipped event is logged when the skip actually takes
-      // effect (see _endTurn's turn-rotation logic in engine.dart), not
-      // here - playing Fasting only schedules it.
-      final working = state.updatePlayer(
+      // Neither the skipped turn nor the restoration happens yet: playing
+      // Fasting only commits to both. The TurnSkipped event is logged
+      // when the skip actually takes effect, and the restore (plus its
+      // ArmorRestored event) fires at the END of the fasted turn - both
+      // in _endTurn's turn-rotation logic in engine.dart. This mirrors
+      // the real card: choosing what to fast for is instant, but nothing
+      // heals until the fast is actually endured.
+      return state.updatePlayer(
         action.playerId,
-        (p) => p.copyWith(fastingScheduled: true),
-      );
-      return _applyArmorCondition(
-        state: working,
-        playerId: action.playerId,
-        armorType: action.targetArmor!,
-        newCondition: ArmorCondition.strong,
+        (p) => p.copyWith(
+          fastingScheduled: true,
+          fastingRestoreTarget: action.targetArmor!,
+        ),
       );
 
     case EffectPrimitive.allWeakenedToLost:
@@ -93,13 +94,36 @@ GameState _applyArmorCondition({
 }) {
   final working =
       state.updatePlayer(playerId, (p) => p.withArmorCondition(armorType, newCondition));
-  return working.appendEvent(
+  final announced = working.appendEvent(
     ArmorRestored(
       turnNumber: working.turnNumber,
       playerId: playerId,
       armor: armorType,
       newCondition: newCondition,
     ),
+  );
+  return announceIfNewlyFullyRestored(before: state, after: announced, playerId: playerId);
+}
+
+/// Logs [RestorationImminent] for [playerId] if their [PlayerState.isFullyRestored]
+/// just transitioned from false (in [before]) to true (in [after]) -
+/// never repeatedly while it continues to hold, and never when
+/// [GameState.restorationWinEnabled] is false. Shared by every place
+/// armor can be restored (Renewal/Armor Bearer via [_applyArmorCondition]
+/// here, and Fasting's delayed completion in engine.dart's `_endTurn`,
+/// which cannot call a private function in this library and so calls
+/// this exported helper directly).
+GameState announceIfNewlyFullyRestored({
+  required GameState before,
+  required GameState after,
+  required String playerId,
+}) {
+  if (!after.restorationWinEnabled) return after;
+  final wasFullyRestored = before.playerById(playerId).isFullyRestored;
+  final isFullyRestored = after.playerById(playerId).isFullyRestored;
+  if (wasFullyRestored || !isFullyRestored) return after;
+  return after.appendEvent(
+    RestorationImminent(turnNumber: after.turnNumber, playerId: playerId),
   );
 }
 

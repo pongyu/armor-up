@@ -1,0 +1,55 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=5 defendRate=0.667 restorationWin=on maxReshuffles=none ===
+1000 completed, 0 hit the 500-turn cap
+
+Game length (turns): avg=165.1 p10=28 p50=177 p90=285
+
+Win counts by type:
+  elimination: 734
+  restoration: 266
+  deckExhausted: 0
+
+Reshuffles: total=2982 avg/game=2.98
+Eliminations: games with >=1 elimination=745/1000 avg eliminated/game=2.98
+
+Seat win rates by player count (actual vs. expected 1/N):
+  5 players:
+    seat 0: 211/1000 (21.1%, expected 20.0%, +1.1pp)
+    seat 1: 184/1000 (18.4%, expected 20.0%, -1.6pp)
+    seat 2: 187/1000 (18.7%, expected 20.0%, -1.3pp)
+    seat 3: 209/1000 (20.9%, expected 20.0%, +0.9pp)
+    seat 4: 209/1000 (20.9%, expected 20.0%, +0.9pp)
+
+Play counts per card:
+  Fiery Dart           20383
+  Prayer               14365
+  Renewal              11146
+  Pride                9987
+  Confusion            9934
+  Doubt                9931
+  Strife               9929
+  Discouragement       9893
+  Deception            9875
+  Armor Bearer         7793
+  Fasting              7753
+  It Is Written        7211
+  Fellowship           7068
+  Goliath's Taunt      6928
+  Road to Damascus     6254
+  Wilderness Season    5417
+  Jericho March        2873
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Armor Bearer         ratio=1.79 (actual=35.9%, expected=20.0%, n=7793)
+  Fasting              ratio=1.70 (actual=34.0%, expected=20.0%, n=7753)
+  Renewal              ratio=1.61 (actual=32.1%, expected=20.0%, n=11146)
+  It Is Written        ratio=1.52 (actual=30.5%, expected=20.0%, n=7211)
+  Goliath's Taunt      ratio=1.46 (actual=29.2%, expected=20.0%, n=6928)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Strife               ratio=1.20 (actual=24.0%, expected=20.0%, n=9929)
+  Discouragement       ratio=1.24 (actual=24.7%, expected=20.0%, n=9893)
+  Confusion            ratio=1.24 (actual=24.8%, expected=20.0%, n=9934)
+  Doubt                ratio=1.25 (actual=24.9%, expected=20.0%, n=9931)
+  Deception            ratio=1.25 (actual=25.0%, expected=20.0%, n=9875)
+
+Wrote JSON report to sim_results/r1_players5.json

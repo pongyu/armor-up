@@ -1,0 +1,53 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=3 defendRate=0.667 ===
+1000 completed, 0 hit the 500-turn cap
+
+Game length (turns): avg=101.5 p10=10 p50=97 p90=215
+
+Win counts by type:
+  elimination: 552
+  restoration: 448
+  deckExhausted: 0
+
+Reshuffles: total=1554 avg/game=1.55
+Eliminations: games with >=1 elimination=562/1000 avg eliminated/game=1.13
+
+Seat win rates by player count (actual vs. expected 1/N):
+  3 players:
+    seat 0: 350/1000 (35.0%, expected 33.3%, +1.7pp)
+    seat 1: 344/1000 (34.4%, expected 33.3%, +1.1pp)
+    seat 2: 306/1000 (30.6%, expected 33.3%, -2.7pp)
+
+Play counts per card:
+  Fiery Dart           11972
+  Prayer               9089
+  Renewal              7838
+  Strife               5800
+  Confusion            5773
+  Discouragement       5746
+  Pride                5706
+  Doubt                5692
+  Deception            5656
+  Armor Bearer         5132
+  Fasting              5130
+  It Is Written        4528
+  Fellowship           4491
+  Goliath's Taunt      4074
+  Road to Damascus     3707
+  Wilderness Season    3562
+  Jericho March        1893
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Renewal              ratio=1.29 (actual=43.1%, expected=33.3%, n=7838)
+  Armor Bearer         ratio=1.28 (actual=42.6%, expected=33.3%, n=5132)
+  Fasting              ratio=1.26 (actual=41.9%, expected=33.3%, n=5130)
+  It Is Written        ratio=1.22 (actual=40.7%, expected=33.3%, n=4528)
+  Goliath's Taunt      ratio=1.21 (actual=40.3%, expected=33.3%, n=4074)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Jericho March        ratio=1.01 (actual=33.5%, expected=33.3%, n=1893)
+  Pride                ratio=1.05 (actual=34.9%, expected=33.3%, n=5706)
+  Strife               ratio=1.05 (actual=35.0%, expected=33.3%, n=5800)
+  Doubt                ratio=1.06 (actual=35.2%, expected=33.3%, n=5692)
+  Deception            ratio=1.07 (actual=35.8%, expected=33.3%, n=5656)
+
+Wrote JSON report to sim_results/e1_players3.json

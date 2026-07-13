@@ -40,7 +40,7 @@ String describeEffect(CardDef def) {
       EffectPrimitive.restoreOneStep => 'Weakened to Strong on your piece',
       EffectPrimitive.restoreFullyFromLost => 'Lost to Strong on your piece',
       EffectPrimitive.skipNextTurnAndRestore =>
-        'Skip your next turn; fully restore one piece',
+        'Skip your next turn; when the fast is complete, fully restore one piece',
       _ => '',
     },
     TargetRule.allPlayers => switch (def.effect) {

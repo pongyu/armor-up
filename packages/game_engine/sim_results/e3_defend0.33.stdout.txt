@@ -1,0 +1,54 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=4 defendRate=0.33 ===
+1000 completed, 0 hit the 500-turn cap
+
+Game length (turns): avg=104.3 p10=13 p50=117 p90=193
+
+Win counts by type:
+  elimination: 616
+  restoration: 384
+  deckExhausted: 0
+
+Reshuffles: total=1721 avg/game=1.72
+Eliminations: games with >=1 elimination=629/1000 avg eliminated/game=1.89
+
+Seat win rates by player count (actual vs. expected 1/N):
+  4 players:
+    seat 0: 283/1000 (28.3%, expected 25.0%, +3.3pp)
+    seat 1: 235/1000 (23.5%, expected 25.0%, -1.5pp)
+    seat 2: 231/1000 (23.1%, expected 25.0%, -1.9pp)
+    seat 3: 251/1000 (25.1%, expected 25.0%, +0.1pp)
+
+Play counts per card:
+  Fiery Dart           13112
+  Renewal              7907
+  Pride                6498
+  Deception            6467
+  Discouragement       6447
+  Prayer               6437
+  Strife               6375
+  Confusion            6373
+  Doubt                6316
+  Fasting              5138
+  Armor Bearer         5092
+  Goliath's Taunt      4408
+  Road to Damascus     4016
+  Wilderness Season    3576
+  It Is Written        3244
+  Fellowship           3163
+  Jericho March        1894
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Armor Bearer         ratio=1.48 (actual=36.9%, expected=25.0%, n=5092)
+  Renewal              ratio=1.45 (actual=36.1%, expected=25.0%, n=7907)
+  Fasting              ratio=1.45 (actual=36.1%, expected=25.0%, n=5138)
+  It Is Written        ratio=1.27 (actual=31.8%, expected=25.0%, n=3244)
+  Goliath's Taunt      ratio=1.27 (actual=31.7%, expected=25.0%, n=4408)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Doubt                ratio=1.07 (actual=26.8%, expected=25.0%, n=6316)
+  Fellowship           ratio=1.10 (actual=27.4%, expected=25.0%, n=3163)
+  Jericho March        ratio=1.10 (actual=27.5%, expected=25.0%, n=1894)
+  Confusion            ratio=1.10 (actual=27.6%, expected=25.0%, n=6373)
+  Discouragement       ratio=1.11 (actual=27.7%, expected=25.0%, n=6447)
+
+Wrote JSON report to sim_results/e3_defend0.33.json

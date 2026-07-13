@@ -1,0 +1,8201 @@
+{
+  "config": {
+    "games": 1000,
+    "seed": 12345,
+    "players": "2",
+    "defendRate": 0.667,
+    "restorationWin": "on",
+    "maxReshuffles": "none"
+  },
+  "aggregate": {
+    "gamesRequested": 1000,
+    "gamesCompleted": 999,
+    "gamesIncomplete": 1,
+    "turnCount": {
+      "avg": 106.53653653653653,
+      "p10": 20,
+      "p50": 100,
+      "p90": 191
+    },
+    "winsByType": {
+      "elimination": 812,
+      "restoration": 187,
+      "deckExhausted": 0
+    },
+    "seatWinRatesByPlayerCount": {
+      "2": {
+        "0": {
+          "wins": 537,
+          "totalGames": 999,
+          "actualRate": 0.5375375375375375,
+          "expectedRate": 0.5
+        },
+        "1": {
+          "wins": 462,
+          "totalGames": 999,
+          "actualRate": 0.4624624624624625,
+          "expectedRate": 0.5
+        }
+      }
+    },
+    "cardPlayCounts": {
+      "doubt": 5584,
+      "deception": 5563,
+      "pride": 5611,
+      "discouragement": 5599,
+      "strife": 5586,
+      "confusion": 5524,
+      "fiery_dart": 12197,
+      "goliaths_taunt": 4138,
+      "prayer": 9470,
+      "it_is_written": 4751,
+      "fellowship": 4777,
+      "fasting": 5563,
+      "renewal": 8587,
+      "armor_bearer": 5579,
+      "jericho_march": 2088,
+      "wilderness_season": 3929,
+      "road_to_damascus": 3819
+    },
+    "cardWinnerCorrelation": {
+      "doubt": {
+        "cardName": "Doubt",
+        "winnerPlays": 2749,
+        "nonWinnerPlays": 2835,
+        "actualWinnerRate": 0.4922994269340974,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9845988538681948
+      },
+      "deception": {
+        "cardName": "Deception",
+        "winnerPlays": 2652,
+        "nonWinnerPlays": 2911,
+        "actualWinnerRate": 0.47672119360057524,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9534423872011505
+      },
+      "pride": {
+        "cardName": "Pride",
+        "winnerPlays": 2709,
+        "nonWinnerPlays": 2902,
+        "actualWinnerRate": 0.48280163963642847,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9656032792728569
+      },
+      "discouragement": {
+        "cardName": "Discouragement",
+        "winnerPlays": 2729,
+        "nonWinnerPlays": 2870,
+        "actualWinnerRate": 0.48740846579746383,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9748169315949277
+      },
+      "strife": {
+        "cardName": "Strife",
+        "winnerPlays": 2684,
+        "nonWinnerPlays": 2902,
+        "actualWinnerRate": 0.48048693161475114,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9609738632295023
+      },
+      "confusion": {
+        "cardName": "Confusion",
+        "winnerPlays": 2647,
+        "nonWinnerPlays": 2877,
+        "actualWinnerRate": 0.47918175235336713,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9583635047067343
+      },
+      "fiery_dart": {
+        "cardName": "Fiery Dart",
+        "winnerPlays": 6310,
+        "nonWinnerPlays": 5887,
+        "actualWinnerRate": 0.5173403295892433,
+        "expectedWinnerRate": 0.5,
+        "ratio": 1.0346806591784865
+      },
+      "goliaths_taunt": {
+        "cardName": "Goliath's Taunt",
+        "winnerPlays": 2179,
+        "nonWinnerPlays": 1959,
+        "actualWinnerRate": 0.5265828902851619,
+        "expectedWinnerRate": 0.5,
+        "ratio": 1.0531657805703238
+      },
+      "prayer": {
+        "cardName": "Prayer",
+        "winnerPlays": 4808,
+        "nonWinnerPlays": 4662,
+        "actualWinnerRate": 0.5077085533262936,
+        "expectedWinnerRate": 0.5,
+        "ratio": 1.0154171066525872
+      },
+      "it_is_written": {
+        "cardName": "It Is Written",
+        "winnerPlays": 2727,
+        "nonWinnerPlays": 2024,
+        "actualWinnerRate": 0.5739844243317196,
+        "expectedWinnerRate": 0.5,
+        "ratio": 1.1479688486634392
+      },
+      "fellowship": {
+        "cardName": "Fellowship",
+        "winnerPlays": 2191,
+        "nonWinnerPlays": 2586,
+        "actualWinnerRate": 0.4586560602888842,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9173121205777685
+      },
+      "fasting": {
+        "cardName": "Fasting",
+        "winnerPlays": 2927,
+        "nonWinnerPlays": 2636,
+        "actualWinnerRate": 0.5261549523638325,
+        "expectedWinnerRate": 0.5,
+        "ratio": 1.052309904727665
+      },
+      "renewal": {
+        "cardName": "Renewal",
+        "winnerPlays": 4488,
+        "nonWinnerPlays": 4099,
+        "actualWinnerRate": 0.5226505182252241,
+        "expectedWinnerRate": 0.5,
+        "ratio": 1.0453010364504483
+      },
+      "armor_bearer": {
+        "cardName": "Armor Bearer",
+        "winnerPlays": 3042,
+        "nonWinnerPlays": 2537,
+        "actualWinnerRate": 0.5452590069905001,
+        "expectedWinnerRate": 0.5,
+        "ratio": 1.0905180139810002
+      },
+      "jericho_march": {
+        "cardName": "Jericho March",
+        "winnerPlays": 966,
+        "nonWinnerPlays": 1122,
+        "actualWinnerRate": 0.46264367816091956,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9252873563218391
+      },
+      "wilderness_season": {
+        "cardName": "Wilderness Season",
+        "winnerPlays": 1756,
+        "nonWinnerPlays": 2173,
+        "actualWinnerRate": 0.4469330618477984,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.8938661236955968
+      },
+      "road_to_damascus": {
+        "cardName": "Road to Damascus",
+        "winnerPlays": 1902,
+        "nonWinnerPlays": 1917,
+        "actualWinnerRate": 0.49803613511390415,
+        "expectedWinnerRate": 0.5,
+        "ratio": 0.9960722702278083
+      }
+    },
+    "reshuffles": {
+      "total": 1548,
+      "avgPerGame": 1.5495495495495495
+    },
+    "eliminations": {
+      "gamesWithAnyElimination": 812,
+      "avgEliminatedPerGame": 0.8308308308308309
+    }
+  },
+  "games": [
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 158,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 59,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 42,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 83,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 152,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 154,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 228,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 100,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 176,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 12,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 23,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 144,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 12,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 173,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 155,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 144,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 204,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 119,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 90,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 143,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 26,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 61,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 124,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 146,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 96,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 151,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 116,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 119,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 143,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 160,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 129,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 97,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 111,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 17,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 160,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 10,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 112,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 111,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 301,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 190,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 91,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 47,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 172,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 32,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 83,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 20,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 96,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 78,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 283,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 268,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 45,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 110,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 56,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 136,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 91,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 77,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 169,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 144,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 20,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 94,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 130,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 204,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 76,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 16,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 156,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 26,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 16,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 59,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 152,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 151,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 107,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 168,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 26,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 118,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 89,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 115,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 30,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 90,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 103,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 20,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 57,
+      "reshuffles": 1,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 29,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 140,
+      "reshuffles": 2,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 66,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 170,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 93,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 311,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 34,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 57,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 92,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 176,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 55,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 123,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 76,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 196,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 12,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 316,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 21,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 43,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 100,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 60,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 170,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 117,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 49,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 62,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 33,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 142,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 72,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 116,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 250,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 260,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 192,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 81,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 212,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 191,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 92,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 77,
+      "reshuffles": 1,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 143,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 167,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 149,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 132,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 27,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 66,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 236,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 59,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 80,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 117,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 77,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 93,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 50,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 6,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 203,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 23,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 54,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 33,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 61,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 111,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 48,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 31,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 152,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 157,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 192,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 213,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 129,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 66,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 29,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 24,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 118,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 194,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 176,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 433,
+      "reshuffles": 8,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 81,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 55,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 220,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 8,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 207,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 124,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 33,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 187,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 58,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 150,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 83,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 77,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 189,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 79,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 59,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 58,
+      "reshuffles": 1,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 79,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 34,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 79,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 134,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 75,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 159,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 179,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 75,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 257,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 137,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 314,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 52,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 130,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 78,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 138,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 48,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 50,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 27,
+      "reshuffles": 0,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 83,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 163,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 212,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 153,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 63,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 28,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 219,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 123,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 188,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 285,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 199,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 17,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 230,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 173,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 178,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 237,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 135,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 178,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 29,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 22,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 151,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 109,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 138,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 65,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 107,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 53,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 133,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 208,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 196,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 87,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 179,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 141,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 83,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 58,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 146,
+      "reshuffles": 2,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 18,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 258,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 91,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 72,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 27,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 109,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 109,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 195,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 187,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 33,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 78,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 173,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 93,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 7,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 111,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 111,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 262,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 36,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 267,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 30,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 69,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 79,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 183,
+      "reshuffles": 3,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 145,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 79,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 320,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 181,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 81,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 53,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 137,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 112,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 60,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 204,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 117,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 123,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 113,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 172,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 80,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 136,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 55,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 89,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 223,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 185,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 164,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 137,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 220,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 100,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 91,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 224,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 116,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 128,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 153,
+      "reshuffles": 2,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 115,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 62,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 295,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 175,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 142,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 18,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 109,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 21,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 143,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 141,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 163,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 126,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 46,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 110,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 23,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 183,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 406,
+      "reshuffles": 7,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 138,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 76,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 103,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 110,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 30,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 19,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 27,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 166,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 135,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 76,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 149,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 26,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 74,
+      "reshuffles": 1,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 163,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 128,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 91,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 118,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 20,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 158,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 82,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 16,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 65,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 33,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 96,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 124,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 179,
+      "reshuffles": 3,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 240,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 157,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 274,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 78,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 43,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 22,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 70,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 107,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 234,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 143,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 204,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 195,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 129,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 137,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 40,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 267,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 91,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 156,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 65,
+      "reshuffles": 1,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 183,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 164,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 112,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 122,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 103,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 83,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 79,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 179,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 26,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 197,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 57,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 16,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 154,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 103,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 72,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 175,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 132,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 126,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 115,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 52,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 160,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 22,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 23,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 97,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 184,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 94,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 24,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 5,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 27,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 49,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 226,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 65,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 115,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 96,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 244,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 200,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 81,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 35,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 64,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 83,
+      "reshuffles": 1,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 116,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 113,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 116,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 26,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 139,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 69,
+      "reshuffles": 1,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 20,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 134,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 30,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 245,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 110,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 169,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 158,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 226,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 127,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 268,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 80,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 164,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 29,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 63,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 100,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 124,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 97,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 5,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 39,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 41,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 48,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 110,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 341,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 102,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 58,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 364,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 17,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 333,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 155,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 166,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 97,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 216,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 17,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 197,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 93,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 175,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 22,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 36,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 132,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 189,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 18,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 16,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 23,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 115,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 10,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 158,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 212,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 123,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 23,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 33,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 168,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 186,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 91,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 85,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 136,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 159,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 314,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 92,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 69,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 145,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 258,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 140,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 146,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 10,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 33,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 12,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 116,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 146,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 111,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 242,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 142,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 163,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 42,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 176,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 111,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 150,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 128,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 20,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 157,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 153,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 59,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 155,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 65,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 8,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 137,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 83,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 107,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 23,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 63,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 97,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 5,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 90,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 134,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 365,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 154,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 103,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 127,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 135,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 269,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 172,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 80,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 145,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 118,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 319,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 64,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 143,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 265,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 70,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 74,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 131,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 152,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 117,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 85,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 59,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 82,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 158,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 150,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 127,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 124,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 172,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 70,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 181,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 17,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 179,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 55,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 66,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 176,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 44,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 22,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 72,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 37,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 137,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 64,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 275,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 26,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 143,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 97,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 163,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 127,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 10,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 80,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 58,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 400,
+      "reshuffles": 7,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 74,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 240,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 21,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 190,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 136,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 275,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 64,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 134,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 207,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 467,
+      "reshuffles": 8,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 238,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 10,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 97,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 129,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 54,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 171,
+      "reshuffles": 3,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 81,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 133,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 76,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 63,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 142,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 183,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 60,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 130,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 87,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 257,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 213,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 129,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 31,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 20,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 86,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 215,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 89,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 94,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 188,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 136,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 12,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 123,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 62,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 115,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 110,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 135,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 30,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 57,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 39,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 114,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 124,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 54,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 82,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 62,
+      "reshuffles": 1,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 37,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 8,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 24,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 91,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 164,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 115,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 153,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 173,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 224,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 54,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 108,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 43,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 57,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 233,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 90,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 121,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 147,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 163,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 81,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 24,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 53,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 103,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 21,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 77,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 19,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 181,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 289,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 29,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 116,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 96,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 134,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 151,
+      "reshuffles": 2,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 10,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 135,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 124,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 165,
+      "reshuffles": 3,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 168,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 119,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 184,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 103,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 136,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 150,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 36,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 124,
+      "reshuffles": 2,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 18,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 280,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 56,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 206,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 178,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 102,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 77,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 120,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 81,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 132,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 29,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 55,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 107,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 48,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 157,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 156,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 144,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 117,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 196,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 112,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 55,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 17,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 102,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 85,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 126,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 11,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 52,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 256,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 154,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 94,
+      "reshuffles": 1,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 34,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 37,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 292,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 150,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 56,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 105,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 100,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 112,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 264,
+      "reshuffles": 5,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 89,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 96,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 6,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 72,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 82,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 67,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 48,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 29,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 25,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 151,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 17,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 96,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 162,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 6,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 98,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 161,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 146,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 175,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 85,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 74,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 26,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 7,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 170,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 233,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 70,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 251,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 97,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 37,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 21,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 155,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 112,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 161,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 102,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 367,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 21,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 42,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 32,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 87,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 108,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 157,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 104,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 149,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 15,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 22,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 19,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 90,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 45,
+      "reshuffles": 0,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 51,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 207,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 95,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 218,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 89,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 252,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 170,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 186,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 234,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 126,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 157,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 164,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 130,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 52,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 139,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 6,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 125,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 63,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 126,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 189,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 78,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 241,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 88,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 126,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 162,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 110,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 102,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 133,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 66,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 119,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 107,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 166,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 192,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 71,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 34,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 59,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 24,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 10,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 161,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 137,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 132,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 191,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 93,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 126,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 24,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 175,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 221,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 256,
+      "reshuffles": 4,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 123,
+      "reshuffles": 2,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 178,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 16,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 146,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 65,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 14,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 101,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 73,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 22,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 7,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 84,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 136,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 9,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 68,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 152,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 81,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 119,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 106,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "restoration",
+      "turns": 13,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 99,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 323,
+      "reshuffles": 6,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 80,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 113,
+      "reshuffles": 2,
+      "eliminatedCount": 2
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 69,
+      "reshuffles": 1,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 0,
+      "winType": "elimination",
+      "turns": 145,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "restoration",
+      "turns": 22,
+      "reshuffles": 0,
+      "eliminatedCount": 0
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 110,
+      "reshuffles": 2,
+      "eliminatedCount": 1
+    },
+    {
+      "playerCount": 2,
+      "winnerSeatIndex": 1,
+      "winType": "elimination",
+      "turns": 167,
+      "reshuffles": 3,
+      "eliminatedCount": 1
+    }
+  ]
+}

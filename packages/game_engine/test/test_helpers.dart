@@ -28,7 +28,7 @@ GameState buildTestState({
 
     var armor = startingArmorSet();
     final overrides = armorOverrides?[i];
-    var wasEverDamaged = false;
+    var wasEverBroken = false;
     if (overrides != null) {
       armor = [
         for (final piece in armor)
@@ -37,7 +37,7 @@ GameState buildTestState({
           else
             piece,
       ];
-      wasEverDamaged = overrides.values.any((c) => c != ArmorCondition.strong);
+      wasEverBroken = overrides.values.any((c) => c == ArmorCondition.lost);
     }
 
     players.add(
@@ -46,7 +46,7 @@ GameState buildTestState({
         name: playerNames[i],
         armor: armor,
         hand: hand,
-        wasEverDamaged: wasEverDamaged,
+        wasEverBroken: wasEverBroken,
       ),
     );
   }

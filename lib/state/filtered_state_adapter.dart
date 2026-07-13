@@ -22,7 +22,7 @@ const hiddenCardDefId = '__hidden__';
 /// lookup instead of silently displaying wrong data. The viewer's own
 /// hand, and every other field, is transmitted for real (see
 /// `packages/net/lib/src/filtered_state.dart`), including
-/// [PlayerState.wasEverDamaged], so [PlayerState.isFullyRestored] is safe
+/// [PlayerState.wasEverBroken], so [PlayerState.isFullyRestored] is safe
 /// to read on the reconstructed state too.
 ///
 /// [rngSeed]/[rngDrawCount]/[nextInstanceId] are meaningless here - the
@@ -42,7 +42,8 @@ GameState reconstructFromFiltered(FilteredGameState filtered) {
               ),
           isFasting: p.isFasting,
           fastingScheduled: p.fastingScheduled,
-          wasEverDamaged: p.wasEverDamaged,
+          fastingRestoreTarget: p.fastingRestoreTarget,
+          wasEverBroken: p.wasEverBroken,
         ),
     ],
     activePlayerIndex: filtered.activePlayerIndex,
@@ -61,5 +62,7 @@ GameState reconstructFromFiltered(FilteredGameState filtered) {
     pendingGroupDiscard: filtered.pendingGroupDiscard,
     hasDrawnThisTurn: filtered.hasDrawnThisTurn,
     hasPlayedCardThisTurn: filtered.hasPlayedCardThisTurn,
+    restorationWinEnabled: filtered.restorationWinEnabled,
+    maxReshuffles: filtered.maxReshuffles,
   );
 }

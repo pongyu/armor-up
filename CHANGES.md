@@ -176,3 +176,374 @@ identically on the pre-Phase-1 codebase — unrelated to any change in this
 phase, out of scope per the spec ("Do NOT ... refactor beyond what these
 features require"), and not otherwise mentioned in the task. Flagging here
 rather than silently leaving it unmentioned.
+
+---
+
+# Patch: Restoration Win Threshold + Mode Flag
+
+Closes a playtesting-confirmed degenerate line: a single armor piece
+dropping to Weakened and immediately patched with one Renewal used to
+count as a full "comeback" and could win the game at the next turn
+rotation. `PlayerState.wasEverDamaged` (any piece below Strong) is
+renamed to `wasEverBroken` and now requires a piece to have actually
+reached `ArmorCondition.lost` at some point. Restoration wins are also
+now a configurable game mode (`restorationWinEnabled`), and a new
+`maxReshuffles` rules variant caps how many times the discard pile may
+be reshuffled before the game ends via deck-exhaustion ranking.
+
+## Part 1 — Field rename + threshold change
+
+**Files:** `packages/game_engine/lib/src/models/player.dart`,
+`packages/net/lib/src/state_codec.dart`,
+`packages/net/lib/src/filtered_state.dart`,
+`lib/state/filtered_state_adapter.dart`,
+`packages/game_engine/test/test_helpers.dart`,
+`test/filtered_state_adapter_test.dart`
+
+- `PlayerState.wasEverDamaged` renamed to `wasEverBroken` throughout the
+  engine, net, and Flutter layers — no deprecated shim, no dual field; a
+  straight rename plus semantics change in one pass, per the task's
+  explicit "no deprecated shims" instruction.
+- `withArmorCondition`'s set-site changed from `condition != strong` (any
+  damage) to `condition == lost` (must actually bottom out) — the load-bearing
+  line that fixes the degenerate line, since a Weakened piece patched by
+  Renewal never triggers this anymore.
+- `isFullyRestored = wasEverBroken && all pieces Strong` — same shape as
+  before, new gating field.
+- Mirrored end-to-end through the net layer exactly like every other
+  player-state field: `PlayerStateJson` (raw codec), `PublicPlayerView`
+  (per-viewer filtered view, public info — armor condition is already
+  visible, so no redaction concern), and the Flutter LAN client's
+  `reconstructFromFiltered`.
+- Every pre-existing test/call site that referenced the old name was
+  found via a full-repository search (not grep-and-hope) and updated;
+  `dart analyze`/`flutter analyze` clean across all three packages with
+  zero references to the old name remaining anywhere.
+
+## Part 2 — Mode flag: `restorationWinEnabled`
+
+**Files:** `packages/game_engine/lib/src/models/game_state.dart`,
+`packages/game_engine/lib/src/engine.dart`,
+`packages/game_engine/lib/src/setup.dart`,
+`packages/net/lib/src/state_codec.dart`,
+`packages/net/lib/src/filtered_state.dart`,
+`lib/state/filtered_state_adapter.dart`
+
+- New `GameState.restorationWinEnabled` (`bool`, **default `true`** —
+  "full mode", preserves existing behavior for every test/call site that
+  doesn't explicitly opt into basic mode).
+- `_checkRestorationWin` gains a one-line early return when the flag is
+  false: `if (!state.restorationWinEnabled) return state;` — elimination
+  and deck-exhaustion ranking are completely untouched by the flag, so
+  basic mode is exactly "full mode minus one win condition," not a
+  parallel rules path.
+- Threaded through `newGame(...)` as a new optional named parameter, and
+  mirrored table-wide (not per-viewer — it's a table-wide rule, not a
+  secret) through `FilteredGameState` and the raw `GameStateJson` codec,
+  following the exact pattern `hasDrawnThisTurn`/`rngSeed` already
+  established for scalar `GameState` fields in `state_codec.dart`.
+
+## Part 2b — Rules variant: `maxReshuffles`
+
+**Files:** same as Part 2, plus
+`packages/game_engine/lib/src/models/game_state.dart` (`reshuffleCount`
+getter)
+
+- New `GameState.maxReshuffles` (`int?`, **default `null`** = unlimited,
+  preserves original behavior).
+- New `GameState.reshuffleCount` getter, derived from
+  `eventLog.whereType<DeckReshuffled>().length` rather than a separate
+  counter field — can never drift out of sync with the event log itself,
+  and this is exactly the pattern `bin/simulate.dart` (Phase 2) already
+  used at the harness level to count reshuffles; promoting it onto
+  `GameState` itself means the engine can now enforce the cap directly
+  instead of only the harness being able to observe it after the fact.
+- Enforcement lives in `_drawCard` (`engine.dart`): when the draw pile is
+  empty, the discard pile is non-empty (i.e. a reshuffle would normally
+  happen), and `reshuffleCount >= maxReshuffles`, the game ends
+  immediately via the existing `_declareDeckExhaustedWinner` — the exact
+  same ranking (most Strong, then fewest Lost, then turn order) used for
+  a literal double-empty-pile exhaustion. No new win type; a
+  cap-triggered end is logged as `WinType.deckExhausted`, same as
+  before, since from the ranking's perspective it's the identical
+  situation one reshuffle earlier.
+
+## Part 3 — Tests
+
+**Files:** `packages/game_engine/test/win_condition_test.dart`,
+`packages/game_engine/test/restore_and_event_test.dart`,
+`packages/net/test/checkpoint_test.dart`,
+`test/filtered_state_adapter_test.dart`
+
+- The exact degenerate line from playtesting (Weakened -> Renewal -> turn
+  rotation) is now a named regression test asserting no win.
+- Lost -> Armor Bearer restore -> turn rotation asserts a real
+  restoration win.
+- A "sticky flag" test confirms `wasEverBroken`, once set, survives even
+  when the armor is edited back to Strong through a path other than
+  `withArmorCondition` (i.e. the flag itself is never implicitly cleared
+  by having full Strong armor again).
+- Three `restorationWinEnabled=false` tests: a would-be restoration
+  winner does not win and the game continues; elimination still
+  functions; deck-exhaustion ranking still functions.
+- Three reshuffle-cap tests: `maxReshuffles=null` preserves unlimited
+  behavior; `maxReshuffles=0` turns the very first reshuffle attempt
+  into immediate exhaustion; `maxReshuffles=1` allows exactly one
+  reshuffle and ends the game on the second attempt.
+- JSON round-trip tests for `wasEverBroken`, `restorationWinEnabled`, and
+  `maxReshuffles` (both set and the null/unset case) across `PlayerState`,
+  `GameState`, and `FilteredGameState`.
+
+## Part 4 — Sim harness
+
+**Files:** `packages/game_engine/bin/simulate.dart`
+
+- New `--restoration-win <on|off>` flag (**default `on`**), mapped to
+  `newGame`'s `restorationWinEnabled`.
+- New `--max-reshuffles <int|none>` flag (**default `none`** = unlimited,
+  matching the engine default), mapped to `newGame`'s `maxReshuffles`.
+- Both new flags are echoed in the stdout summary header and the JSON
+  `config` block, alongside the pre-existing `--games`/`--seed`/
+  `--players`/`--defend-rate`, so every run remains fully reproducible
+  from its own printed config.
+
+## Part 5 — Flutter UI
+
+**Files:** `lib/screens/setup_screen.dart`, `lib/state/game_controller.dart`,
+`packages/net/lib/src/host_server.dart`
+
+- **Hotseat setup screen got a toggle** (a `SwitchListTile`, the first of
+  its kind in this screen — inserted between the add/remove-player row
+  and the Start Game button): "Restoration win", defaulting to on, wired
+  through `GameController.startGame(restorationWinEnabled: ...)` into
+  `newGame(...)`. This was judged to "obviously fit the existing setup UI
+  pattern" per the scope rules — a single on/off `SwitchListTile` in an
+  existing settings-style `Column`, no new screen or state-management
+  pattern required.
+- **`maxReshuffles` was deliberately left out of the UI entirely** and
+  hardcoded to the engine default (`null`/unlimited) for both hotseat and
+  LAN — there is no existing "reshuffle limit" concept anywhere in the
+  app's UI to hang a toggle off of, and it reads as a simulation/testing
+  knob rather than a player-facing option a family game night host would
+  reach for. Flagging explicitly here for a later UI pass if a
+  reshuffle-limit mode is ever wanted in the shipped app.
+- `HostServer.startGame` gained the same two optional parameters
+  (`restorationWinEnabled`, `maxReshuffles`) for API parity with
+  `newGame`, but **no LAN lobby UI change was made** — no lobby screen
+  currently exposes any rules-config toggle, so LAN games always start
+  in the engine's default configuration (full mode, unlimited reshuffles)
+  until a later UI pass.
+
+## Config defaults (this patch)
+
+| Config | Default | Notes |
+|---|---|---|
+| `GameState.restorationWinEnabled` | `true` | "full mode"; preserves Phase 1/2 behavior |
+| `GameState.maxReshuffles` | `null` | unlimited; preserves original behavior |
+| `simulate.dart --restoration-win` | `on` | maps to the flag above |
+| `simulate.dart --max-reshuffles` | `none` | maps to the flag above |
+| Setup screen "Restoration win" toggle | on | hotseat only; LAN has no UI toggle yet |
+
+## New public API surface
+
+- **Model:** `PlayerState.wasEverBroken` (renamed + new semantics from
+  `wasEverDamaged`), `GameState.restorationWinEnabled`,
+  `GameState.maxReshuffles`, `GameState.reshuffleCount` (derived getter).
+- **Setup:** `newGame(..., restorationWinEnabled, maxReshuffles)` — both
+  new optional named params, back-compatible defaults.
+- **Net:** `FilteredGameState.restorationWinEnabled`,
+  `FilteredGameState.maxReshuffles`, `HostServer.startGame(...,
+  restorationWinEnabled, maxReshuffles)`.
+- **Harness:** `simulate.dart --restoration-win <on|off>`,
+  `--max-reshuffles <int|none>`.
+
+## Tests added
+
+- `packages/game_engine/test/win_condition_test.dart`: 8 new tests
+  (degenerate line, Lost-then-restored win, sticky flag, 3x
+  `restorationWinEnabled=false` behavior).
+- `packages/game_engine/test/restore_and_event_test.dart`: 3 new tests
+  (reshuffle cap: unlimited, `0`, `1`).
+- `packages/net/test/checkpoint_test.dart`: 4 new tests (JSON round-trip
+  for `wasEverBroken`, `restorationWinEnabled`/`maxReshuffles` on both
+  `GameState` and `FilteredGameState`).
+- `test/filtered_state_adapter_test.dart`: 1 new test (LAN
+  reconstruction preserves the new rules config).
+
+All pre-existing tests updated where the semantics change required it
+(2 restoration-win tests in `win_condition_test.dart` rewritten to use
+the new Lost-based threshold instead of Weakened) and otherwise pass
+unmodified: `packages/game_engine` (83 total), `packages/net` (35
+total), Flutter `test/` (31 total, 1 new).
+
+## Balance re-run (R1-R5)
+
+See `BALANCE_REPORT_2.md` for full numbers. Headline findings:
+restoration-win frequency dropped from Phase 2's 34-45% to 20-27% under
+the fixed threshold (still above the suggested 5-15% healthy band);
+disabling restoration entirely lengthens games by 21-31% without
+"blowing up"; Armor Bearer/Fasting's winner-correlation ratio held
+steady or rose slightly rather than dropping, since the fix removed
+low-signal restoration wins rather than touching how strongly those two
+cards correlate with a genuine comeback; and a `--max-reshuffles 1` cap
+demonstrably works, pushing 74% of games to end via deck-exhaustion
+ranking (a code path that previously had zero simulated coverage).
+
+---
+
+# Patch: Delayed Fasting + Restoration-Imminent Announcement
+
+Closes a second playtesting-confirmed degenerate line: Fasting used to
+heal its chosen piece INSTANTLY on play, making its nominal cost (skip
+next turn's play step) meaningless to a player already pursuing a
+restoration win and not otherwise planning to attack. Fasting's
+restoration now lands at the END of the fasted turn - commit, endure,
+then restored - giving the table a genuine one-round window to punish
+the fasting player before the heal lands. Separately, a new
+`RestorationImminent` event announces the moment any player transitions
+into `isFullyRestored`, making the table-wide counterplay window (which
+already existed - restoration only wins at the start of the winner's
+own next turn) actually visible rather than silent.
+
+## Part 1 — Delayed Fasting
+
+**Files:** `packages/game_engine/lib/src/models/player.dart`,
+`packages/game_engine/lib/src/effects.dart`,
+`packages/game_engine/lib/src/engine.dart`,
+`packages/net/lib/src/state_codec.dart`,
+`packages/net/lib/src/filtered_state.dart`,
+`lib/state/filtered_state_adapter.dart`,
+`lib/widgets/card_widget.dart`
+
+- New `PlayerState.fastingRestoreTarget` (`ArmorType?`): the piece chosen
+  when Fasting is played, pending restoration until the fast completes.
+  Non-null from the moment Fasting is played until the end of the fasted
+  turn. Target validation on play stays fully permissive (any own piece,
+  any condition) - unchanged from before.
+- `effects.dart`'s `skipNextTurnAndRestore` case no longer calls
+  `_applyArmorCondition` at all - playing Fasting now only sets
+  `fastingScheduled: true` and `fastingRestoreTarget: <chosen piece>`.
+  Nothing heals, and no `ArmorRestored` event fires, until the fast is
+  endured.
+- `engine.dart`'s `_endTurn`: when the ending turn belongs to a player
+  whose `isFasting` is true and `fastingRestoreTarget != null`, that
+  piece restores to Strong **unconditionally** (regardless of its
+  condition at that moment - it may have been attacked again, even back
+  down to Lost, during the window; the fast still completes and still
+  heals fully), `fastingRestoreTarget` is cleared, and `ArmorRestored` is
+  logged. This happens before turn rotation and both win checks, so the
+  restoration is visible to the start-of-next-turn restoration check one
+  full round later, exactly per the design ruling.
+- **Elimination during the window**: no explicit check was needed beyond
+  a documentary `assert` - an eliminated player never becomes the active
+  player again (turn order already skips them), so a pending fast for an
+  eliminated player's own turn simply never gets an `_endTurn` call to
+  trigger it. Verified by a dedicated test rather than assumed.
+- **No overlap guard was added**: a player cannot have two pending fasts
+  simultaneously by construction of the existing turn-flow guards
+  (`isFasting` blocks `PlayCard` entirely during the fasted turn itself,
+  and the turn in between - after playing Fasting but before it becomes
+  their fasted turn - never offers them another play step), so no new
+  validation was required; this was confirmed by tracing the guard
+  chain, not just assumed.
+- `fastingRestoreTarget` is serialized and mirrored through the net layer
+  exactly like `wasEverBroken`/other player fields, **but deliberately
+  public** (visible to every viewer via `PublicPlayerView`, not redacted
+  like hand contents) - per the design ruling, seeing which piece an
+  opponent is fasting for is the whole point of the counterplay window.
+- Card text updated in `card_widget.dart`'s `describeEffect` (the actual
+  location of the on-card description string - the task referenced
+  `deck.dart`, but `deck.dart` has no free-text description field; the
+  UI generates it dynamically from `EffectPrimitive` in `card_widget.dart`):
+  "Skip your next turn; when the fast is complete, fully restore one
+  piece."
+
+## Part 2 — Restoration-imminent announcement
+
+**Files:** `packages/game_engine/lib/src/models/game_event.dart`,
+`packages/game_engine/lib/src/effects.dart`,
+`packages/game_engine/lib/src/engine.dart`,
+`packages/net/lib/src/state_codec.dart`,
+`lib/widgets/event_log_widget.dart`
+
+- New `RestorationImminent { turnNumber, playerId }` event, public
+  (`visibleTo` null, the default).
+- New shared helper `announceIfNewlyFullyRestored({before, after,
+  playerId})` in `effects.dart` (exported, not private, since both
+  `effects.dart`'s own `_applyArmorCondition` - covering Renewal/Armor
+  Bearer - and `engine.dart`'s `_endTurn` - covering Fasting's delayed
+  completion - need it, and a private function can't cross that library
+  boundary). Compares `isFullyRestored` before/after a restore and logs
+  the event only on the false-to-true transition; a no-op when
+  `GameState.restorationWinEnabled` is false. Never fires repeatedly
+  while the condition continues to hold, and fires again if a player is
+  later knocked back below full and later re-achieves it (transition-based,
+  not level-based) - all three properties verified by dedicated tests.
+- `event_log_widget.dart` renders it as
+  "`<PLAYER> STANDS FULLY ARMORED - STOP THEM BEFORE THEIR NEXT TURN!`"
+  (uppercased player name via `.toUpperCase()`). Uses a plain hyphen, not
+  an em-dash, matching this file's own established precedent for the
+  app's pixel font's (`EarlyGameBoy`) limited glyph support - already
+  documented as breaking `>` and `(` elsewhere in the codebase, and not
+  worth risking for the highest-urgency line in the log.
+- No change to the win check itself: `_checkRestorationWin` is untouched.
+  This event is purely informational.
+
+## Part 3 — Tests
+
+**Files:** `packages/game_engine/test/fasting_timing_test.dart` (new),
+`packages/game_engine/test/restoration_imminent_test.dart` (new),
+`packages/game_engine/test/restore_and_event_test.dart`,
+`packages/net/test/checkpoint_test.dart`
+
+- `fasting_timing_test.dart` (8 tests): heal does not occur on play, only
+  on end-of-fasted-turn; an unrelated piece attacked during the window is
+  unaffected by Fasting's completion; the fasting TARGET itself re-attacked
+  down to Lost during the window still restores to Strong unconditionally;
+  fasting player eliminated during the window means the pending restore
+  never fires; `fastingRestoreTarget` model-level check; fasting player
+  can still declare a reactive defense card on a later turn (regression);
+  plus the exact win-timing regression line from the task (Fasting played,
+  fast endured, heal lands, opponent gets a full turn, win fires at next
+  turn start ONLY if still fully Strong) and its negative case (opponent
+  weakening any piece during that round prevents the win).
+- `restoration_imminent_test.dart` (6 tests): emitted on transition;
+  not re-emitted while the condition holds; re-emitted after knockdown
+  and re-restoration; never emitted in basic mode; emitted specifically
+  by Fasting's delayed completion (not by playing Fasting); event data
+  sanity check.
+- `restore_and_event_test.dart`: the 3 pre-existing Fasting tests that
+  asserted immediate healing were rewritten to assert no immediate
+  effect (piece condition unchanged right after play) plus the new
+  `fastingScheduled`/`fastingRestoreTarget` state instead.
+- `checkpoint_test.dart`: 3 new tests - `fastingRestoreTarget` JSON
+  round-trip (including the "never present when unset" case, not just
+  null), its cross-viewer visibility via `FilteredGameState` (public,
+  unlike hand contents), and `RestorationImminent` JSON round-trip.
+
+All pre-existing tests continue to pass unmodified except the 3 Fasting
+tests listed above: `packages/game_engine` (97 total, 14 new),
+`packages/net` (38 total, 3 new), Flutter `test/` (31 total, unchanged).
+
+## New public API surface
+
+- **Model:** `PlayerState.fastingRestoreTarget` (`ArmorType?`),
+  `RestorationImminent` event.
+- **Engine (exported, not private):** `announceIfNewlyFullyRestored` in
+  `effects.dart`, callable from `engine.dart`.
+- **Net:** `FilteredGameState`/`PublicPlayerView.fastingRestoreTarget`
+  (public, not redacted).
+
+## Balance re-run (F1-F2)
+
+See `BALANCE_REPORT_4.md` for full numbers, with the explicit caveat that
+the bot cannot react to the `RestorationImminent` announcement, so its
+informational/gameplay value is unmeasured here - only Fasting's timing
+mechanics are. Headline findings: delayed Fasting's effect on the
+2-player restoration rush is modest on its own (p10 18->20 turns,
+restoration share 19.8%->18.7% vs. R1's pre-patch numbers) but clearer at
+3-4 players (restoration share down ~4pp at both, game length up
+modestly); a 2-player defend-rate sweep (0.33/0.667/1.0) shows
+restoration-win share rising with more defending but plateauing well
+short of "dominant" (13.8% -> 18.7% -> 18.9%, elimination remains the
+81-86% majority outcome throughout).

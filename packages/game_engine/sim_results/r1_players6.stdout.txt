@@ -1,0 +1,56 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=6 defendRate=0.667 restorationWin=on maxReshuffles=none ===
+997 completed, 3 hit the 500-turn cap
+
+Game length (turns): avg=188.4 p10=33 p50=201 p90=302
+
+Win counts by type:
+  elimination: 780
+  restoration: 217
+  deckExhausted: 0
+
+Reshuffles: total=3603 avg/game=3.61
+Eliminations: games with >=1 elimination=792/997 avg eliminated/game=3.95
+
+Seat win rates by player count (actual vs. expected 1/N):
+  6 players:
+    seat 0: 189/997 (19.0%, expected 16.7%, +2.3pp)
+    seat 1: 158/997 (15.8%, expected 16.7%, -0.8pp)
+    seat 2: 159/997 (15.9%, expected 16.7%, -0.7pp)
+    seat 3: 156/997 (15.6%, expected 16.7%, -1.0pp)
+    seat 4: 173/997 (17.4%, expected 16.7%, +0.7pp)
+    seat 5: 162/997 (16.2%, expected 16.7%, -0.4pp)
+
+Play counts per card:
+  Fiery Dart           23930
+  Prayer               16586
+  Renewal              12004
+  Deception            11671
+  Doubt                11654
+  Confusion            11510
+  Discouragement       11488
+  Pride                11485
+  Strife               11483
+  Fasting              8505
+  Armor Bearer         8489
+  It Is Written        8231
+  Fellowship           8122
+  Goliath's Taunt      8006
+  Road to Damascus     7139
+  Wilderness Season    5967
+  Jericho March        3138
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Fasting              ratio=1.94 (actual=32.3%, expected=16.7%, n=8505)
+  Armor Bearer         ratio=1.93 (actual=32.2%, expected=16.7%, n=8489)
+  Renewal              ratio=1.79 (actual=29.9%, expected=16.7%, n=12004)
+  Road to Damascus     ratio=1.65 (actual=27.5%, expected=16.7%, n=7139)
+  Goliath's Taunt      ratio=1.59 (actual=26.5%, expected=16.7%, n=8006)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Strife               ratio=1.30 (actual=21.7%, expected=16.7%, n=11483)
+  Doubt                ratio=1.31 (actual=21.9%, expected=16.7%, n=11654)
+  Confusion            ratio=1.31 (actual=21.9%, expected=16.7%, n=11510)
+  Discouragement       ratio=1.34 (actual=22.3%, expected=16.7%, n=11488)
+  Pride                ratio=1.35 (actual=22.5%, expected=16.7%, n=11485)
+
+Wrote JSON report to sim_results/r1_players6.json

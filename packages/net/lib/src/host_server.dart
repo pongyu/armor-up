@@ -272,7 +272,12 @@ class HostServer {
   /// join order (roster insertion order), sends each connected client its
   /// own [LobbyStartedMessage] carrying their reconnect token, then begins
   /// normal [StateMessage] broadcast.
-  void startGame({int? seed}) {
+  ///
+  /// [restorationWinEnabled] and [maxReshuffles] default to `newGame`'s own
+  /// defaults (full mode, unlimited reshuffles) - no lobby UI exposes
+  /// either yet, so LAN games always start in that default configuration
+  /// until a later UI pass adds a lobby-side toggle.
+  void startGame({int? seed, bool restorationWinEnabled = true, int? maxReshuffles}) {
     if (_gameStarted) {
       throw StateError('Game has already started');
     }
@@ -286,6 +291,8 @@ class HostServer {
     _state = newGame(
       playerNames: _roster.map((e) => e.displayName).toList(),
       seed: seed ?? DateTime.now().millisecondsSinceEpoch,
+      restorationWinEnabled: restorationWinEnabled,
+      maxReshuffles: maxReshuffles,
     );
 
     for (final entry in _roster) {

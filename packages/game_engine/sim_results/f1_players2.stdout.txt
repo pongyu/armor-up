@@ -1,0 +1,52 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=2 defendRate=0.667 restorationWin=on maxReshuffles=none ===
+999 completed, 1 hit the 500-turn cap
+
+Game length (turns): avg=106.5 p10=20 p50=100 p90=191
+
+Win counts by type:
+  elimination: 812
+  restoration: 187
+  deckExhausted: 0
+
+Reshuffles: total=1548 avg/game=1.55
+Eliminations: games with >=1 elimination=812/999 avg eliminated/game=0.83
+
+Seat win rates by player count (actual vs. expected 1/N):
+  2 players:
+    seat 0: 537/999 (53.8%, expected 50.0%, +3.8pp)
+    seat 1: 462/999 (46.2%, expected 50.0%, -3.8pp)
+
+Play counts per card:
+  Fiery Dart           12197
+  Prayer               9470
+  Renewal              8587
+  Pride                5611
+  Discouragement       5599
+  Strife               5586
+  Doubt                5584
+  Armor Bearer         5579
+  Deception            5563
+  Fasting              5563
+  Confusion            5524
+  Fellowship           4777
+  It Is Written        4751
+  Goliath's Taunt      4138
+  Wilderness Season    3929
+  Road to Damascus     3819
+  Jericho March        2088
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  It Is Written        ratio=1.15 (actual=57.4%, expected=50.0%, n=4751)
+  Armor Bearer         ratio=1.09 (actual=54.5%, expected=50.0%, n=5579)
+  Goliath's Taunt      ratio=1.05 (actual=52.7%, expected=50.0%, n=4138)
+  Fasting              ratio=1.05 (actual=52.6%, expected=50.0%, n=5563)
+  Renewal              ratio=1.05 (actual=52.3%, expected=50.0%, n=8587)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Wilderness Season    ratio=0.89 (actual=44.7%, expected=50.0%, n=3929)
+  Fellowship           ratio=0.92 (actual=45.9%, expected=50.0%, n=4777)
+  Jericho March        ratio=0.93 (actual=46.3%, expected=50.0%, n=2088)
+  Deception            ratio=0.95 (actual=47.7%, expected=50.0%, n=5563)
+  Confusion            ratio=0.96 (actual=47.9%, expected=50.0%, n=5524)
+
+Wrote JSON report to sim_results/f1_players2.json

@@ -59,7 +59,22 @@ void main() {
     expect(reconstructed.discardPile.length, state.discardPile.length);
     for (var i = 0; i < state.players.length; i++) {
       expect(reconstructed.players[i].armor, state.players[i].armor);
-      expect(reconstructed.players[i].wasEverDamaged, state.players[i].wasEverDamaged);
+      expect(reconstructed.players[i].wasEverBroken, state.players[i].wasEverBroken);
     }
+  });
+
+  test('reconstructFromFiltered preserves the restorationWinEnabled/maxReshuffles rules config', () {
+    final game = newGame(
+      playerNames: ['Mumu', 'Zoe'],
+      seed: 3,
+      restorationWinEnabled: false,
+      maxReshuffles: 2,
+    );
+
+    final filtered = filterStateForPlayer(game, 'p0');
+    final reconstructed = reconstructFromFiltered(filtered);
+
+    expect(reconstructed.restorationWinEnabled, isFalse);
+    expect(reconstructed.maxReshuffles, 2);
   });
 }

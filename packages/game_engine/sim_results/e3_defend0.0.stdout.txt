@@ -1,0 +1,54 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=4 defendRate=0.0 ===
+1000 completed, 0 hit the 500-turn cap
+
+Game length (turns): avg=95.7 p10=16 p50=107 p90=146
+
+Win counts by type:
+  elimination: 762
+  restoration: 238
+  deckExhausted: 0
+
+Reshuffles: total=1682 avg/game=1.68
+Eliminations: games with >=1 elimination=769/1000 avg eliminated/game=2.32
+
+Seat win rates by player count (actual vs. expected 1/N):
+  4 players:
+    seat 0: 278/1000 (27.8%, expected 25.0%, +2.8pp)
+    seat 1: 246/1000 (24.6%, expected 25.0%, -0.4pp)
+    seat 2: 229/1000 (22.9%, expected 25.0%, -2.1pp)
+    seat 3: 247/1000 (24.7%, expected 25.0%, -0.3pp)
+
+Play counts per card:
+  Fiery Dart           12825
+  Renewal              7865
+  Doubt                6159
+  Confusion            6153
+  Pride                6152
+  Discouragement       6137
+  Strife               6119
+  Deception            6047
+  Armor Bearer         5195
+  Fasting              5154
+  Goliath's Taunt      4300
+  Road to Damascus     3882
+  Wilderness Season    3426
+  Jericho March        1756
+  Prayer               0
+  It Is Written        0
+  Fellowship           0
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Armor Bearer         ratio=1.47 (actual=36.8%, expected=25.0%, n=5195)
+  Fasting              ratio=1.41 (actual=35.2%, expected=25.0%, n=5154)
+  Renewal              ratio=1.40 (actual=35.1%, expected=25.0%, n=7865)
+  Goliath's Taunt      ratio=1.35 (actual=33.8%, expected=25.0%, n=4300)
+  Fiery Dart           ratio=1.20 (actual=30.0%, expected=25.0%, n=12825)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Strife               ratio=1.05 (actual=26.2%, expected=25.0%, n=6119)
+  Confusion            ratio=1.05 (actual=26.3%, expected=25.0%, n=6153)
+  Pride                ratio=1.08 (actual=27.0%, expected=25.0%, n=6152)
+  Doubt                ratio=1.08 (actual=27.0%, expected=25.0%, n=6159)
+  Road to Damascus     ratio=1.09 (actual=27.2%, expected=25.0%, n=3882)
+
+Wrote JSON report to sim_results/e3_defend0.0.json

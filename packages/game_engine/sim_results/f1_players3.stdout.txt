@@ -1,0 +1,53 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=3 defendRate=0.667 restorationWin=on maxReshuffles=none ===
+999 completed, 1 hit the 500-turn cap
+
+Game length (turns): avg=134.1 p10=25 p50=135 p90=227
+
+Win counts by type:
+  elimination: 779
+  restoration: 220
+  deckExhausted: 0
+
+Reshuffles: total=2120 avg/game=2.12
+Eliminations: games with >=1 elimination=792/999 avg eliminated/game=1.60
+
+Seat win rates by player count (actual vs. expected 1/N):
+  3 players:
+    seat 0: 342/999 (34.2%, expected 33.3%, +0.9pp)
+    seat 1: 339/999 (33.9%, expected 33.3%, +0.6pp)
+    seat 2: 318/999 (31.8%, expected 33.3%, -1.5pp)
+
+Play counts per card:
+  Fiery Dart           15589
+  Prayer               11689
+  Renewal              10283
+  Confusion            7561
+  Doubt                7496
+  Deception            7478
+  Pride                7460
+  Discouragement       7432
+  Strife               7405
+  Fasting              6841
+  Armor Bearer         6769
+  It Is Written        5779
+  Fellowship           5749
+  Goliath's Taunt      5265
+  Road to Damascus     4851
+  Wilderness Season    4760
+  Jericho March        2500
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Armor Bearer         ratio=1.30 (actual=43.4%, expected=33.3%, n=6769)
+  Renewal              ratio=1.27 (actual=42.3%, expected=33.3%, n=10283)
+  It Is Written        ratio=1.26 (actual=42.0%, expected=33.3%, n=5779)
+  Fasting              ratio=1.24 (actual=41.2%, expected=33.3%, n=6841)
+  Road to Damascus     ratio=1.23 (actual=40.9%, expected=33.3%, n=4851)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Discouragement       ratio=1.05 (actual=35.1%, expected=33.3%, n=7432)
+  Wilderness Season    ratio=1.05 (actual=35.1%, expected=33.3%, n=4760)
+  Jericho March        ratio=1.05 (actual=35.1%, expected=33.3%, n=2500)
+  Doubt                ratio=1.06 (actual=35.2%, expected=33.3%, n=7496)
+  Strife               ratio=1.07 (actual=35.5%, expected=33.3%, n=7405)
+
+Wrote JSON report to sim_results/f1_players3.json

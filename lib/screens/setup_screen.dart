@@ -17,6 +17,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     TextEditingController(text: 'Player 2'),
   ];
 
+  bool _restorationWinEnabled = true;
+
   @override
   void dispose() {
     for (final c in _nameControllers) {
@@ -46,7 +48,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         .map((c) => c.text.trim())
         .map((name) => name.isEmpty ? 'Player' : name)
         .toList();
-    ref.read(gameControllerProvider.notifier).startGame(playerNames: names);
+    ref.read(gameControllerProvider.notifier).startGame(
+          playerNames: names,
+          restorationWinEnabled: _restorationWinEnabled,
+        );
   }
 
   @override
@@ -106,7 +111,18 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 4),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Restoration win'),
+                subtitle: const Text(
+                  'Off = basic mode: win only by elimination or, if the deck '
+                  'runs out, whoever is closest to full armor.',
+                ),
+                value: _restorationWinEnabled,
+                onChanged: (value) => setState(() => _restorationWinEnabled = value),
+              ),
+              const SizedBox(height: 8),
               FilledButton(
                 onPressed: _startGame,
                 style: FilledButton.styleFrom(padding: const EdgeInsets.all(12)),

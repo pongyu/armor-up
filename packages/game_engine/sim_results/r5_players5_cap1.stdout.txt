@@ -1,0 +1,55 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=5 defendRate=0.667 restorationWin=on maxReshuffles=1 ===
+1000 completed, 0 hit the 500-turn cap
+
+Game length (turns): avg=71.0 p10=28 p50=82 p90=88
+
+Win counts by type:
+  elimination: 0
+  restoration: 261
+  deckExhausted: 739
+
+Reshuffles: total=844 avg/game=0.84
+Eliminations: games with >=1 elimination=201/1000 avg eliminated/game=0.23
+
+Seat win rates by player count (actual vs. expected 1/N):
+  5 players:
+    seat 0: 219/1000 (21.9%, expected 20.0%, +1.9pp)
+    seat 1: 203/1000 (20.3%, expected 20.0%, +0.3pp)
+    seat 2: 177/1000 (17.7%, expected 20.0%, -2.3pp)
+    seat 3: 203/1000 (20.3%, expected 20.0%, +0.3pp)
+    seat 4: 198/1000 (19.8%, expected 20.0%, -0.2pp)
+
+Play counts per card:
+  Fiery Dart           9934
+  Prayer               7490
+  Confusion            5576
+  Strife               5571
+  Discouragement       5570
+  Deception            5504
+  Doubt                5500
+  Pride                5491
+  Renewal              4693
+  It Is Written        3697
+  Fellowship           3656
+  Goliath's Taunt      3334
+  Road to Damascus     2871
+  Armor Bearer         2796
+  Fasting              2777
+  Wilderness Season    2117
+  Jericho March        1096
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Armor Bearer         ratio=1.37 (actual=27.3%, expected=20.0%, n=2796)
+  Fasting              ratio=1.27 (actual=25.5%, expected=20.0%, n=2777)
+  Renewal              ratio=1.25 (actual=25.0%, expected=20.0%, n=4693)
+  It Is Written        ratio=1.14 (actual=22.8%, expected=20.0%, n=3697)
+  Prayer               ratio=1.08 (actual=21.6%, expected=20.0%, n=7490)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Goliath's Taunt      ratio=0.87 (actual=17.4%, expected=20.0%, n=3334)
+  Doubt                ratio=0.90 (actual=18.0%, expected=20.0%, n=5500)
+  Strife               ratio=0.90 (actual=18.0%, expected=20.0%, n=5571)
+  Fiery Dart           ratio=0.91 (actual=18.3%, expected=20.0%, n=9934)
+  Jericho March        ratio=0.93 (actual=18.6%, expected=20.0%, n=1096)
+
+Wrote JSON report to sim_results/r5_players5_cap1.json

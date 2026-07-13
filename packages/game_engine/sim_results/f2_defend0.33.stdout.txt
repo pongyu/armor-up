@@ -1,0 +1,52 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=2 defendRate=0.33 restorationWin=on maxReshuffles=none ===
+1000 completed, 0 hit the 500-turn cap
+
+Game length (turns): avg=90.5 p10=21 p50=91 p90=148
+
+Win counts by type:
+  elimination: 862
+  restoration: 138
+  deckExhausted: 0
+
+Reshuffles: total=1259 avg/game=1.26
+Eliminations: games with >=1 elimination=862/1000 avg eliminated/game=0.89
+
+Seat win rates by player count (actual vs. expected 1/N):
+  2 players:
+    seat 0: 563/1000 (56.3%, expected 50.0%, +6.3pp)
+    seat 1: 437/1000 (43.7%, expected 50.0%, -6.3pp)
+
+Play counts per card:
+  Fiery Dart           10457
+  Renewal              7610
+  Prayer               5648
+  Confusion            4902
+  Pride                4899
+  Strife               4896
+  Fasting              4837
+  Armor Bearer         4836
+  Deception            4801
+  Discouragement       4796
+  Doubt                4783
+  Goliath's Taunt      3611
+  Wilderness Season    3362
+  Road to Damascus     3326
+  Fellowship           2815
+  It Is Written        2814
+  Jericho March        1817
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Armor Bearer         ratio=1.11 (actual=55.3%, expected=50.0%, n=4836)
+  It Is Written        ratio=1.10 (actual=54.9%, expected=50.0%, n=2814)
+  Goliath's Taunt      ratio=1.08 (actual=54.1%, expected=50.0%, n=3611)
+  Renewal              ratio=1.07 (actual=53.4%, expected=50.0%, n=7610)
+  Fasting              ratio=1.06 (actual=53.1%, expected=50.0%, n=4837)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Jericho March        ratio=0.86 (actual=42.9%, expected=50.0%, n=1817)
+  Wilderness Season    ratio=0.91 (actual=45.4%, expected=50.0%, n=3362)
+  Fellowship           ratio=0.92 (actual=46.1%, expected=50.0%, n=2815)
+  Deception            ratio=0.95 (actual=47.4%, expected=50.0%, n=4801)
+  Strife               ratio=0.96 (actual=48.0%, expected=50.0%, n=4896)
+
+Wrote JSON report to sim_results/f2_defend0.33.json

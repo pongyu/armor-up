@@ -1,0 +1,54 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=4 defendRate=0.667 restorationWin=on maxReshuffles=none ===
+998 completed, 2 hit the 500-turn cap
+
+Game length (turns): avg=154.2 p10=29 p50=157 p90=257
+
+Win counts by type:
+  elimination: 777
+  restoration: 221
+  deckExhausted: 0
+
+Reshuffles: total=2609 avg/game=2.61
+Eliminations: games with >=1 elimination=789/998 avg eliminated/game=2.38
+
+Seat win rates by player count (actual vs. expected 1/N):
+  4 players:
+    seat 0: 286/998 (28.7%, expected 25.0%, +3.7pp)
+    seat 1: 244/998 (24.4%, expected 25.0%, -0.6pp)
+    seat 2: 241/998 (24.1%, expected 25.0%, -0.9pp)
+    seat 3: 227/998 (22.7%, expected 25.0%, -2.3pp)
+
+Play counts per card:
+  Fiery Dart           18354
+  Prayer               13417
+  Renewal              11099
+  Pride                9048
+  Strife               9043
+  Confusion            9022
+  Discouragement       8932
+  Deception            8881
+  Doubt                8878
+  Fasting              7518
+  Armor Bearer         7498
+  It Is Written        6737
+  Fellowship           6624
+  Goliath's Taunt      6243
+  Road to Damascus     5631
+  Wilderness Season    5257
+  Jericho March        2764
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Armor Bearer         ratio=1.49 (actual=37.3%, expected=25.0%, n=7498)
+  Fasting              ratio=1.47 (actual=36.9%, expected=25.0%, n=7518)
+  Renewal              ratio=1.41 (actual=35.2%, expected=25.0%, n=11099)
+  It Is Written        ratio=1.39 (actual=34.8%, expected=25.0%, n=6737)
+  Road to Damascus     ratio=1.33 (actual=33.3%, expected=25.0%, n=5631)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Doubt                ratio=1.13 (actual=28.3%, expected=25.0%, n=8878)
+  Deception            ratio=1.16 (actual=28.9%, expected=25.0%, n=8881)
+  Discouragement       ratio=1.16 (actual=29.1%, expected=25.0%, n=8932)
+  Pride                ratio=1.17 (actual=29.2%, expected=25.0%, n=9048)
+  Strife               ratio=1.18 (actual=29.4%, expected=25.0%, n=9043)
+
+Wrote JSON report to sim_results/f1_players4.json

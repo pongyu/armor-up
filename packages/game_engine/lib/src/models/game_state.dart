@@ -50,6 +50,21 @@ final class GameState {
   /// Guards against playing more than one card per turn.
   final bool hasPlayedCardThisTurn;
 
+  /// Game mode toggle, fixed for the whole game (set once at [newGame] and
+  /// never changed afterward). True ("full mode") preserves restoration as
+  /// a win condition; false ("basic mode", aimed at younger players) skips
+  /// [_checkRestorationWin] entirely, leaving elimination and
+  /// deck-exhaustion ranking as the only ways a game ends.
+  final bool restorationWinEnabled;
+
+  /// Rules-variant cap on how many times the discard pile may be
+  /// reshuffled into a fresh draw pile before the deck is treated as
+  /// exhausted (ends the game via the same ranking [_declareDeckExhaustedWinner]
+  /// uses for a literal double-empty draw). Null (the default) preserves
+  /// the original unlimited-reshuffle behavior. Fixed for the whole game,
+  /// like [restorationWinEnabled].
+  final int? maxReshuffles;
+
   const GameState({
     required this.players,
     required this.activePlayerIndex,
@@ -65,6 +80,8 @@ final class GameState {
     this.pendingGroupDiscard,
     this.hasDrawnThisTurn = false,
     this.hasPlayedCardThisTurn = false,
+    this.restorationWinEnabled = true,
+    this.maxReshuffles,
   });
 
   PlayerState get activePlayer => players[activePlayerIndex];
@@ -75,6 +92,12 @@ final class GameState {
   int indexOfPlayer(String id) => players.indexWhere((p) => p.id == id);
 
   bool get isGameOver => winner != null;
+
+  /// How many times the discard pile has been reshuffled into a fresh draw
+  /// pile so far this game. Derived from [eventLog] (one [DeckReshuffled]
+  /// per reshuffle) rather than a separate counter field, so it can never
+  /// drift out of sync with the log itself. Used against [maxReshuffles].
+  int get reshuffleCount => eventLog.whereType<DeckReshuffled>().length;
 
   GameState copyWith({
     List<PlayerState>? players,
@@ -94,6 +117,9 @@ final class GameState {
     bool clearPendingGroupDiscard = false,
     bool? hasDrawnThisTurn,
     bool? hasPlayedCardThisTurn,
+    bool? restorationWinEnabled,
+    int? maxReshuffles,
+    bool clearMaxReshuffles = false,
   }) =>
       GameState(
         players: players ?? this.players,
@@ -114,6 +140,8 @@ final class GameState {
             : (pendingGroupDiscard ?? this.pendingGroupDiscard),
         hasDrawnThisTurn: hasDrawnThisTurn ?? this.hasDrawnThisTurn,
         hasPlayedCardThisTurn: hasPlayedCardThisTurn ?? this.hasPlayedCardThisTurn,
+        restorationWinEnabled: restorationWinEnabled ?? this.restorationWinEnabled,
+        maxReshuffles: clearMaxReshuffles ? null : (maxReshuffles ?? this.maxReshuffles),
       );
 
   /// Returns a copy with [playerId]'s state replaced by the result of

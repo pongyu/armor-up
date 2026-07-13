@@ -34,10 +34,15 @@ abstract class GameActionDispatcher {
 class GameController extends StateNotifier<GameUiState?> implements GameActionDispatcher {
   GameController() : super(null);
 
-  void startGame({required List<String> playerNames, int? seed}) {
+  void startGame({
+    required List<String> playerNames,
+    int? seed,
+    bool restorationWinEnabled = true,
+  }) {
     final game = newGame(
       playerNames: playerNames,
       seed: seed ?? DateTime.now().millisecondsSinceEpoch,
+      restorationWinEnabled: restorationWinEnabled,
     );
     state = GameUiState(state: game);
   }

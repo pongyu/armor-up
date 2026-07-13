@@ -26,6 +26,13 @@ final class FilteredGameState {
   final bool hasDrawnThisTurn;
   final bool hasPlayedCardThisTurn;
 
+  /// Table-wide rules config, fixed for the whole game and identical for
+  /// every viewer - mirrored here (rather than kept host-only) so every
+  /// LAN client's UI agrees on which win conditions/reshuffle limits are
+  /// active. See [GameState.restorationWinEnabled] / [GameState.maxReshuffles].
+  final bool restorationWinEnabled;
+  final int? maxReshuffles;
+
   const FilteredGameState({
     required this.viewerId,
     required this.players,
@@ -39,6 +46,8 @@ final class FilteredGameState {
     this.pendingGroupDiscard,
     required this.hasDrawnThisTurn,
     required this.hasPlayedCardThisTurn,
+    required this.restorationWinEnabled,
+    this.maxReshuffles,
   });
 
   Map<String, dynamic> toJson() => {
@@ -56,6 +65,8 @@ final class FilteredGameState {
           'pendingGroupDiscard': pendingGroupDiscard!.toJson(),
         'hasDrawnThisTurn': hasDrawnThisTurn,
         'hasPlayedCardThisTurn': hasPlayedCardThisTurn,
+        'restorationWinEnabled': restorationWinEnabled,
+        if (maxReshuffles != null) 'maxReshuffles': maxReshuffles,
       };
 
   static FilteredGameState fromJson(Map<String, dynamic> json) =>
@@ -86,6 +97,8 @@ final class FilteredGameState {
                 json['pendingGroupDiscard'] as Map<String, dynamic>),
         hasDrawnThisTurn: json['hasDrawnThisTurn'] as bool,
         hasPlayedCardThisTurn: json['hasPlayedCardThisTurn'] as bool,
+        restorationWinEnabled: json['restorationWinEnabled'] as bool,
+        maxReshuffles: json['maxReshuffles'] as int?,
       );
 }
 
@@ -100,11 +113,18 @@ final class PublicPlayerView {
   final bool isFasting;
   final bool fastingScheduled;
 
-  /// Mirrors [PlayerState.wasEverDamaged]. Public info (armor condition is
+  /// Mirrors [PlayerState.fastingRestoreTarget]. Deliberately public, not
+  /// redacted like hand contents: seeing which piece an opponent is
+  /// fasting for is the whole point of the counterplay window Fasting's
+  /// delayed-restore timing opens (see [PlayerState.fastingRestoreTarget]'s
+  /// doc comment).
+  final ArmorType? fastingRestoreTarget;
+
+  /// Mirrors [PlayerState.wasEverBroken]. Public info (armor condition is
   /// already visible in [armor]), transmitted so a client can safely
   /// recompute [PlayerState.isFullyRestored] on a reconstructed state
   /// without a hidden gap in the wire format.
-  final bool wasEverDamaged;
+  final bool wasEverBroken;
 
   /// The viewer's own full hand. Null for every player other than the
   /// viewer - this is the one field [filterStateForPlayer] populates
@@ -119,7 +139,8 @@ final class PublicPlayerView {
     required this.handSize,
     required this.isFasting,
     required this.fastingScheduled,
-    required this.wasEverDamaged,
+    this.fastingRestoreTarget,
+    required this.wasEverBroken,
     this.hand,
   });
 
@@ -133,7 +154,8 @@ final class PublicPlayerView {
         'handSize': handSize,
         'isFasting': isFasting,
         'fastingScheduled': fastingScheduled,
-        'wasEverDamaged': wasEverDamaged,
+        if (fastingRestoreTarget != null) 'fastingRestoreTarget': fastingRestoreTarget!.name,
+        'wasEverBroken': wasEverBroken,
         if (hand != null) 'hand': hand!.map((c) => c.toJson()).toList(),
       };
 
@@ -147,7 +169,10 @@ final class PublicPlayerView {
         handSize: json['handSize'] as int,
         isFasting: json['isFasting'] as bool,
         fastingScheduled: json['fastingScheduled'] as bool,
-        wasEverDamaged: json['wasEverDamaged'] as bool,
+        fastingRestoreTarget: json['fastingRestoreTarget'] == null
+            ? null
+            : ArmorType.values.byName(json['fastingRestoreTarget'] as String),
+        wasEverBroken: json['wasEverBroken'] as bool,
         hand: json['hand'] == null
             ? null
             : (json['hand'] as List)
@@ -180,7 +205,8 @@ FilteredGameState filterStateForPlayer(GameState state, String viewerId) {
           handSize: p.hand.length,
           isFasting: p.isFasting,
           fastingScheduled: p.fastingScheduled,
-          wasEverDamaged: p.wasEverDamaged,
+          fastingRestoreTarget: p.fastingRestoreTarget,
+          wasEverBroken: p.wasEverBroken,
           hand: p.id == viewerId ? p.hand : null,
         ),
     ],
@@ -199,5 +225,7 @@ FilteredGameState filterStateForPlayer(GameState state, String viewerId) {
     pendingGroupDiscard: state.pendingGroupDiscard,
     hasDrawnThisTurn: state.hasDrawnThisTurn,
     hasPlayedCardThisTurn: state.hasPlayedCardThisTurn,
+    restorationWinEnabled: state.restorationWinEnabled,
+    maxReshuffles: state.maxReshuffles,
   );
 }

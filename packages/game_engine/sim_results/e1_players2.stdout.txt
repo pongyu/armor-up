@@ -1,0 +1,52 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=2 defendRate=0.667 ===
+1000 completed, 0 hit the 500-turn cap
+
+Game length (turns): avg=89.3 p10=7 p50=83 p90=189
+
+Win counts by type:
+  elimination: 659
+  restoration: 341
+  deckExhausted: 0
+
+Reshuffles: total=1281 avg/game=1.28
+Eliminations: games with >=1 elimination=659/1000 avg eliminated/game=0.68
+
+Seat win rates by player count (actual vs. expected 1/N):
+  2 players:
+    seat 0: 561/1000 (56.1%, expected 50.0%, +6.1pp)
+    seat 1: 439/1000 (43.9%, expected 50.0%, -6.1pp)
+
+Play counts per card:
+  Fiery Dart           10219
+  Prayer               8063
+  Renewal              7312
+  Pride                4738
+  Deception            4713
+  Strife               4694
+  Doubt                4666
+  Confusion            4666
+  Discouragement       4637
+  Armor Bearer         4630
+  Fasting              4604
+  Fellowship           3961
+  It Is Written        3951
+  Goliath's Taunt      3466
+  Wilderness Season    3245
+  Road to Damascus     3223
+  Jericho March        1750
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  It Is Written        ratio=1.15 (actual=57.3%, expected=50.0%, n=3951)
+  Goliath's Taunt      ratio=1.10 (actual=54.8%, expected=50.0%, n=3466)
+  Renewal              ratio=1.09 (actual=54.7%, expected=50.0%, n=7312)
+  Fasting              ratio=1.07 (actual=53.5%, expected=50.0%, n=4604)
+  Armor Bearer         ratio=1.07 (actual=53.3%, expected=50.0%, n=4630)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Wilderness Season    ratio=0.86 (actual=43.2%, expected=50.0%, n=3245)
+  Jericho March        ratio=0.91 (actual=45.6%, expected=50.0%, n=1750)
+  Fellowship           ratio=0.93 (actual=46.3%, expected=50.0%, n=3961)
+  Strife               ratio=0.95 (actual=47.5%, expected=50.0%, n=4694)
+  Discouragement       ratio=0.95 (actual=47.7%, expected=50.0%, n=4637)
+
+Wrote JSON report to sim_results/e1_players2.json

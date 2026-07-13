@@ -37,6 +37,12 @@ String describeEvent(GameEvent event, GameState state) {
       '${nameOf(thiefId)} stole a card from ${nameOf(victimId)}',
     DefenseTimedOut(:final playerId) => '${nameOf(playerId)} ran out of time to respond',
     PlayerEliminated(:final playerId) => '${nameOf(playerId)} was eliminated',
+    // Plain hyphen, not an em-dash: EarlyGameBoy (the app's pixel font,
+    // see card_widget.dart's describeEffect comment) has already shown
+    // gaps for less common glyphs like '>' and '(' - not worth risking
+    // for the highest-urgency announcement in the log.
+    RestorationImminent(:final playerId) =>
+      '${nameOf(playerId).toUpperCase()} STANDS FULLY ARMORED - STOP THEM BEFORE THEIR NEXT TURN!',
     DeckReshuffled() => 'The discard pile was reshuffled into the draw pile',
     GameEnded(:final winnerId, :final winType) =>
       '${nameOf(winnerId)} wins by ${switch (winType) {

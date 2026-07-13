@@ -12,9 +12,15 @@ const int maxPlayers = 6;
 /// Builds a fresh, shuffled [GameState] for [playerNames] (2-6 players),
 /// each starting with a full set of Strong armor and a 5-card hand, dealt
 /// deterministically from [seed].
+///
+/// [restorationWinEnabled] and [maxReshuffles] are rules-variant config,
+/// fixed for the whole game once it starts - see [GameState.restorationWinEnabled]
+/// / [GameState.maxReshuffles] for what each controls.
 GameState newGame({
   required List<String> playerNames,
   required int seed,
+  bool restorationWinEnabled = true,
+  int? maxReshuffles,
 }) {
   if (playerNames.length < minPlayers || playerNames.length > maxPlayers) {
     throw ArgumentError.value(
@@ -62,5 +68,7 @@ GameState newGame({
     rngDrawCount: random.drawCount,
     nextInstanceId: instanceCounter,
     turnNumber: 1,
+    restorationWinEnabled: restorationWinEnabled,
+    maxReshuffles: maxReshuffles,
   );
 }

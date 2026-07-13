@@ -6,6 +6,7 @@ import 'models/armor.dart';
 import 'models/card.dart';
 import 'models/game_event.dart';
 import 'models/game_state.dart';
+import 'models/player.dart';
 import 'models/win_result.dart';
 import 'rng.dart';
 
@@ -92,6 +93,21 @@ ActionResult _drawCard(GameState state, DrawCard action) {
   }
   if (state.hasDrawnThisTurn) {
     return const ActionFailure('Already drew a card this turn');
+  }
+
+  // Rules-variant reshuffle cap: both piles empty AND the discard pile has
+  // already been reshuffled into the draw pile [maxReshuffles] times means
+  // no further reshuffle is allowed - the deck is exhausted right here,
+  // exactly as if there were truly nothing left to reshuffle at all.
+  // Checked before attempting a real reshuffle so a capped game ends on
+  // the same "both piles empty" trigger as the uncapped case, just one
+  // reshuffle earlier.
+  final maxReshuffles = state.maxReshuffles;
+  if (state.drawPile.isEmpty &&
+      state.discardPile.isNotEmpty &&
+      maxReshuffles != null &&
+      state.reshuffleCount >= maxReshuffles) {
+    return ActionSuccess(_declareDeckExhaustedWinner(state));
   }
 
   final (drawn, nextState) = _drawOne(state, action.playerId);
@@ -321,8 +337,10 @@ String? _validateTarget(GameState state, CardDef def, PlayCard action) {
             return 'Target armor piece is not in the right condition for this card';
           }
         case EffectPrimitive.skipNextTurnAndRestore:
-          // Fasting: "one piece (any state, including Lost) -> Strong
-          // immediately". No condition restriction.
+          // Fasting: choose one piece (any condition, including Lost) to
+          // be restored to Strong once the fast completes at the end of
+          // the fasted turn - target validation stays permissive; no
+          // condition restriction on which piece can be chosen.
           break;
         default:
           throw StateError(
@@ -438,10 +456,41 @@ ActionResult _endTurn(GameState state, EndTurn action) {
     );
   }
 
-  // The outgoing player's own skipped-turn flag (if any) is now over.
+  // The outgoing player's own skipped-turn flag (if any) is now over, and
+  // if they were fasting, the fast is complete: the piece chosen when
+  // Fasting was played restores to Strong now, regardless of its current
+  // condition (it may have been attacked again during the fasted turn -
+  // the fast still completes and still heals fully; commit -> endure ->
+  // restored). Resolved before rotation/win checks below, so the
+  // restoration is visible to the start-of-next-turn restoration check
+  // one full round later, per the design ruling. An eliminated player
+  // never reaches here as the active player again (turn order skips
+  // them), so a pending fast simply never completes for them - no
+  // explicit elimination check is needed, but the assertion below
+  // documents the invariant rather than silently trusting it.
   var working = state;
   if (player.isFasting) {
+    assert(!player.isEliminated, 'An eliminated player should never be the one ending a turn');
     working = working.updatePlayer(player.id, (p) => p.copyWith(isFasting: false));
+
+    final target = player.fastingRestoreTarget;
+    if (target != null) {
+      working = working.updatePlayer(
+        player.id,
+        (p) => p.withArmorCondition(target, ArmorCondition.strong).copyWith(
+              clearFastingRestoreTarget: true,
+            ),
+      );
+      working = working.appendEvent(
+        ArmorRestored(
+          turnNumber: working.turnNumber,
+          playerId: player.id,
+          armor: target,
+          newCondition: ArmorCondition.strong,
+        ),
+      );
+      working = announceIfNewlyFullyRestored(before: state, after: working, playerId: player.id);
+    }
   }
 
   final nextIndex = _nextActivePlayerIndex(working);
@@ -577,13 +626,38 @@ ActionResult _declineDefense(GameState state, DeclineDefense action) {
 
 /// Last one standing: checked after anything that could eliminate a
 /// player (a hit landing, in particular), independent of whose turn it is.
+///
+/// A single resolution can eliminate more than one player at once (e.g.
+/// Jericho March turning every remaining Weakened piece to Lost table-wide,
+/// or a reflected hit landing on an already-critical attacker), including
+/// - rarely, but reachably - every remaining player simultaneously. That
+/// last case has no single "last one standing", so it falls back to the
+/// same deterministic tiebreak [_declareDeckExhaustedWinner] uses (most
+/// Strong pieces, then fewest Lost pieces, then earliest turn order) run
+/// over every player rather than just non-eliminated ones, since nobody
+/// would qualify as a contender otherwise. Still logged as
+/// [WinType.elimination]: the game still ended because of an elimination,
+/// simultaneous rather than sequential, not because of deck exhaustion.
 GameState _checkEliminationWin(GameState state) {
   if (state.isGameOver) return state;
 
   final activePlayers = state.players.where((p) => !p.isEliminated).toList();
-  if (activePlayers.length != 1) return state;
+  if (activePlayers.length > 1) return state;
 
-  final winner = activePlayers.first;
+  final PlayerState winner;
+  if (activePlayers.length == 1) {
+    winner = activePlayers.first;
+  } else {
+    final contenders = [...state.players]
+      ..sort((a, b) {
+        final byStrong = b.strongPieceCount.compareTo(a.strongPieceCount);
+        if (byStrong != 0) return byStrong;
+        final byLost = a.lostPieceCount.compareTo(b.lostPieceCount);
+        if (byLost != 0) return byLost;
+        return state.indexOfPlayer(a.id).compareTo(state.indexOfPlayer(b.id));
+      });
+    winner = contenders.first;
+  }
   return state
       .copyWith(
         winner: WinResult(winnerId: winner.id, type: WinType.elimination),
@@ -599,9 +673,12 @@ GameState _checkEliminationWin(GameState state) {
 
 /// Full restoration: only meaningful "at the start of your turn", so this
 /// is checked once, right after turn rotation in [_endTurn], against the
-/// newly-active player.
+/// newly-active player. A no-op entirely when [GameState.restorationWinEnabled]
+/// is false ("basic mode") - elimination and deck-exhaustion ranking are
+/// the only ways such a game ends.
 GameState _checkRestorationWin(GameState state) {
   if (state.isGameOver) return state;
+  if (!state.restorationWinEnabled) return state;
 
   final active = state.activePlayer;
   if (!active.isFullyRestored) return state;

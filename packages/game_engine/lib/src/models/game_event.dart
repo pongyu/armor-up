@@ -257,6 +257,28 @@ final class PlayerEliminated extends GameEvent {
       'PlayerEliminated($playerId, $cardsDiscarded cards discarded)';
 }
 
+/// Logged the moment a player's state transitions INTO
+/// [PlayerState.isFullyRestored] (all six pieces Strong, [PlayerState.wasEverBroken],
+/// and [GameState.restorationWinEnabled]) - i.e. every time that
+/// condition goes from false to true, not on every action while it
+/// continues to hold. The win check itself is unchanged (still only
+/// evaluated at the start of the player's own next turn - see
+/// `_checkRestorationWin` in engine.dart); this event exists purely to
+/// make that already-existing one-round counterplay window VISIBLE to
+/// the table, since nothing about the rules changed. Never logged when
+/// [GameState.restorationWinEnabled] is false ("basic mode") - a
+/// condition that can never win the game has nothing to announce. If a
+/// player is later knocked back below full and later re-achieves it,
+/// this fires again (it is transition-based, not level-based).
+final class RestorationImminent extends GameEvent {
+  final String playerId;
+
+  const RestorationImminent({required super.turnNumber, required this.playerId});
+
+  @override
+  String toString() => 'RestorationImminent($playerId)';
+}
+
 final class DeckReshuffled extends GameEvent {
   const DeckReshuffled({required super.turnNumber});
 

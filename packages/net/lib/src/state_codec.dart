@@ -22,6 +22,8 @@ extension GameStateJson on GameState {
           'pendingGroupDiscard': pendingGroupDiscard!.toJson(),
         'hasDrawnThisTurn': hasDrawnThisTurn,
         'hasPlayedCardThisTurn': hasPlayedCardThisTurn,
+        'restorationWinEnabled': restorationWinEnabled,
+        if (maxReshuffles != null) 'maxReshuffles': maxReshuffles,
       };
 
   static GameState fromJson(Map<String, dynamic> json) => GameState(
@@ -55,6 +57,8 @@ extension GameStateJson on GameState {
                 json['pendingGroupDiscard'] as Map<String, dynamic>),
         hasDrawnThisTurn: json['hasDrawnThisTurn'] as bool,
         hasPlayedCardThisTurn: json['hasPlayedCardThisTurn'] as bool,
+        restorationWinEnabled: json['restorationWinEnabled'] as bool,
+        maxReshuffles: json['maxReshuffles'] as int?,
       );
 }
 
@@ -66,7 +70,8 @@ extension PlayerStateJson on PlayerState {
         'hand': hand.map((c) => c.toJson()).toList(),
         'isFasting': isFasting,
         'fastingScheduled': fastingScheduled,
-        'wasEverDamaged': wasEverDamaged,
+        if (fastingRestoreTarget != null) 'fastingRestoreTarget': fastingRestoreTarget!.name,
+        'wasEverBroken': wasEverBroken,
       };
 
   static PlayerState fromJson(Map<String, dynamic> json) => PlayerState(
@@ -80,7 +85,10 @@ extension PlayerStateJson on PlayerState {
             .toList(),
         isFasting: json['isFasting'] as bool,
         fastingScheduled: json['fastingScheduled'] as bool,
-        wasEverDamaged: json['wasEverDamaged'] as bool,
+        fastingRestoreTarget: json['fastingRestoreTarget'] == null
+            ? null
+            : ArmorType.values.byName(json['fastingRestoreTarget'] as String),
+        wasEverBroken: json['wasEverBroken'] as bool,
       );
 }
 
@@ -278,6 +286,11 @@ extension GameEventJson on GameEvent {
             'playerId': playerId,
             'cardsDiscarded': cardsDiscarded,
           },
+        RestorationImminent(:final turnNumber, :final playerId) => {
+            'kind': 'RestorationImminent',
+            'turnNumber': turnNumber,
+            'playerId': playerId,
+          },
         DeckReshuffled(:final turnNumber) => {
             'kind': 'DeckReshuffled',
             'turnNumber': turnNumber,
@@ -377,6 +390,11 @@ GameEvent gameEventFromJson(Map<String, dynamic> json) {
         turnNumber: turnNumber,
         playerId: json['playerId'] as String,
         cardsDiscarded: json['cardsDiscarded'] as int,
+      );
+    case 'RestorationImminent':
+      return RestorationImminent(
+        turnNumber: turnNumber,
+        playerId: json['playerId'] as String,
       );
     case 'DeckReshuffled':
       return DeckReshuffled(turnNumber: turnNumber);

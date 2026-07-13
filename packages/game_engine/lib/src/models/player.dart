@@ -23,12 +23,24 @@ final class PlayerState {
   /// skipped play step is the player's *next* turn, not the current one.
   final bool fastingScheduled;
 
-  /// True once any of this player's armor has ever dropped below Strong.
-  /// Every player starts at full Strong, so the restoration win condition
-  /// ("all 6 Strong at the start of your turn") only counts once it is a
-  /// genuine comeback - i.e. this flag must be true - not simply an
-  /// untouched starting state. Never reset back to false once set.
-  final bool wasEverDamaged;
+  /// The armor piece chosen when Fasting was played, pending restoration
+  /// until the fast is actually endured. Non-null from the moment Fasting
+  /// is played until the end of the fasted turn, at which point the piece
+  /// is restored to Strong (regardless of its condition at that moment -
+  /// see `_endTurn` in engine.dart) and this is cleared. Public knowledge
+  /// (not redacted over the network): seeing which piece an opponent is
+  /// fasting for is part of the counterplay window Fasting now opens.
+  final ArmorType? fastingRestoreTarget;
+
+  /// True once at least one of this player's armor pieces has ever reached
+  /// [ArmorCondition.lost]. Every player starts at full Strong, so the
+  /// restoration win condition ("all 6 Strong at the start of your turn")
+  /// only counts once it is a genuine "brought low, then restored"
+  /// comeback - i.e. this flag must be true - not simply an untouched
+  /// starting state, and (per the threshold set after playtesting) not a
+  /// single Weakened scratch patched up with one Renewal either. Never
+  /// reset back to false once set.
+  final bool wasEverBroken;
 
   const PlayerState({
     required this.id,
@@ -37,14 +49,15 @@ final class PlayerState {
     required this.hand,
     this.isFasting = false,
     this.fastingScheduled = false,
-    this.wasEverDamaged = false,
+    this.fastingRestoreTarget,
+    this.wasEverBroken = false,
   });
 
   bool get isEliminated =>
       armor.every((piece) => piece.condition == ArmorCondition.lost);
 
   bool get isFullyRestored =>
-      wasEverDamaged && armor.every((piece) => piece.condition == ArmorCondition.strong);
+      wasEverBroken && armor.every((piece) => piece.condition == ArmorCondition.strong);
 
   int get strongPieceCount =>
       armor.where((piece) => piece.condition == ArmorCondition.strong).length;
@@ -62,7 +75,9 @@ final class PlayerState {
     List<CardInstance>? hand,
     bool? isFasting,
     bool? fastingScheduled,
-    bool? wasEverDamaged,
+    ArmorType? fastingRestoreTarget,
+    bool clearFastingRestoreTarget = false,
+    bool? wasEverBroken,
   }) =>
       PlayerState(
         id: id ?? this.id,
@@ -71,18 +86,21 @@ final class PlayerState {
         hand: hand ?? this.hand,
         isFasting: isFasting ?? this.isFasting,
         fastingScheduled: fastingScheduled ?? this.fastingScheduled,
-        wasEverDamaged: wasEverDamaged ?? this.wasEverDamaged,
+        fastingRestoreTarget: clearFastingRestoreTarget
+            ? null
+            : (fastingRestoreTarget ?? this.fastingRestoreTarget),
+        wasEverBroken: wasEverBroken ?? this.wasEverBroken,
       );
 
   /// Returns a copy with [type]'s condition replaced. Marks
-  /// [wasEverDamaged] once any piece first drops below Strong.
+  /// [wasEverBroken] once any piece first reaches [ArmorCondition.lost].
   PlayerState withArmorCondition(ArmorType type, ArmorCondition condition) {
     final updated = [
       for (final piece in armor)
         if (piece.type == type) piece.copyWith(condition: condition) else piece,
     ];
-    final damaged = wasEverDamaged || condition != ArmorCondition.strong;
-    return copyWith(armor: updated, wasEverDamaged: damaged);
+    final broken = wasEverBroken || condition == ArmorCondition.lost;
+    return copyWith(armor: updated, wasEverBroken: broken);
   }
 
   @override

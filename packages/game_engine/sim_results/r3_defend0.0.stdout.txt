@@ -1,0 +1,54 @@
+=== Armor Up! simulation: games=1000 seed=12345 players=4 defendRate=0.0 restorationWin=on maxReshuffles=none ===
+1000 completed, 0 hit the 500-turn cap
+
+Game length (turns): avg=107.2 p10=40 p50=112 p90=149
+
+Win counts by type:
+  elimination: 877
+  restoration: 123
+  deckExhausted: 0
+
+Reshuffles: total=1925 avg/game=1.93
+Eliminations: games with >=1 elimination=885/1000 avg eliminated/game=2.67
+
+Seat win rates by player count (actual vs. expected 1/N):
+  4 players:
+    seat 0: 281/1000 (28.1%, expected 25.0%, +3.1pp)
+    seat 1: 241/1000 (24.1%, expected 25.0%, -0.9pp)
+    seat 2: 230/1000 (23.0%, expected 25.0%, -2.0pp)
+    seat 3: 248/1000 (24.8%, expected 25.0%, -0.2pp)
+
+Play counts per card:
+  Fiery Dart           14277
+  Renewal              8802
+  Confusion            6908
+  Doubt                6871
+  Pride                6849
+  Discouragement       6835
+  Strife               6830
+  Deception            6786
+  Armor Bearer         5870
+  Fasting              5822
+  Goliath's Taunt      4802
+  Road to Damascus     4341
+  Wilderness Season    3864
+  Jericho March        1990
+  Prayer               0
+  It Is Written        0
+  Fellowship           0
+
+Top 5 cards by winner-correlation ratio (played by eventual winner more than chance):
+  Armor Bearer         ratio=1.48 (actual=37.0%, expected=25.0%, n=5870)
+  Fasting              ratio=1.41 (actual=35.3%, expected=25.0%, n=5822)
+  Renewal              ratio=1.37 (actual=34.3%, expected=25.0%, n=8802)
+  Goliath's Taunt      ratio=1.37 (actual=34.2%, expected=25.0%, n=4802)
+  Fiery Dart           ratio=1.21 (actual=30.2%, expected=25.0%, n=14277)
+
+Bottom 5 cards by winner-correlation ratio (played by eventual winner less than chance):
+  Strife               ratio=1.07 (actual=26.6%, expected=25.0%, n=6830)
+  Confusion            ratio=1.07 (actual=26.8%, expected=25.0%, n=6908)
+  Jericho March        ratio=1.09 (actual=27.1%, expected=25.0%, n=1990)
+  Discouragement       ratio=1.09 (actual=27.2%, expected=25.0%, n=6835)
+  Doubt                ratio=1.10 (actual=27.4%, expected=25.0%, n=6871)
+
+Wrote JSON report to sim_results/r3_defend0.0.json
