@@ -1,10 +1,15 @@
 # Credits
 
-Third-party art assets used in Armor Up!
+## License
 
-- **Tiny Swords** by [Pixel Frog](https://pixelfrog-assets.itch.io/tiny-swords) -
-  banner/ribbon UI graphics (`assets/cards/Ribbon_*.png`) and the card
-  background texture (`assets/textures/parchment.png`, cropped from the
-  pack's "Regular Paper" nine-slice sheet). Used under the pack's license
-  (free for personal and commercial use, modification allowed, no
-  redistribution of the raw asset pack).
+Code is licensed under the MIT License (see [LICENSE](LICENSE)). Game
+design, rules text, and card content — excluding the third-party assets
+below — are licensed under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), with credit to
+Joanderson Quindoza (quindoza.dev).
+
+## Third-party assets
+
+- **Early GameBoy** by Jimmy Campbell, licensed under CC BY 4.0
+  (`assets/fonts/EarlyGameBoy.ttf`).
+  https://www.dafont.com/early-gameboy.font

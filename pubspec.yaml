@@ -85,9 +85,6 @@ flutter:
   # https://flutter.dev/to/asset-from-package
 
   fonts:
-    - family: Minecraft
-      fonts:
-        - asset: assets/fonts/Minecraft.ttf
     - family: EarlyGameBoy
       fonts:
         - asset: assets/fonts/EarlyGameBoy.ttf

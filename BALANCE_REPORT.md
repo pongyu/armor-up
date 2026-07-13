@@ -1,5 +1,13 @@
 # Armor Up! — Balance Report (Phase 2)
 
+> **Report index:** this is the first of four balance reports, in order:
+> `BALANCE_REPORT.md` (Phase 2 baseline, this file) →
+> [BALANCE_REPORT_2.md](BALANCE_REPORT_2.md) (restoration-win-threshold
+> patch) → [BALANCE_REPORT_4.md](BALANCE_REPORT_4.md) (delayed-Fasting
+> patch, **current baseline**). There is no `_3`. See
+> `packages/game_engine/sim_results/README.md` for the full run index and
+> exact reproduction commands behind every number in all four reports.
+
 Generated from `packages/game_engine/bin/simulate.dart` against random-legal-move
 bots. All runs used base seed `12345`; raw JSON is in
 `packages/game_engine/sim_results/` (see that directory's `README.md` for the
