@@ -30,15 +30,25 @@ class ArmorUpColors {
   static const bannerDefense = Color(0xFF78A8BA);
   static const bannerRestore = Color(0xFF989550);
 
-  // Armor piece condition. Strong reuses the Restore banner olive so
-  // "healthy" reads as "restoration"; Weakened is a pale/washed-out
-  // bronze - lighter than a true bronze so it reads as "dulling," a
-  // midpoint between full-shine Strong and near-black Lost rather than
-  // a saturated metal tone; Lost is a dark charcoal (was a light
-  // parchment-gray, which looked wrong once the icon itself started
-  // rendering near-black - the border needs to match).
-  static const armorStrong = Color(0xFF989550);
-  static const armorWeakened = Color(0xFFC7A379);
+  // Armor piece condition. DESIGN REVERSAL (was: Weakened and Lost
+  // deliberately "almost as dark" - playtesting showed players couldn't
+  // tell the three states apart at a glance). Now each state is chosen
+  // to be maximally distinct from its neighbors on hue AND lightness, not
+  // just a graded darkening ramp:
+  //   Strong   - gold/bronze (same goldAccent used on card frames/medallion
+  //              rings), the warmest/brightest of the three.
+  //   Weakened - amber - a distinctly different hue from gold (redder/more
+  //              orange, not just a darker version of it) so it can't be
+  //              mistaken for a dimmer Strong at a glance.
+  //   Lost     - dark, heavily desaturated charcoal - kept close to
+  //              armorLostBorder's near-black so an empty slot reads as
+  //              "gone" rather than merely "duller."
+  // See armor_widget.dart for the icon tint/overlay treatment that
+  // carries the rest of the distinction (border color alone is not
+  // sufficient per the design spec - each state must differ on
+  // border+icon+overlay).
+  static const armorStrong = Color(0xFFD4AF37);
+  static const armorWeakened = Color(0xFFC97A2B);
   static const armorLost = Color(0xFF3A3630);
 
   // App chrome: a near-black board surface darker than the card face so

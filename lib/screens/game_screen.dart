@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
@@ -48,11 +50,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(gameStateProvider);
-    if (state == null) return const SizedBox.shrink();
-
+  Widget _buildBody(BuildContext context, GameState state) {
     if (state.isGameOver) {
       return WinScreen(state: state);
     }
@@ -99,6 +97,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         : _MainBoardView(actorId: actorId);
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(gameStateProvider);
+    if (state == null) return const SizedBox.shrink();
+
+    // The banner overlays every sub-view (pass screen, prompts, board)
+    // rather than living inside just _MainBoardView, since the
+    // RestorationImminent event that triggers it can in principle log on
+    // any turn transition and the announcement is meant for the whole
+    // table, not just whichever screen happens to be showing.
+    return Stack(
+      children: [
+        _buildBody(context, state),
+        _RestorationImminentBannerHost(state: state),
+      ],
+    );
+  }
+
   /// LAN routing: [localPlayerId] is this device's own player. When it is
   /// this player's turn/response, show the same interactive views hotseat
   /// uses (just without a pass gate). When it is someone else's, show a
@@ -115,6 +131,185 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           : _MainBoardView(actorId: localPlayerId);
     }
     return _MainBoardView(actorId: localPlayerId, readOnly: true);
+  }
+}
+
+/// Watches [state]'s event log for a newly-appended [RestorationImminent]
+/// and shows [_RestorationImminentBanner] for it. Split out from
+/// [_GameScreenState] so the "have we already shown this event" bookkeeping
+/// (a length + id, not just "is there one in the log") lives in its own
+/// small widget instead of growing the already-large screen state class.
+///
+/// Detection is length-based (new events appended since the last build)
+/// rather than "does the log contain one" - the event log is permanent and
+/// never truncated, so a level-based check would either show the banner
+/// forever after the first restoration or never show it again after a
+/// rebuild. A player can also become fully restored more than once in a
+/// game (broken again, then re-restored) - see [RestorationImminent]'s own
+/// doc comment - so re-firing on each new occurrence is correct, not a bug
+/// to guard against.
+class _RestorationImminentBannerHost extends StatefulWidget {
+  final GameState state;
+
+  const _RestorationImminentBannerHost({required this.state});
+
+  @override
+  State<_RestorationImminentBannerHost> createState() =>
+      _RestorationImminentBannerHostState();
+}
+
+class _RestorationImminentBannerHostState extends State<_RestorationImminentBannerHost> {
+  int _lastSeenEventCount = 0;
+  RestorationImminent? _activeEvent;
+  Timer? _autoDismissTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Don't replay history: a game resumed mid-play (or a rebuild after a
+    // hot reload) shouldn't suddenly announce an event that already
+    // happened turns ago - only events appended AFTER this host first
+    // mounts are new.
+    _lastSeenEventCount = widget.state.eventLog.length;
+  }
+
+  @override
+  void didUpdateWidget(covariant _RestorationImminentBannerHost oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final events = widget.state.eventLog;
+    if (events.length > _lastSeenEventCount) {
+      final newEvents = events.sublist(_lastSeenEventCount);
+      final imminent = newEvents.whereType<RestorationImminent>();
+      if (imminent.isNotEmpty) {
+        // Last one wins if somehow more than one landed in a single
+        // rebuild - showing the most recent is more useful than the
+        // first. Timer is (re)started exactly once per new event here,
+        // not in build() - starting it in build() would reschedule a
+        // fresh 4s timer on every unrelated rebuild while the banner is
+        // showing (e.g. a card played elsewhere), so it would never
+        // actually reach zero, and would also leak a new Timer per
+        // rebuild since nothing was tracking/cancelling the previous one.
+        _autoDismissTimer?.cancel();
+        setState(() => _activeEvent = imminent.last);
+        _autoDismissTimer = Timer(const Duration(seconds: 4), _dismiss);
+      }
+    }
+    _lastSeenEventCount = events.length;
+  }
+
+  void _dismiss() {
+    _autoDismissTimer?.cancel();
+    _autoDismissTimer = null;
+    if (mounted) setState(() => _activeEvent = null);
+  }
+
+  @override
+  void dispose() {
+    _autoDismissTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final event = _activeEvent;
+    if (event == null) return const SizedBox.shrink();
+
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        bottom: false,
+        child: _RestorationImminentBanner(
+          playerName: widget.state.playerById(event.playerId).name,
+          onDismiss: _dismiss,
+        ),
+      ),
+    );
+  }
+}
+
+/// Prominent, gold-bordered, full-width banner announcing that a player now
+/// stands fully armored and can win by restoration at the start of their
+/// next turn - the visible counterplay window the RestorationImminent event
+/// exists to create (see that class's doc comment in game_event.dart).
+/// Purely a visual overlay: it never intercepts taps outside its own
+/// bounds, so the board underneath stays fully interactive while it shows.
+class _RestorationImminentBanner extends StatelessWidget {
+  final String playerName;
+  final VoidCallback onDismiss;
+
+  const _RestorationImminentBanner({
+    required this.playerName,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onDismiss,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: ArmorUpColors.boardBackground.withValues(alpha: 0.96),
+            border: const Border(
+              bottom: BorderSide(color: ArmorUpColors.goldAccent, width: 3),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: ArmorUpColors.goldAccent.withValues(alpha: 0.4),
+                blurRadius: 12,
+              ),
+            ],
+          ),
+          child: Text(
+            '${playerName.toUpperCase()} STANDS FULLY ARMORED - '
+            'STOP THEM BEFORE THEIR NEXT TURN!',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: ArmorUpColors.goldAccent,
+              shadows: ArmorUpColors.titleOutline,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small gold icon shown next to a player's name whenever
+/// [PlayerState.isFullyRestored] holds and restoration is a live win
+/// condition ([GameState.restorationWinEnabled]). Deliberately derived
+/// from state rather than tracked as a one-shot flag set by the
+/// [RestorationImminent] event: state is self-correcting (it just
+/// disappears the moment a piece drops below Strong, via the normal
+/// rebuild from whatever damage event caused that - no separate
+/// "restoration stopped" signal needed), where an event-driven flag would
+/// need its own explicit clearing logic and could drift out of sync with
+/// the board it's describing. Never rendered in basic mode
+/// (`restorationWinEnabled == false`), since a condition that can't win
+/// the game has nothing to flag.
+class _FullyArmoredMarker extends StatelessWidget {
+  final double size;
+
+  const _FullyArmoredMarker({this.size = 16});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Fully armored - can win by restoration next turn',
+      child: Icon(
+        Icons.emoji_events,
+        size: size,
+        color: ArmorUpColors.goldAccent,
+        shadows: ArmorUpColors.titleOutline,
+      ),
+    );
   }
 }
 
@@ -342,6 +537,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
             isConditionSelectable: def == null
                 ? defaultIsConditionSelectable
                 : (condition) => _isConditionSelectable(def, condition),
+            restorationWinEnabled: state.restorationWinEnabled,
           ),
         ),
         const Divider(height: 1),
@@ -352,13 +548,22 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             children: [
-              const Text(
-                'Your Armor',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: ArmorUpColors.fontColor,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Your Armor',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: ArmorUpColors.fontColor,
+                    ),
+                  ),
+                  if (me.isFullyRestored && state.restorationWinEnabled) ...[
+                    const SizedBox(width: 6),
+                    const _FullyArmoredMarker(size: 14),
+                  ],
+                ],
               ),
               const SizedBox(height: 6),
               FittedBox(
@@ -394,7 +599,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                 widget.readOnly ||
                 me.isFasting ||
                 state.hasPlayedCardThisTurn ||
-                cardDefFor(card).type == CardType.defense,
+                cardDefFor(card).type == CardType.defense ||
+                _hasNoEligibleOwnArmorTarget(cardDefFor(card), me),
             onTapCard: (card, selectedInStack) {
               setState(() {
                 if (selectedInStack) {
@@ -687,7 +893,11 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                                                       me.isFasting ||
                                                       state.hasPlayedCardThisTurn ||
                                                       cardDefFor(card).type ==
-                                                          CardType.defense,
+                                                          CardType.defense ||
+                                                      _hasNoEligibleOwnArmorTarget(
+                                                        cardDefFor(card),
+                                                        me,
+                                                      ),
                                                   onTap: () {
                                                     setState(() {
                                                       if (selectedInStack) {
@@ -833,6 +1043,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
             isConditionSelectable: def == null
                 ? defaultIsConditionSelectable
                 : (condition) => _isConditionSelectable(def, condition),
+            restorationWinEnabled: state.restorationWinEnabled,
           ),
         ),
       ],
@@ -876,6 +1087,21 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
       default:
         return condition != ArmorCondition.lost;
     }
+  }
+
+  /// True when [def] is a restore card that targets one of the player's
+  /// own armor pieces (Renewal/Armor Bearer/Fasting) but [me] currently
+  /// has no piece in the right condition to legally receive it (e.g.
+  /// Renewal with no Weakened pieces). Used to disable/gray such a card
+  /// in hand up front, rather than letting the player select it and
+  /// discover only via a dead-end target-selection screen (every armor
+  /// slot muted, "Play card" never enabling) that it currently has
+  /// nowhere to go. Fasting always returns false here - it accepts any
+  /// condition, so it can never be "no eligible targets" as long as the
+  /// player has at least one armor piece, which is always true.
+  bool _hasNoEligibleOwnArmorTarget(CardDef def, PlayerState me) {
+    if (def.targetRule != TargetRule.ownArmorPiece) return false;
+    return !me.armor.any((piece) => _isConditionSelectable(def, piece.condition));
   }
 }
 
@@ -1390,13 +1616,22 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
             maxLines: 1,
           ),
           const Spacer(),
-          const Text(
-            'Your Armor',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-              color: ArmorUpColors.fontColor,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Your Armor',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: ArmorUpColors.fontColor,
+                ),
+              ),
+              if (player.isFullyRestored && state.restorationWinEnabled) ...[
+                const SizedBox(width: 6),
+                const _FullyArmoredMarker(size: 14),
+              ],
+            ],
           ),
           const SizedBox(height: 6),
           // Six full-size badges are wider than this panel - scale the
@@ -1435,6 +1670,7 @@ class _PlayerListPanel extends StatelessWidget {
   final ArmorType? selectedTargetArmor;
   final ValueChanged<ArmorType> onSelectArmor;
   final bool Function(ArmorCondition condition) isConditionSelectable;
+  final bool restorationWinEnabled;
 
   const _PlayerListPanel({
     required this.actorId,
@@ -1447,6 +1683,7 @@ class _PlayerListPanel extends StatelessWidget {
     required this.selectedTargetArmor,
     required this.onSelectArmor,
     required this.isConditionSelectable,
+    required this.restorationWinEnabled,
   });
 
   @override
@@ -1486,6 +1723,7 @@ class _PlayerListPanel extends StatelessWidget {
               selectedArmor: selectedTargetArmor,
               onSelectArmor: onSelectArmor,
               isConditionSelectable: isConditionSelectable,
+              fullyArmored: player.isFullyRestored && restorationWinEnabled,
             ),
           ),
       ],
@@ -1503,6 +1741,7 @@ class _PlayerListRow extends StatelessWidget {
   final ArmorType? selectedArmor;
   final ValueChanged<ArmorType> onSelectArmor;
   final bool Function(ArmorCondition condition) isConditionSelectable;
+  final bool fullyArmored;
 
   const _PlayerListRow({
     required this.player,
@@ -1514,6 +1753,7 @@ class _PlayerListRow extends StatelessWidget {
     required this.selectedArmor,
     required this.onSelectArmor,
     required this.isConditionSelectable,
+    required this.fullyArmored,
   });
 
   @override
@@ -1600,6 +1840,10 @@ class _PlayerListRow extends StatelessWidget {
                 ],
               ),
             ),
+            if (fullyArmored) ...[
+              const SizedBox(width: 4),
+              const _FullyArmoredMarker(size: 14),
+            ],
             const SizedBox(width: 6),
             // Armor badges (or the placeholder/eliminated tag) claim all
             // remaining space and right-align within it.

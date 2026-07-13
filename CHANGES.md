@@ -1,3 +1,191 @@
+# Phase 3: Armor State Visuals & Targeting UX
+
+`lib/`-only. Reworks the three armor conditions (Strong/Weakened/Lost) to be
+maximally distinct at a glance instead of "almost as dark" (a deliberate
+choice from an earlier phase that playtesting/screenshot review showed
+players couldn't actually read), fixes a muted-color bug in the full-size
+armor badge, disables restore cards in hand when they have nowhere to go,
+surfaces the engine's `RestorationImminent` announcement as an actual
+on-screen banner plus a persistent fully-armored marker, and adds a
+fasting-target marker plus damage/restore state-change animations. No
+engine, net, or card-definition changes.
+
+## Part 1 — Three-channel state visuals
+
+**Files:** `lib/theme/armor_up_colors.dart`, `lib/widgets/armor_widget.dart`
+
+- `ArmorUpColors.armorStrong`/`armorWeakened` recolored to gold and amber
+  respectively (`armorLost` unchanged, already a dark charcoal) — the three
+  border colors are now chosen to be distinct on hue *and* lightness from
+  each other, not a graded darkening ramp.
+- `_ArmorIcon`'s icon tint/brightness reworked: Strong now renders with no
+  color filter at all (full brightness, was previously darkened too);
+  Weakened uses a new `_weakenedFilter` at 0.65 base brightness plus a flat
+  amber tint via the matrix's translation column (was crushed to ~0.18,
+  nearly as dark as Lost); Lost stays a dark desaturated silhouette but
+  raised slightly to 0.22 base brightness so it reads as "empty but
+  recoverable" rather than blank. Verified against the actual pixel art
+  (`assets/armor/*.png`, bright silver/steel on transparent) that the amber
+  tint doesn't fight the source art before committing to this approach.
+- New `_ArmorOverlayPainter` (`CustomPainter`, applied as a
+  `foregroundPainter` over the icon): paints a jagged dark crack for
+  Weakened, a red X (slight inset) for Lost, nothing for Strong. Painted,
+  not a new image asset, so it scales with both badge sizes and works over
+  every armor icon; stroke widths are proportional to the badge's own size.
+  This is the primary legibility cue at compact/small sizes and gives the
+  states a shape-based (color-blind-safe) distinction, not just a color one.
+
+## Part 2 — Targeting & muted fixes
+
+**Files:** `lib/widgets/armor_widget.dart`, `lib/screens/game_screen.dart`
+
+- Fixed a pre-existing bug where the full-size `ArmorBadge` ignored `muted`
+  for its border color entirely (only the compact variant dimmed to 35%
+  alpha) — both variants now compute `displayColor` identically.
+- New `_hasNoEligibleOwnArmorTarget(CardDef, PlayerState)` helper in
+  `game_screen.dart`: true for a restore card targeting the player's own
+  armor (Renewal/Armor Bearer — Fasting always returns false, since it
+  accepts any condition) when none of the player's pieces currently satisfy
+  the card's target rule. Wired into both the portrait board's
+  `isCardDisabled` and the landscape board's `_HandCard` `disabled`
+  expression (previously only handled `readOnly`/`isFasting`/
+  `hasPlayedCardThisTurn`/defense-card exclusion) — a Renewal with no
+  Weakened pieces, or an Armor Bearer with no Lost pieces, now shows
+  disabled/grayed in hand up front instead of only failing at an
+  all-muted, dead-end target-selection screen.
+- New `_eligiblePulseController` on `ArmorBadge`: a continuous, subtle
+  pulsing gold glow (alpha 0.35↔0.65, ~1s cycle) on badges that are
+  currently selectable-but-unselected during target selection, so live
+  choices are easy to spot without being as loud as the selected-state glow.
+  Ineligible badges stay muted as before. Skipped when
+  `MediaQuery.of(context).disableAnimations` is set.
+
+## Part 2.5 — Restoration-imminent visibility
+
+**Files:** `lib/screens/game_screen.dart`
+
+- New `_RestorationImminentBannerHost` (mounted once, at the top of
+  `GameScreen`'s `Stack`, above every sub-view — pass-device gate, defense
+  prompt, board — since the announcement is for the whole table, not just
+  whichever screen happens to be showing): diffs `state.eventLog`'s length
+  across rebuilds to detect a newly-appended `RestorationImminent` event
+  (length-based, not "does the log contain one" — the log is permanent and
+  never truncated, so a level-based check would either show the banner
+  forever or never re-show it) and displays `_RestorationImminentBanner`
+  for it — a full-width, gold-bordered banner naming the player, auto-
+  dismissing after 4s via a tracked `Timer` (cancelled on dispose and
+  replaced rather than stacked if a second event lands before the first
+  timer fires) or immediately on tap. Only counts events appended *after*
+  the host first mounts, so resuming a game or a hot reload doesn't replay
+  history. `_RestorationImminentBanner` is a plain non-blocking overlay
+  (`Material`/`InkWell` sized to its own content, not a barrier) — the
+  board underneath stays fully interactive while it shows.
+- New `_FullyArmoredMarker`: a small gold trophy icon shown next to a
+  player's name wherever it's rendered — the compact opponent row
+  (`_PlayerListRow`), the landscape board's own-armor panel
+  (`_ActivePlayerPortraitPanel`), and the portrait board's inline "Your
+  Armor" header. Gated on `player.isFullyRestored && state.restorationWinEnabled`
+  at each call site, threaded down through `_PlayerListPanel`'s new
+  `restorationWinEnabled` parameter for the compact-row case. Deliberately
+  derived from state on every build, not from the event or a one-shot
+  flag: it needs no separate "restoration stopped" signal, since it simply
+  stops rendering the next time `isFullyRestored` goes false — which
+  already happens the moment any hit drops a piece below Strong, via the
+  same rebuild that shows the normal damage event/log line. If the
+  marked player later wins, `state.isGameOver` routes to `WinScreen` as
+  normal, same as any other win.
+
+## Part 3 — State-change animations & fasting marker
+
+**Files:** `lib/widgets/armor_widget.dart`
+
+- `ArmorBadge` converted to a `StatefulWidget` (`_ArmorBadgeState`) that
+  diffs the piece's condition across rebuilds (`didUpdateWidget`) and
+  drives two one-shot `AnimationController`s purely from that diff — no new
+  engine events needed. Damage (severity increases) triggers a quick
+  ~250ms shake (small sine-wobble translation); restore (severity
+  decreases, including a Fasting completion landing on Strong) triggers a
+  ~400ms gold glow bloom-and-fade, deliberately calm rather than flashy to
+  contrast with the shake. Both respect `disableAnimations` (skipped
+  entirely, state still applies immediately either way — animations are
+  purely additive and never gate input or state application).
+- New `_FastingMarker`: a small pulsing gold hourglass badge shown in the
+  corner of whichever armor slot is `PlayerState.fastingRestoreTarget`.
+  Wired through `ArmorRow` so it's visible on both the owner's full grid
+  and every opponent's compact row — deliberately not hidden from
+  opponents, since seeing the fasting target is the intended counterplay
+  window Fasting's delayed-restore timing exists to create. Disappears
+  automatically once `fastingRestoreTarget` clears (fast completes or the
+  player is eliminated), since the marker is a pure mirror of that engine
+  field with no independent state of its own.
+
+## Part 4 — Tests & manual verification
+
+**Files:** `test/armor_widget_test.dart` (new),
+`test/game_screen_restore_disabled_test.dart` (new),
+`test/game_screen_restoration_imminent_test.dart` (new)
+
+- `armor_widget_test.dart`: overlay painter present/absent per condition
+  (none for Strong, exactly one for Weakened/Lost); muted dims the border
+  alpha identically in both compact and full-size variants (explicit
+  regression coverage for the Part 2 bug fix); fasting marker shown when
+  `fasting: true`, absent when `false`, and removed on a live update from
+  true to false; `ArmorRow` wires the marker only onto the piece matching
+  `fastingRestoreTarget`.
+- `game_screen_restore_disabled_test.dart`: drives a real `GameController`
+  with a crafted `GameState` (via `newGame` + `copyWith`) through the
+  pass-device gate into the portrait board, then asserts on the presence of
+  a `ColorFiltered` ancestor (the disabled-card visual treatment) — Renewal
+  is disabled with an all-Strong hand and enabled once a piece is Weakened;
+  Armor Bearer is disabled with no Lost pieces; Fasting is never disabled by
+  eligibility (accepts any condition).
+- `game_screen_restoration_imminent_test.dart`: banner appears when a
+  `RestorationImminent` event is appended to a live state (not when it was
+  already present at mount, confirming the no-replay-on-resume guard);
+  auto-dismisses after the 4s timer and dismisses immediately on tap; the
+  board stays interactive underneath (Draw still dispatches while the
+  banner is showing); the fully-armored marker appears for a player with
+  `isFullyRestored` on both the compact opponent row and the active
+  player's own panel, is absent with no fully-restored player, disappears
+  on the very next rebuild after a piece drops below Strong, and never
+  renders when `restorationWinEnabled` is false. This test suite caught a
+  real bug during development: the auto-dismiss timer was originally
+  started directly in `build()`, which leaked a fresh uncancelled `Timer`
+  on every unrelated rebuild while the banner was showing — fixed by
+  tracking a single `Timer` field, started once per new event in
+  `didUpdateWidget` and cancelled on dispose/replacement.
+- Full existing suite (31 pre-existing tests) plus 24 new tests all pass;
+  `flutter analyze lib/ test/` clean.
+- **Manual verification checklist (not automated — screenshot these by
+  hand before shipping):**
+  - [ ] Compact opponent row shows all three conditions clearly
+        distinguishable (gold/no-overlay, amber/crack, dark/red-X).
+  - [ ] Full "Your Armor" grid shows the same three states clearly at the
+        larger badge size.
+  - [ ] Entering target-selection mode with a mixed board shows eligible
+        badges pulsing gold and ineligible badges muted/dim.
+  - [ ] A Fasting player's targeted slot shows the pulsing hourglass marker
+        on their own grid *and* on every opponent's compact row.
+  - [ ] Damage animation: hitting a Strong or Weakened piece shows a quick
+        shake plus the crack/X fading in.
+  - [ ] Restore animation: playing a restore/Fasting-completion shows the
+        crack/X fade out plus a brief gold glow, and the fasting marker
+        (if any) disappears with it.
+  - [ ] Renewal/Armor Bearer show up grayed in hand exactly when they have
+        zero eligible targets, in both portrait and landscape layouts.
+  - [ ] Restoring a player's last Weakened piece to Strong shows the
+        gold banner naming them, auto-dismissing after ~4s or on tap,
+        without freezing the board underneath.
+  - [ ] The fully-armored trophy icon appears by that player's name (their
+        own panel and every opponent's compact row) and disappears the
+        instant any piece of theirs is next hit.
+  - [ ] In basic mode (restoration win off), neither the banner nor the
+        trophy icon ever appears, even if a player's armor is fully Strong.
+
+**Do NOT (per spec, and honored in this pass):** no layout structure
+changes, no palette changes beyond the three state colors, no card art
+changes, no engine/net code touched.
+
 # Phase 1: Engine & Net Foundations
 
 Implements three engine/net features closing audit gaps #21 (defense-response
