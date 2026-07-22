@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:game_engine/game_engine.dart';
 
+import '../state/app_mode_controller.dart';
 import '../state/game_controller.dart';
 
 class SetupScreen extends ConsumerStatefulWidget {
@@ -127,6 +128,12 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                 onPressed: _startGame,
                 style: FilledButton.styleFrom(padding: const EdgeInsets.all(12)),
                 child: const Text('Start Game'),
+              ),
+              TextButton(
+                onPressed: () => ref
+                    .read(appModeControllerProvider.notifier)
+                    .returnToModeSelect(),
+                child: const Text('BACK', style: TextStyle(fontSize: 9.5)),
               ),
             ],
           ),

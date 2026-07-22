@@ -105,7 +105,7 @@ void main() {
     await tester.pump();
     expect(find.text(bannerText('Alice')), findsOneWidget);
 
-    await tester.tap(find.text('Draw'));
+    await tester.tap(find.text('DRAW'));
     await tester.pump();
 
     expect(container.read(gameControllerProvider)!.state.hasDrawnThisTurn, isTrue);

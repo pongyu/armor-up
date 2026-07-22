@@ -536,6 +536,11 @@ class ArmorRow extends StatelessWidget {
   /// attack cards; pass an override for cards with different rules.
   final bool Function(ArmorCondition condition) isConditionSelectable;
 
+  /// Redesign template: a tiny condition-colored piece-name label under
+  /// each badge (HELMET, SHIELD, ...). Used on the portrait board's
+  /// "YOUR ARMOR" row; compact rows never show labels.
+  final bool showLabels;
+
   const ArmorRow({
     super.key,
     required this.player,
@@ -545,32 +550,51 @@ class ArmorRow extends StatelessWidget {
     this.isConditionSelectable = defaultIsConditionSelectable,
     this.compact = false,
     this.muted = false,
+    this.showLabels = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         for (final piece in player.armor)
           Padding(
             padding: EdgeInsets.only(right: compact ? 5 : 6),
-            child: ArmorBadge(
-              piece: piece,
-              selectable: selectable && isConditionSelectable(piece.condition),
-              // Gated on `selectable` (this row's own eligibility), not
-              // just a type match: `selectedArmor` is a single shared
-              // ArmorType value, so without this every other player's
-              // same-type piece (e.g. every Breastplate) would light up
-              // as "selected" too, even on rows that aren't the actual
-              // target.
-              selected: selectable && selectedArmor == piece.type,
-              onTap: onSelect == null ? null : () => onSelect!(piece.type),
-              compact: compact,
-              muted:
-                  muted ||
-                  (selectable && !isConditionSelectable(piece.condition)),
-              fasting: player.fastingRestoreTarget == piece.type,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ArmorBadge(
+                  piece: piece,
+                  selectable:
+                      selectable && isConditionSelectable(piece.condition),
+                  // Gated on `selectable` (this row's own eligibility), not
+                  // just a type match: `selectedArmor` is a single shared
+                  // ArmorType value, so without this every other player's
+                  // same-type piece (e.g. every Breastplate) would light up
+                  // as "selected" too, even on rows that aren't the actual
+                  // target.
+                  selected: selectable && selectedArmor == piece.type,
+                  onTap: onSelect == null ? null : () => onSelect!(piece.type),
+                  compact: compact,
+                  muted:
+                      muted ||
+                      (selectable && !isConditionSelectable(piece.condition)),
+                  fasting: player.fastingRestoreTarget == piece.type,
+                ),
+                if (showLabels && !compact) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    piece.type.name.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 6,
+                      letterSpacing: 0.5,
+                      color: colorForCondition(piece.condition),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
       ],

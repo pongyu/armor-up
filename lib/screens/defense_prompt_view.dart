@@ -75,20 +75,10 @@ class _DefensePromptViewState extends ConsumerState<_DefensePromptView> {
     final attacker = state.playerById(pending.attackerId);
     final defender = state.playerById(pending.defenderId);
 
+    final attackDef = cardDefById(pending.attackCardDefId);
+    final attackArt = displaySpecFor(attackDef.id).illustrationAssetPath;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Defense - ${responder.name}'),
-        toolbarHeight: 40,
-        bottom: responseDeadlineEpochMs == null
-            ? null
-            : PreferredSize(
-                preferredSize: const Size.fromHeight(6),
-                child: _ResponseCountdownBar(
-                  deadlineEpochMs: responseDeadlineEpochMs,
-                  onTimeUp: _handleTimeUp,
-                ),
-              ),
-      ),
       body: SafeArea(
         child: Stack(
           children: [
@@ -97,28 +87,185 @@ class _DefensePromptViewState extends ConsumerState<_DefensePromptView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Card(
-                    color: Colors.red.withValues(alpha: 0.08),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Text(
-                        isHelper
-                            ? '${attacker.name} attacked ${defender.name}\'s '
-                                '${pending.targetArmor.displayName} with '
-                                '${cardDefById(pending.attackCardDefId).name}.\n'
-                                '${defender.name} is asking for Fellowship help.'
-                            : '${attacker.name} attacked your ${pending.targetArmor.displayName} '
-                                'with ${cardDefById(pending.attackCardDefId).name}'
-                                '${pending.isDoubleHit ? ' (double hit!)' : ''}.',
-                      ),
+                  // Redesign header: DEFENSE title + responder subtitle,
+                  // with the LAN countdown bar (when present) kept
+                  // directly beneath so pacing stays obvious.
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2, bottom: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'DEFENSE',
+                          style: TextStyle(
+                            fontSize: 19,
+                            color: ArmorUpColors.fontColor,
+                            shadows: ArmorUpColors.titleOutline,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          responder.name.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            color: Color(0xFFE0A0A0),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  if (responseDeadlineEpochMs != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: _ResponseCountdownBar(
+                          deadlineEpochMs: responseDeadlineEpochMs,
+                          onTimeUp: _handleTimeUp,
+                        ),
+                      ),
+                    ),
+                  // Attack banner: what hit, from whom, on which piece.
+                  Container(
+                    decoration: BoxDecoration(
+                      color: ArmorUpColors.bannerAttack.withValues(alpha: 0.15),
+                      border: Border.all(color: ArmorUpColors.bannerAttack),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        if (attackArt != null) ...[
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: ArmorUpColors.bannerAttack,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.asset(
+                              attackArt,
+                              fit: BoxFit.cover,
+                              filterQuality: FilterQuality.none,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                        ],
+                        Expanded(
+                          child: Text(
+                            isHelper
+                                ? '${attacker.name} attacked ${defender.name}\'s '
+                                    '${pending.targetArmor.displayName} with '
+                                    '${attackDef.name}. ${defender.name} is '
+                                    'asking for Fellowship help.'
+                                : '${attacker.name} attacked your '
+                                    '${pending.targetArmor.displayName} with '
+                                    '${attackDef.name}'
+                                    '${pending.isDoubleHit ? ' - double hit!' : ''}.',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              height: 1.4,
+                              fontFamily: 'Roboto',
+                              color: ArmorUpColors.fontColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Clash tableau: attacker card art squared off against
+                  // the targeted armor piece, over a faint red glow.
+                  Container(
+                    height: 118,
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        colors: [
+                          ArmorUpColors.bannerAttack.withValues(alpha: 0.14),
+                          Colors.transparent,
+                        ],
+                        radius: 0.9,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 68,
+                          height: 68,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: ArmorUpColors.bannerAttack,
+                              width: 3,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: ArmorUpColors.bannerAttack
+                                    .withValues(alpha: 0.5),
+                                blurRadius: 16,
+                              ),
+                            ],
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: attackArt != null
+                              ? Image.asset(
+                                  attackArt,
+                                  fit: BoxFit.cover,
+                                  filterQuality: FilterQuality.none,
+                                )
+                              : const Icon(
+                                  Icons.flash_on,
+                                  color: ArmorUpColors.bannerAttack,
+                                ),
+                        ),
+                        const SizedBox(width: 26),
+                        Container(
+                          width: 68,
+                          height: 68,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F1015),
+                            border: Border.all(
+                              color: ArmorUpColors.goldAccent,
+                              width: 3,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: ArmorUpColors.goldAccent
+                                    .withValues(alpha: 0.35),
+                                blurRadius: 16,
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(9),
+                          child: Image.asset(
+                            armorIconAssetPath(pending.targetArmor)!,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.none,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   Text(
                     defenseCards.isEmpty
-                        ? 'You have no defense cards.'
-                        : 'Choose a defense card to play, or decline:',
-                    style: Theme.of(context).textTheme.titleSmall,
+                        ? 'YOU HAVE NO DEFENSE CARDS.'
+                        : 'CHOOSE A DEFENSE CARD, OR DECLINE:',
+                    style: const TextStyle(
+                      fontSize: 9,
+                      letterSpacing: 0.5,
+                      color: ArmorUpColors.mutedLabel,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Expanded(
@@ -159,7 +306,18 @@ class _DefensePromptViewState extends ConsumerState<_DefensePromptView> {
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () => controller.dispatch(DeclineDefense(playerId: actorId)),
-                    child: Text(isHelper ? 'Decline to help' : 'Take the hit'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFE0A0A0),
+                      side: const BorderSide(color: Color(0xFF6B4040), width: 2),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: Text(
+                      isHelper ? 'DECLINE TO HELP' : 'TAKE THE HIT',
+                      style: const TextStyle(fontSize: 10.5),
+                    ),
                   ),
                 ],
               ),

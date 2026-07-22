@@ -56,6 +56,19 @@ class ArmorUpColors {
   // scheme, where the board was lighter than the card).
   static const boardBackground = Color(0xFF14161C);
 
+  // Redesign template tokens (claude.ai/design "Armor Up Redesign"):
+  // raised panel surfaces sit slightly lighter than the board, with a
+  // subtle cool border; secondary labels are a muted blue-gray; primary
+  // actions are a warm gold gradient pill with dark-bronze text.
+  static const panelBackground = Color(0xFF1C1F28);
+  static const panelBorder = Color(0xFF2C2F3A);
+  static const mutedLabel = Color(0xFF8B8F9E);
+  static const goldBright = Color(0xFFE3C15B);
+  static const goldDeep = Color(0xFFB9852E);
+  static const goldEdge = Color(0xFF6B3D12);
+  static const onGold = Color(0xFF2A1404);
+  static const activeGreen = Color(0xFF7FBF7F);
+
   /// Four offset shadows - up, down, left, right, no blur - that fake a
   /// text outline. Used on banner titles only; a real single-stroke
   /// border is illegible at small sizes, and the outline gets muddy on

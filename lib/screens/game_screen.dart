@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +12,10 @@ import '../state/game_providers.dart';
 import '../state/turn_actor.dart';
 import '../theme/armor_up_colors.dart';
 import '../widgets/armor_widget.dart';
+import '../widgets/card_display.dart';
 import '../widgets/card_widget.dart';
+import '../widgets/event_log_widget.dart';
+import '../widgets/pixel_ui.dart';
 import 'pass_device_screen.dart';
 import 'rules_sheet.dart';
 import 'win_screen.dart';
@@ -389,7 +393,13 @@ class _FullyArmoredMarker extends StatelessWidget {
 class _ResolutionBeat {
   final String text;
 
-  const _ResolutionBeat(this.text);
+  /// Short uppercase outcome tag shown as a colored chip (HIT /
+  /// BLOCKED / REFLECTED / TIME UP), mirroring the battle log's tag
+  /// treatment so outcomes read consistently across the redesign.
+  final String tag;
+  final Color color;
+
+  const _ResolutionBeat(this.text, this.tag, this.color);
 }
 
 /// Watches [state]'s event log for newly-appended interrupt-resolution
@@ -472,6 +482,8 @@ class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
       return _ResolutionBeat(
         '$prefix${nameOf(playerId)}\'s ${armor.displayName} was '
         '${weakened != null ? 'weakened' : 'lost'}.',
+        timedOut != null ? 'TIME UP' : 'HIT',
+        ArmorUpColors.bannerAttack,
       );
     }
 
@@ -479,6 +491,8 @@ class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
     if (blocked != null) {
       return _ResolutionBeat(
         '${cardDefById(blocked.byCardDefId).name} blocked the attack!',
+        'BLOCKED',
+        ArmorUpColors.bannerDefense,
       );
     }
 
@@ -487,6 +501,8 @@ class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
       return _ResolutionBeat(
         '${cardDefById(reflected.attackCardDefId).name}! Attack reflected to '
         '${nameOf(reflected.newDefenderId)}!',
+        'REFLECTED',
+        ArmorUpColors.goldAccent,
       );
     }
 
@@ -523,23 +539,86 @@ class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
         // exists elsewhere for a transient beat like this - the closest
         // precedent, _RestorationImminentBanner, is tap-*dismissible* but
         // never tap-*required*, which this matches).
-        child: Align(
-          alignment: const Alignment(0, -0.5),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: ArmorUpColors.boardBackground.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: ArmorUpColors.goldAccent, width: 2),
-            ),
-            child: Text(
-              beat.text,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: ArmorUpColors.fontColor,
+        // Material ancestor is required here: this overlay lives in a
+        // Stack ABOVE the Scaffold, and Text without a Material falls
+        // back to the framework's yellow double-underline error style
+        // (which is exactly how this toast used to render).
+        child: Material(
+          type: MaterialType.transparency,
+          child: Align(
+            alignment: const Alignment(0, -0.5),
+            child: TweenAnimationBuilder<double>(
+              // Slide-down + fade entrance, matching the template's
+              // pxSlideDown resolution banner.
+              tween: Tween(begin: 0, end: 1),
+              duration: MediaQuery.of(context).disableAnimations
+                  ? Duration.zero
+                  : const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.translate(
+                  offset: Offset(0, (1 - t) * -14),
+                  child: child,
+                ),
+              ),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: ArmorUpColors.panelBackground.withValues(alpha: 0.96),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: beat.color, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: beat.color.withValues(alpha: 0.35),
+                      blurRadius: 14,
+                    ),
+                    const BoxShadow(
+                      color: Color(0x66000000),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: beat.color,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: Text(
+                        beat.tag,
+                        style: const TextStyle(
+                          fontSize: 7,
+                          letterSpacing: 0.5,
+                          color: ArmorUpColors.boardBackground,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        beat.text,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          height: 1.4,
+                          fontFamily: 'Roboto',
+                          fontWeight: FontWeight.w600,
+                          color: ArmorUpColors.fontColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -570,6 +649,27 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   String? _selectedTargetPlayerId;
   ArmorType? _selectedTargetArmor;
 
+  // Portrait "CHOOSE A TARGET" overlay (redesign template): set to the
+  // selected card's def when Play is pressed on an opponent-targeting
+  // card, cleared on pick/cancel. Landscape keeps its inline
+  // tap-the-row targeting and never sets this.
+  CardDef? _targetingDef;
+
+  // The target just tapped in the overlay, held for a brief
+  // confirmation beat (picked badge glows + shakes, everything else
+  // dims) before the card actually plays - without it the overlay
+  // vanished the instant a target was tapped and the pick never felt
+  // registered. Non-null only during that beat; further taps and
+  // Cancel are ignored while set.
+  ({String playerId, ArmorType? armor})? _pendingPick;
+  Timer? _pickTimer;
+
+  @override
+  void dispose() {
+    _pickTimer?.cancel();
+    super.dispose();
+  }
+
   // Every hand instanceId seen across all builds so far, used to detect
   // which card(s) are brand new this build (just drawn) so _HandCard can
   // play a one-shot deal-in animation for exactly those - a duplicate
@@ -589,19 +689,14 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   // is already showing should deal in.
   bool _hasBuiltOnce = false;
 
-  // Estimated natural height of one _PlayerListRow (8px top/bottom
-  // padding + ~26px name/tap-target text column + 8px bottom spacing
-  // from _PlayerListPanel's own per-row Padding) - used to size the
-  // portrait carousel so up to maxPlayers-1 opponent rows fit without
-  // scrolling on a typical phone, rather than a fixed fraction of
-  // whatever height happens to be left over.
-  static const double _playerRowHeight = 64;
-
   void _resetSelection() {
+    _pickTimer?.cancel();
     setState(() {
       _selectedCard = null;
       _selectedTargetPlayerId = null;
       _selectedTargetArmor = null;
+      _targetingDef = null;
+      _pendingPick = null;
     });
   }
 
@@ -683,13 +778,15 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
               ),
               // Reachable any time during play, not just for a brand new
               // player - card games regularly need a rules lookup mid-game
-              // (e.g. "what does Weakened mean again"), so this sits above
-              // both layout branches rather than being tucked into a menu.
-              const Positioned(
-                top: 4,
-                right: 4,
-                child: _RulesButton(),
-              ),
+              // (e.g. "what does Weakened mean again"). Landscape only:
+              // the portrait redesign carries the same button inline in
+              // its header row instead.
+              if (MediaQuery.of(context).orientation == Orientation.landscape)
+                const Positioned(
+                  top: 4,
+                  right: 4,
+                  child: _RulesButton(),
+                ),
             ],
           ),
         ),
@@ -734,99 +831,191 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     }
     final handStacks = groupedHand.values.toList();
 
-    return Column(
+    // Portrait "Play card" gating differs from landscape's
+    // canPlaySelection: opponent targets are no longer picked inline
+    // before pressing Play - pressing Play on an opponent-targeting
+    // card opens the CHOOSE A TARGET overlay instead (redesign
+    // template), so only own-armor cards still require a completed
+    // selection up front.
+    final canPlayPortrait =
+        !widget.readOnly &&
+        state.hasDrawnThisTurn &&
+        !state.hasPlayedCardThisTurn &&
+        def != null &&
+        def.type != CardType.defense &&
+        (def.targetRule != TargetRule.ownArmorPiece ||
+            _selectedTargetArmor != null);
+
+    final board = Column(
       children: [
+        // Header: pixel avatar + "NAME - TURN N" + pulsing status line,
+        // with the rules "?" button inline at the right edge.
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Column(
+          padding: const EdgeInsets.fromLTRB(14, 10, 10, 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  '${state.activePlayer.name} - Turn ${state.turnNumber} - Active',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: ArmorUpColors.fontColor,
-                    shadows: ArmorUpColors.titleOutline,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
+              PixelAvatar(seed: avatarSeedFor(me.id), size: 34),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        children: [
+                          Text(
+                            state.activePlayer.name.toUpperCase(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: ArmorUpColors.fontColor,
+                              shadows: ArmorUpColors.titleOutline,
+                            ),
+                            maxLines: 1,
+                          ),
+                          Text(
+                            ' - TURN ${state.turnNumber}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: ArmorUpColors.goldAccent,
+                            ),
+                            maxLines: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        PulsingDot(
+                          color: widget.readOnly
+                              ? ArmorUpColors.mutedLabel
+                              : ArmorUpColors.activeGreen,
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            widget.readOnly
+                                ? 'WATCHING - NOT YOUR TURN'
+                                : 'ACTIVE - ${statusLine.toUpperCase()}',
+                            style: const TextStyle(
+                              fontSize: 8.5,
+                              letterSpacing: 0.5,
+                              color: ArmorUpColors.mutedLabel,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                statusLine,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                  color: ArmorUpColors.fontColor.withValues(alpha: 0.75),
-                ),
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
+              const _RulesButton(),
             ],
           ),
         ),
-        const Divider(height: 1),
-        // Scrollable player-row carousel - every player except the
-        // active one, same _PlayerListPanel/_PlayerListRow already used
-        // for landscape's opponent list. Sized to comfortably fit the
-        // max player count (6, so up to 5 opponent rows) without
-        // needing to scroll on a typical phone screen, rather than a
-        // fixed fraction of whatever height happens to be left over -
-        // the fanned hand below only needs its own natural card height,
-        // not an open-ended Expanded share, so giving the carousel more
-        // room up front doesn't starve the hand. Clamped against the
-        // screen's actual height (reserving ~430px for everything else
-        // - header, armor row, fan, action bar, pile text) so a short
-        // screen shrinks the carousel rather than overflowing; the
-        // carousel's own ListView already scrolls internally, so
-        // shrinking it here just means more scrolling, not lost
-        // content.
-        SizedBox(
-          height: ((maxPlayers - 1) * _playerRowHeight).clamp(
-            _playerRowHeight,
-            (outerConstraints.maxHeight - 430).clamp(
-              _playerRowHeight,
-              double.infinity,
-            ),
-          ),
-          child: _PlayerListPanel(
-            actorId: widget.actorId,
-            hiddenPlayerId: widget.actorId,
-            players: state.players,
-            def: def,
-            selectedTargetPlayerId: _selectedTargetPlayerId,
-            onSelectTarget: (playerId) =>
-                setState(() => _selectedTargetPlayerId = playerId),
-            targetRuleNeedsPlayer: _targetRuleNeedsPlayer,
-            selectedTargetArmor: _selectedTargetArmor,
-            onSelectArmor: (armor) =>
-                setState(() => _selectedTargetArmor = armor),
-            isConditionSelectable: def == null
-                ? defaultIsConditionSelectable
-                : (condition) => _isConditionSelectable(def, condition),
-            restorationWinEnabled: state.restorationWinEnabled,
-          ),
-        ),
-        const Divider(height: 1),
-        // "Your Armor" row - the active player's own full-size (not
-        // compact) badges, matching the mockup's dedicated row between
-        // the player carousel and the hand.
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        // Turn-order threat tracker: the same opponent chips, but
+        // ordered by who acts next (starting from the player after the
+        // current one), with a PLAYING/NEXT tag and a strong-pieces
+        // count so the strip answers "who's about to move and who's
+        // close to winning", not just armor colors. Targeting itself
+        // still happens in the overlay.
+        Builder(
+          builder: (context) {
+            final allPlayers = state.players;
+            final activeIdx = allPlayers
+                .indexWhere((p) => p.id == state.activePlayer.id);
+            // Everyone in the order they act after the active player;
+            // the active player themselves lands at the end.
+            final turnOrdered = [
+              for (var i = 1; i <= allPlayers.length; i++)
+                allPlayers[(activeIdx + i) % allPlayers.length],
+            ];
+            final nextActor =
+                turnOrdered.firstWhere((p) => !p.isEliminated);
+            // Chips lead with whoever is playing right now (only
+            // visible when spectating - in hotseat that's the viewer,
+            // who never appears in their own strip), then upcoming
+            // players in act order.
+            final chipPlayers = [
+              if (state.activePlayer.id != widget.actorId)
+                state.activePlayer,
+              for (final p in turnOrdered)
+                if (p.id != widget.actorId &&
+                    p.id != state.activePlayer.id)
+                  p,
+            ];
+
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(14, 6, 0, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Your Armor',
+                    'OPPONENTS - TURN ORDER',
+                    style: TextStyle(
+                      fontSize: 8,
+                      letterSpacing: 1,
+                      color: ArmorUpColors.mutedLabel,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 64,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.only(right: 14),
+                      children: [
+                        for (final opp in chipPlayers)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _OpponentChip(
+                              player: opp,
+                              fullyArmored: opp.isFullyRestored &&
+                                  state.restorationWinEnabled,
+                              isPlaying:
+                                  opp.id == state.activePlayer.id,
+                              isNext: opp.id == nextActor.id &&
+                                  opp.id != state.activePlayer.id,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        // Battle log: the redesign's center panel. Takes whatever
+        // vertical space is left between the fixed-height sections.
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+            child: _BattleLogPanel(state: state),
+          ),
+        ),
+        // "YOUR ARMOR" - full-size badges with the redesign's tiny
+        // per-piece labels underneath.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text(
+                    'YOUR ARMOR',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontSize: 11,
+                      letterSpacing: 1,
                       color: ArmorUpColors.fontColor,
                     ),
                   ),
@@ -837,23 +1026,25 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                 ],
               ),
               const SizedBox(height: 6),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: ArmorRow(
-                  player: me,
-                  selectable: armorSelectable,
-                  selectedArmor: _selectedTargetArmor,
-                  onSelect: (armor) =>
-                      setState(() => _selectedTargetArmor = armor),
-                  isConditionSelectable: def == null
-                      ? defaultIsConditionSelectable
-                      : (condition) => _isConditionSelectable(def, condition),
+              Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: ArmorRow(
+                    player: me,
+                    selectable: armorSelectable,
+                    selectedArmor: _selectedTargetArmor,
+                    showLabels: true,
+                    onSelect: (armor) =>
+                        setState(() => _selectedTargetArmor = armor),
+                    isConditionSelectable: def == null
+                        ? defaultIsConditionSelectable
+                        : (condition) => _isConditionSelectable(def, condition),
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        const Divider(height: 1),
         // Fixed height (was Expanded, claiming all leftover space) -
         // the fan only ever needs its own natural footprint
         // (CardWidget.cardHeight plus _FannedHand's topInset/yDrop
@@ -886,19 +1077,19 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
             },
           ),
         ),
-        const Divider(height: 1),
-        // Action row: the same 3 actions as _ActionSidebar, laid out
-        // horizontally instead of stacked in a narrow sidebar column -
-        // portrait's width is the plentiful dimension here, not height.
+        // Action bar: DRAW | PLAY CARD | END TURN/DISCARD, in the
+        // redesign's flat-dark + gold-primary button style. Same
+        // semantics as before (including the over-hand-limit discard
+        // takeover of the third button - see the mustDiscardSelected
+        // logic), only the chrome changed.
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.fromLTRB(14, 4, 14, 6),
           child: Row(
             children: [
               Expanded(
-                child: _SidebarButton(
-                  icon: Icons.style,
-                  label: 'Draw',
-                  filled: false,
+                flex: 10,
+                child: PixelActionButton(
+                  label: 'DRAW',
                   onPressed: !widget.readOnly && !state.hasDrawnThisTurn
                       ? () => controller.dispatch(
                           DrawCard(playerId: widget.actorId),
@@ -906,56 +1097,50 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       : null,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Expanded(
-                child: _SidebarButton(
-                  icon: Icons.play_arrow,
-                  label: 'Play card',
-                  filled: true,
-                  onPressed: !widget.readOnly && canPlaySelection
+                flex: 13,
+                child: PixelActionButton(
+                  label: 'PLAY CARD',
+                  primary: true,
+                  onPressed: canPlayPortrait
                       ? () {
-                          controller.dispatch(
-                            PlayCard(
-                              playerId: widget.actorId,
-                              cardInstanceId: _selectedCard!.instanceId,
-                              targetPlayerId: _selectedTargetPlayerId,
-                              targetArmor: _selectedTargetArmor,
-                            ),
-                          );
-                          _resetSelection();
+                          // Opponent-targeting cards open the CHOOSE A
+                          // TARGET overlay; everything else plays
+                          // immediately with whatever (own-armor)
+                          // target is already selected.
+                          if (_targetRuleNeedsPlayer(def.targetRule)) {
+                            setState(() => _targetingDef = def);
+                          } else {
+                            controller.dispatch(
+                              PlayCard(
+                                playerId: widget.actorId,
+                                cardInstanceId: _selectedCard!.instanceId,
+                                targetPlayerId: _selectedTargetPlayerId,
+                                targetArmor: _selectedTargetArmor,
+                              ),
+                            );
+                            _resetSelection();
+                          }
                         }
                       : null,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Expanded(
+                flex: 10,
                 child: Builder(
                   builder: (context) {
-                    // When over the hand limit, this button already
-                    // told the player "Discard first" - but used to
-                    // just dispatch EndTurn regardless (which the
-                    // engine rejects with an error snackbar until the
-                    // hand's back under the limit). Once a card is
-                    // actually selected while over the limit, the
-                    // button now really performs that discard instead
-                    // of just describing what needs to happen -
-                    // removes the redundant separate Discard button a
-                    // per-card rotated one couldn't replace (see
-                    // _FannedHand's onDiscard comment) without adding a
-                    // 4th button to an already-3-wide row.
                     final overLimit = me.hand.length > maxHandSize;
-                    final mustDiscardSelected = overLimit && _selectedCard != null;
+                    final mustDiscardSelected =
+                        overLimit && _selectedCard != null;
 
-                    return _SidebarButton(
-                      icon: mustDiscardSelected
-                          ? Icons.delete_outline
-                          : Icons.check,
+                    return PixelActionButton(
                       label: mustDiscardSelected
-                          ? 'Discard'
+                          ? 'DISCARD'
                           : overLimit
-                          ? 'Discard first'
-                          : 'End turn',
-                      filled: false,
+                          ? 'DISCARD FIRST'
+                          : 'END TURN',
                       onPressed: !widget.readOnly && state.hasDrawnThisTurn
                           ? () {
                               if (mustDiscardSelected) {
@@ -981,16 +1166,86 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.only(bottom: 8),
           child: Text(
-            'Draw pile: ${state.drawPile.length}   Discard pile: ${state.discardPile.length}',
-            style: TextStyle(
-              fontSize: 11,
-              color: ArmorUpColors.fontColor.withValues(alpha: 0.8),
+            'DRAW PILE: ${state.drawPile.length}    DISCARD: ${state.discardPile.length}',
+            style: const TextStyle(
+              fontSize: 8.5,
+              letterSpacing: 0.5,
+              color: ArmorUpColors.mutedLabel,
             ),
             textAlign: TextAlign.center,
           ),
         ),
+      ],
+    );
+
+    final targetingDef = _targetingDef;
+    return Stack(
+      children: [
+        board,
+        if (targetingDef != null && _selectedCard != null)
+          Positioned.fill(
+            child: _TargetingOverlay(
+              def: targetingDef,
+              opponents: [
+                for (final p in state.players)
+                  if (p.id != widget.actorId && !p.isEliminated) p,
+              ],
+              isConditionSelectable: (condition) =>
+                  _isConditionSelectable(targetingDef, condition),
+              resolving: _pendingPick,
+              selectedPlayerId: _selectedTargetPlayerId,
+              selectedArmor: _selectedTargetArmor,
+              // Tap = select (freely re-tappable to change targets);
+              // only CONFIRM below commits, so a mis-tap on a Fiery
+              // Dart badge can still be changed.
+              onSelect: (playerId, armor) {
+                if (_pendingPick != null) return;
+                setState(() {
+                  _selectedTargetPlayerId = playerId;
+                  _selectedTargetArmor = armor;
+                });
+              },
+              onConfirm: _pendingPick == null &&
+                      _selectedTargetPlayerId != null &&
+                      (targetingDef.targetRule !=
+                              TargetRule.anyPieceOnPlayer ||
+                          _selectedTargetArmor != null)
+                  ? () {
+                      final playerId = _selectedTargetPlayerId!;
+                      final armor = _selectedTargetArmor;
+                      setState(
+                        () => _pendingPick =
+                            (playerId: playerId, armor: armor),
+                      );
+                      // Confirmation beat: let the picked target
+                      // register (glow + shake, others dimmed) before
+                      // the card resolves and the overlay closes.
+                      _pickTimer =
+                          Timer(const Duration(milliseconds: 550), () {
+                        if (!mounted) return;
+                        controller.dispatch(
+                          PlayCard(
+                            playerId: widget.actorId,
+                            cardInstanceId: _selectedCard!.instanceId,
+                            targetPlayerId: playerId,
+                            targetArmor: armor,
+                          ),
+                        );
+                        _resetSelection();
+                      });
+                    }
+                  : null,
+              onCancel: _pendingPick != null
+                  ? null
+                  : () => setState(() {
+                        _targetingDef = null;
+                        _selectedTargetPlayerId = null;
+                        _selectedTargetArmor = null;
+                      }),
+            ),
+          ),
       ],
     );
   }
@@ -1388,13 +1643,30 @@ class _RulesButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Redesign template: a gold-ringed "?" coin over the dark card
+    // surface, replacing the old translucent Material icon button.
     return Material(
-      color: ArmorUpColors.cardBackground.withValues(alpha: 0.7),
-      shape: const CircleBorder(),
-      child: IconButton(
-        icon: const Icon(Icons.help_outline, color: ArmorUpColors.fontColor, size: 20),
-        tooltip: 'How to play',
-        onPressed: () => showRulesSheet(context),
+      color: ArmorUpColors.cardBackground,
+      shape: const CircleBorder(
+        side: BorderSide(color: ArmorUpColors.goldAccent, width: 2),
+      ),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () => showRulesSheet(context),
+        child: const SizedBox(
+          width: 34,
+          height: 34,
+          child: Center(
+            child: Text(
+              '?',
+              style: TextStyle(
+                fontSize: 14,
+                color: ArmorUpColors.goldAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -2341,5 +2613,653 @@ class _SidebarButton extends StatelessWidget {
     return filled
         ? FilledButton(onPressed: onPressed, style: style, child: child)
         : OutlinedButton(onPressed: onPressed, style: style, child: child);
+  }
+}
+
+/// Compact opponent chip for the portrait board's turn-order threat
+/// tracker: pixel avatar + name (with a PLAYING/NEXT tag when
+/// applicable) on top, six condition-colored armor squares plus a
+/// strong-pieces count below. Purely informational - target picking
+/// happens in [_TargetingOverlay], not here.
+class _OpponentChip extends StatelessWidget {
+  final PlayerState player;
+  final bool fullyArmored;
+
+  /// This chip's player is the one acting right now - only ever true
+  /// while spectating (LAN read-only), since in hotseat the active
+  /// player is the viewer and never appears in their own strip.
+  final bool isPlaying;
+
+  /// This chip's player is the next (non-eliminated) player to act.
+  final bool isNext;
+
+  const _OpponentChip({
+    required this.player,
+    required this.fullyArmored,
+    this.isPlaying = false,
+    this.isNext = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final strongCount =
+        player.armor.where((p) => p.condition == ArmorCondition.strong).length;
+    // Fully-armored (restoration-imminent) is the loudest threat signal
+    // the strip carries - the whole chip goes gold-bordered, on top of
+    // the trophy marker next to the name.
+    final borderColor = fullyArmored
+        ? ArmorUpColors.goldAccent
+        : ArmorUpColors.descriptionBackground;
+
+    return Container(
+      constraints: const BoxConstraints(minWidth: 140),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: ArmorUpColors.panelBackground,
+        border: Border.all(
+          color: borderColor,
+          width: fullyArmored ? 1.5 : 1,
+        ),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: fullyArmored
+            ? [
+                BoxShadow(
+                  color: ArmorUpColors.goldAccent.withValues(alpha: 0.35),
+                  blurRadius: 8,
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              PixelAvatar(
+                seed: avatarSeedFor(player.id),
+                size: 20,
+                borderColor: ArmorUpColors.descriptionBackground,
+                borderWidth: 1,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                player.name.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 8.5,
+                  color: ArmorUpColors.fontColor,
+                ),
+                maxLines: 1,
+              ),
+              if (fullyArmored) ...[
+                const SizedBox(width: 4),
+                const _FullyArmoredMarker(size: 12),
+              ],
+              if (isPlaying)
+                const _ChipTag(
+                  label: 'PLAYING',
+                  color: ArmorUpColors.activeGreen,
+                )
+              else if (isNext)
+                const _ChipTag(
+                  label: 'NEXT',
+                  color: ArmorUpColors.goldAccent,
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          if (player.isEliminated)
+            const Text(
+              'ELIMINATED',
+              style: TextStyle(
+                fontSize: 7,
+                letterSpacing: 0.5,
+                color: ArmorUpColors.mutedLabel,
+              ),
+            )
+          else
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final piece in player.armor)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 3),
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: colorForCondition(piece.condition),
+                        borderRadius: BorderRadius.circular(2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorForCondition(piece.condition)
+                                .withValues(alpha: 0.6),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: 3),
+                Text(
+                  '$strongCount/${player.armor.length}',
+                  style: TextStyle(
+                    fontSize: 7,
+                    color: strongCount == player.armor.length
+                        ? ArmorUpColors.goldAccent
+                        : ArmorUpColors.mutedLabel,
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Plays a quick one-shot horizontal shake when first mounted - the
+/// "hit registered" jolt on the picked target panel during the
+/// targeting overlay's confirmation beat. Same sharp decaying wobble as
+/// [_ArmorBadgeState]'s damage shake; holds still under reduce-motion
+/// (the red border/TARGETED! tag carry the feedback instead).
+class _ShakeOnMount extends StatefulWidget {
+  final Widget child;
+
+  const _ShakeOnMount({required this.child});
+
+  @override
+  State<_ShakeOnMount> createState() => _ShakeOnMountState();
+}
+
+class _ShakeOnMountState extends State<_ShakeOnMount>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    final reduceMotion = WidgetsBinding
+        .instance.platformDispatcher.accessibilityFeatures.disableAnimations;
+    if (!reduceMotion) _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final t = _controller.value;
+        final shake = t <= 0 || t >= 1
+            ? 0.0
+            : math.sin(t * math.pi * 4) * (1 - t) * 5;
+        return Transform.translate(offset: Offset(shake, 0), child: child);
+      },
+      child: widget.child,
+    );
+  }
+}
+
+/// Tiny uppercase status tag on an opponent chip (PLAYING / NEXT).
+class _ChipTag extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _ChipTag({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 5),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 6,
+            letterSpacing: 0.5,
+            color: ArmorUpColors.boardBackground,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The redesign's BATTLE LOG panel: recent noteworthy events, each with
+/// a colored type tag (ATK/DEF/FIX/EVT), over a faint shield watermark.
+/// Reuses [describeEvent] for the sentence itself; only the chrome and
+/// the tag classification live here.
+class _BattleLogPanel extends StatelessWidget {
+  final GameState state;
+
+  const _BattleLogPanel({required this.state});
+
+  /// Events too noisy for a 3-5 line glanceable log (every draw/discard)
+  /// are skipped; everything else gets a tag.
+  (String, Color)? _tagFor(GameEvent event) {
+    switch (event) {
+      case CardDrawn():
+      case CardDiscarded():
+      // RestorationImminent already gets the full-width gold banner
+      // (and the persistent trophy marker) - repeating its shouty
+      // sentence in the log would double-announce it.
+      case RestorationImminent():
+        return null;
+      case ArmorWeakened():
+      case ArmorLost():
+      case CardStolen():
+      case CardStolenRedacted():
+      case PlayerEliminated():
+        return ('ATK', ArmorUpColors.bannerAttack);
+      case AttackBlocked():
+      case AttackReflected():
+      case DefenseTimedOut():
+        return ('DEF', ArmorUpColors.bannerDefense);
+      case ArmorRestored():
+        return ('FIX', ArmorUpColors.bannerRestore);
+      case CardPlayed(:final cardDefId):
+        final type = cardDefById(cardDefId).type;
+        return switch (type) {
+          CardType.attack => ('ATK', ArmorUpColors.bannerAttack),
+          CardType.defense => ('DEF', ArmorUpColors.bannerDefense),
+          CardType.restore => ('FIX', ArmorUpColors.bannerRestore),
+          _ => ('EVT', ArmorUpColors.bannerEvent),
+        };
+      case GameEnded():
+        return ('WIN', ArmorUpColors.goldAccent);
+      default:
+        return ('EVT', ArmorUpColors.bannerEvent);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = <(String, Color, String)>[];
+    for (final event in state.eventLog.reversed) {
+      final tag = _tagFor(event);
+      if (tag == null) continue;
+      entries.add((tag.$1, tag.$2, describeEvent(event, state)));
+      if (entries.length >= 12) break;
+    }
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            ArmorUpColors.descriptionBackground.withValues(alpha: 0.35),
+            ArmorUpColors.boardBackground.withValues(alpha: 0.5),
+          ],
+        ),
+        border: Border.all(color: ArmorUpColors.panelBorder),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Stack(
+        children: [
+          Center(
+            child: Opacity(
+              opacity: 0.05,
+              child: Image.asset(
+                'assets/armor/shield.png',
+                width: 120,
+                filterQuality: FilterQuality.none,
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'BATTLE LOG',
+                style: TextStyle(
+                  fontSize: 8,
+                  letterSpacing: 1,
+                  color: ArmorUpColors.mutedLabel,
+                ),
+              ),
+              const SizedBox(height: 7),
+              Expanded(
+                child: entries.isEmpty
+                    ? const SizedBox.shrink()
+                    : ListView.builder(
+                        // Most recent entry pinned at the top, like the
+                        // template's mock; older entries scroll below.
+                        padding: EdgeInsets.zero,
+                        itemCount: entries.length,
+                        itemBuilder: (context, index) {
+                          final (tag, color, text) = entries[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 7),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: Text(
+                                    tag,
+                                    style: const TextStyle(
+                                      fontSize: 6.5,
+                                      color: ArmorUpColors.boardBackground,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    text,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      height: 1.4,
+                                      // Readable sans body text like the
+                                      // template's log copy - the pixel
+                                      // font stays on labels/tags only.
+                                      fontFamily: 'Roboto',
+                                      color: const Color(0xFFC9CBD4),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Full-board "CHOOSE A TARGET" overlay (redesign template): shown when
+/// Play is pressed on an opponent-targeting card. Tapping an opponent's
+/// panel (player-only rules) or an exact armor badge (anyPieceOnPlayer
+/// rules) only SELECTS the target - freely re-tappable to change your
+/// mind - and CONFIRM is what actually commits the attack. Cancel
+/// returns to the board with the card still selected.
+class _TargetingOverlay extends StatelessWidget {
+  final CardDef def;
+  final List<PlayerState> opponents;
+  final bool Function(ArmorCondition condition) isConditionSelectable;
+
+  /// The currently selected (not yet confirmed) target.
+  final String? selectedPlayerId;
+  final ArmorType? selectedArmor;
+
+  /// Tap handler for panels/badges - selection only, never commits.
+  final void Function(String playerId, ArmorType? armor) onSelect;
+
+  /// Commits the selected target. Null while nothing (complete) is
+  /// selected or the confirmation beat is running - the CONFIRM button
+  /// disables itself accordingly.
+  final VoidCallback? onConfirm;
+
+  /// Null while the confirmation beat is running - Cancel is disabled
+  /// so the pick can't be backed out of mid-resolve.
+  final VoidCallback? onCancel;
+
+  /// The target currently in its confirmation beat (see
+  /// [_MainBoardViewState._pendingPick]): that player's panel shakes
+  /// and goes attack-red while every other panel dims, so the tap
+  /// visibly registers before the overlay closes.
+  final ({String playerId, ArmorType? armor})? resolving;
+
+  const _TargetingOverlay({
+    required this.def,
+    required this.opponents,
+    required this.isConditionSelectable,
+    required this.selectedPlayerId,
+    required this.selectedArmor,
+    required this.onSelect,
+    required this.onConfirm,
+    required this.onCancel,
+    this.resolving,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final needsArmorPick = def.targetRule == TargetRule.anyPieceOnPlayer;
+
+    return Container(
+      color: const Color(0xE605060A),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'CHOOSE A TARGET',
+            style: TextStyle(
+              fontSize: 13,
+              color: ArmorUpColors.fontColor,
+              shadows: ArmorUpColors.titleOutline,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            'PLAYING: ${def.name.toUpperCase()}',
+            style: const TextStyle(
+              fontSize: 9.5,
+              color: ArmorUpColors.goldAccent,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Expanded(
+            child: ListView(
+              children: [
+                for (final opp in opponents)
+                  Builder(
+                    builder: (context) {
+                      final isPicked = resolving?.playerId == opp.id;
+                      final dimmed = resolving != null && !isPicked;
+                      final isSelected =
+                          resolving == null && selectedPlayerId == opp.id;
+
+                      // Border/glow priority: confirming (attack red)
+                      // beats selected (gold) beats idle.
+                      final borderColor = isPicked
+                          ? ArmorUpColors.bannerAttack
+                          : isSelected
+                              ? ArmorUpColors.goldAccent
+                              : ArmorUpColors.descriptionBackground;
+                      final glowColor = isPicked
+                          ? ArmorUpColors.bannerAttack
+                          : isSelected
+                              ? ArmorUpColors.goldAccent
+                              : null;
+
+                      Widget panel = Material(
+                        color: ArmorUpColors.panelBackground,
+                        borderRadius: BorderRadius.circular(10),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: needsArmorPick || resolving != null
+                              ? null
+                              : () => onSelect(opp.id, null),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: borderColor,
+                                width: isPicked || isSelected ? 2 : 1,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: glowColor != null
+                                  ? [
+                                      BoxShadow(
+                                        color: glowColor.withValues(
+                                          alpha: isPicked ? 0.5 : 0.35,
+                                        ),
+                                        blurRadius: 14,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    PixelAvatar(
+                                      seed: avatarSeedFor(opp.id),
+                                      size: 24,
+                                      borderColor:
+                                          ArmorUpColors.descriptionBackground,
+                                      borderWidth: 1,
+                                    ),
+                                    const SizedBox(width: 7),
+                                    Expanded(
+                                      child: Text(
+                                        opp.name.toUpperCase(),
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: ArmorUpColors.fontColor,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    if (isPicked)
+                                      const Text(
+                                        'TARGETED!',
+                                        style: TextStyle(
+                                          fontSize: 7,
+                                          letterSpacing: 0.5,
+                                          color: ArmorUpColors.bannerAttack,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    else if (isSelected)
+                                      const Text(
+                                        'SELECTED',
+                                        style: TextStyle(
+                                          fontSize: 7,
+                                          letterSpacing: 0.5,
+                                          color: ArmorUpColors.goldAccent,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    else if (!needsArmorPick)
+                                      const Text(
+                                        'TAP TO TARGET',
+                                        style: TextStyle(
+                                          fontSize: 7,
+                                          letterSpacing: 0.5,
+                                          color: ArmorUpColors.mutedLabel,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: ArmorRow(
+                                    player: opp,
+                                    selectable: needsArmorPick,
+                                    // The tapped badge keeps its
+                                    // stronger selected glow/border
+                                    // while selected AND through the
+                                    // confirmation beat.
+                                    selectedArmor: isPicked
+                                        ? resolving!.armor
+                                        : isSelected
+                                            ? selectedArmor
+                                            : null,
+                                    onSelect: needsArmorPick
+                                        ? (armor) {
+                                            if (resolving == null) {
+                                              onSelect(opp.id, armor);
+                                            }
+                                          }
+                                        : null,
+                                    isConditionSelectable:
+                                        isConditionSelectable,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+
+                      if (isPicked) {
+                        panel = _ShakeOnMount(child: panel);
+                      } else if (dimmed) {
+                        panel = Opacity(opacity: 0.35, child: panel);
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: panel,
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                flex: 10,
+                child: OutlinedButton(
+                  onPressed: onCancel,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: ArmorUpColors.mutedLabel,
+                    side: const BorderSide(
+                      color: ArmorUpColors.descriptionBackground,
+                      width: 2,
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child:
+                      const Text('CANCEL', style: TextStyle(fontSize: 10)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 13,
+                child: GoldPillButton(
+                  label: 'CONFIRM',
+                  fontSize: 10,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  onPressed: onConfirm,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

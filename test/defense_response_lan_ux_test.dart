@@ -186,7 +186,7 @@ void main() {
       // chooser controls (those belong only to the responder's own
       // screen).
       expect(find.textContaining('Waiting for'), findsOneWidget);
-      expect(find.text('Take the hit'), findsNothing);
+      expect(find.text('TAKE THE HIT'), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     },
   );
@@ -312,7 +312,8 @@ void main() {
       await tester.pump();
 
       expect(currentActorId(crafted), defenderId);
-      expect(find.text('Defense - Bob'), findsOneWidget);
+      expect(find.text('DEFENSE'), findsOneWidget);
+      expect(find.text('BOB'), findsOneWidget);
       expect(find.byType(LinearProgressIndicator), findsNothing);
     },
   );

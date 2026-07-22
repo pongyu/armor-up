@@ -17,9 +17,9 @@ void main() {
       ),
     );
 
-    expect(find.text('Your name'), findsOneWidget);
-    expect(find.text('Game name'), findsOneWidget);
-    expect(find.text('Create lobby'), findsOneWidget);
+    expect(find.text('YOUR NAME'), findsOneWidget);
+    expect(find.text('GAME NAME'), findsOneWidget);
+    expect(find.text('CREATE LOBBY'), findsOneWidget);
   });
 
   testWidgets('tapping Back returns to mode-select', (tester) async {
@@ -34,7 +34,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('Back'));
+    await tester.tap(find.text('BACK'));
     await tester.pump();
 
     expect(container.read(appModeControllerProvider).mode, AppMode.modeSelect);

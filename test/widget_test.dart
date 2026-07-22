@@ -59,7 +59,7 @@ void main() {
     await tester.tap(find.text("I'm ready"));
     await tester.pump();
 
-    await tester.tap(find.text('Draw'));
+    await tester.tap(find.text('DRAW'));
     await tester.pump();
 
     expect(tester.takeException(), isNull);
