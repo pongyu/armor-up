@@ -570,6 +570,25 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
   String? _selectedTargetPlayerId;
   ArmorType? _selectedTargetArmor;
 
+  // Every hand instanceId seen across all builds so far, used to detect
+  // which card(s) are brand new this build (just drawn) so _HandCard can
+  // play a one-shot deal-in animation for exactly those - a duplicate
+  // card's stack widget is keyed on its *first* instance (stable across a
+  // later draw of the same defId, see the groupedHand comment below), so
+  // "this _HandCard widget was just created" alone can't detect a newly
+  // drawn duplicate the way it can a brand new defId. Accumulates rather
+  // than just diffing the previous build's hand against this one, since a
+  // discard/play removing a card and a draw both changing hand size in the
+  // same build could otherwise mask a genuinely new instanceId.
+  final Set<String> _seenCardInstanceIds = {};
+  // False until the first build has run once - guards against treating
+  // every card already in hand as "just drawn" the moment this widget
+  // mounts (e.g. every turn in hotseat mode, where the pass-device gate
+  // tears down and recreates this whole subtree - see the pass-device
+  // routing in _GameScreenState). Only draws that happen while the board
+  // is already showing should deal in.
+  bool _hasBuiltOnce = false;
+
   // Estimated natural height of one _PlayerListRow (8px top/bottom
   // padding + ~26px name/tap-target text column + 8px bottom spacing
   // from _PlayerListPanel's own per-row Padding) - used to size the
@@ -592,6 +611,19 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     final controller = ref.read(activeGameControllerProvider);
     final me = state.playerById(widget.actorId);
     final def = _selectedCard == null ? null : cardDefFor(_selectedCard!);
+
+    // Diff this build's hand against every instanceId seen so far - any
+    // instanceId not already in _seenCardInstanceIds was just drawn.
+    // Passed down as `justDrawn` so _HandCard can play its deal-in
+    // animation only for the actual new arrival(s), not for every card
+    // whenever the hand happens to rebuild (selection, discard, etc.).
+    final justDrawnIds = <String>{
+      if (_hasBuiltOnce)
+        for (final card in me.hand)
+          if (!_seenCardInstanceIds.contains(card.instanceId)) card.instanceId,
+    };
+    _seenCardInstanceIds.addAll(me.hand.map((c) => c.instanceId));
+    _hasBuiltOnce = true;
 
     ref.listen(gameErrorProvider, (previous, next) {
       if (next != null) {
@@ -635,6 +667,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                       controller,
                       canPlaySelection,
                       constraints,
+                      justDrawnIds,
                     );
                   }
                   return _buildLandscapeBoard(
@@ -644,6 +677,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                     controller,
                     canPlaySelection,
                     constraints,
+                    justDrawnIds,
                   );
                 },
               ),
@@ -678,6 +712,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     GameActionDispatcher controller,
     bool canPlaySelection,
     BoxConstraints outerConstraints,
+    Set<String> justDrawnIds,
   ) {
     final armorSelectable =
         def != null &&
@@ -831,6 +866,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
           child: _FannedHand(
             stacks: handStacks,
             selectedCard: _selectedCard,
+            justDrawnIds: justDrawnIds,
             isCardDisabled: (card) =>
                 widget.readOnly ||
                 me.isFasting ||
@@ -970,6 +1006,7 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
     GameActionDispatcher controller,
     bool canPlaySelection,
     BoxConstraints outerConstraints,
+    Set<String> justDrawnIds,
   ) {
     return Column(
       children: [
@@ -1134,6 +1171,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                                                         cardDefFor(card),
                                                         me,
                                                       ),
+                                                  justDrawn: justDrawnIds
+                                                      .contains(card.instanceId),
                                                   onTap: () {
                                                     setState(() {
                                                       if (selectedInStack) {
@@ -1430,12 +1469,14 @@ class _FannedHand extends StatelessWidget {
   final CardInstance? selectedCard;
   final bool Function(CardInstance card) isCardDisabled;
   final void Function(CardInstance card, bool selectedInStack) onTapCard;
+  final Set<String> justDrawnIds;
 
   const _FannedHand({
     required this.stacks,
     required this.selectedCard,
     required this.isCardDisabled,
     required this.onTapCard,
+    this.justDrawnIds = const {},
   });
 
   // Total angular spread across the whole hand, and how far apart
@@ -1576,6 +1617,7 @@ class _FannedHand extends StatelessWidget {
                           count: stack.length,
                           selected: selectedInStack,
                           disabled: isCardDisabled(card),
+                          justDrawn: justDrawnIds.contains(card.instanceId),
                           onTap: () => onTapCard(card, selectedInStack),
                           // Not shown here: a rotated per-card Discard
                           // button (like landscape's _HandCard uses)
@@ -1597,13 +1639,20 @@ class _FannedHand extends StatelessWidget {
   }
 }
 
-class _HandCard extends StatelessWidget {
+class _HandCard extends StatefulWidget {
   final CardInstance card;
   final int count;
   final bool selected;
   final bool disabled;
   final VoidCallback onTap;
   final VoidCallback? onDiscard;
+
+  /// True the first time this exact card instance is rendered after being
+  /// drawn (see _MainBoardViewState's justDrawnIds diff) - plays a one-shot
+  /// "deal in" entrance on mount. False for every other render of the same
+  /// instance (selection, disabling, re-layout), so the entrance never
+  /// replays after its first play.
+  final bool justDrawn;
 
   const _HandCard({
     required this.card,
@@ -1612,8 +1661,14 @@ class _HandCard extends StatelessWidget {
     required this.disabled,
     required this.onTap,
     required this.onDiscard,
+    this.justDrawn = false,
   });
 
+  @override
+  State<_HandCard> createState() => _HandCardState();
+}
+
+class _HandCardState extends State<_HandCard> with SingleTickerProviderStateMixin {
   // Standard luminance-weighted grayscale matrix (same family as the
   // armor icon's weakened/lost desaturation filters in armor_widget.dart)
   // - replaces a flat opacity fade for "not currently playable" cards.
@@ -1628,8 +1683,37 @@ class _HandCard extends StatelessWidget {
     0, 0, 0, 1, 0,
   ]);
 
+  late final AnimationController _dealController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dealController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    final reduceMotion = WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.disableAnimations;
+    if (widget.justDrawn && !reduceMotion) {
+      _dealController.forward();
+    } else {
+      _dealController.value = 1.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _dealController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final card = widget.card;
+    final count = widget.count;
+    final selected = widget.selected;
+    final disabled = widget.disabled;
+    final onTap = widget.onTap;
+    final onDiscard = widget.onDiscard;
     final def = cardDefFor(card);
     // Selection used to rely solely on the frame's glow shadow, which
     // reads poorly now that the frame itself is a busy pixel-art
@@ -1678,7 +1762,7 @@ class _HandCard extends StatelessWidget {
       ),
     );
 
-    return Column(
+    final column = Column(
       children: [
         // Grayscale, not a flat opacity fade - see _disabledFilter's
         // doc comment above for why. Only wraps the card art itself,
@@ -1697,6 +1781,27 @@ class _HandCard extends StatelessWidget {
             child: const Text('Discard', style: TextStyle(fontSize: 11)),
           ),
       ],
+    );
+
+    // Deal-in: rises up from below its resting slot while scaling up from
+    // small and fading in, like the card is being dealt into the hand.
+    // Curves.easeOutBack overshoots slightly past scale 1.0 before
+    // settling, giving it a touch of the same "pop" the win screen's
+    // entrance uses, rather than a flat linear grow.
+    return AnimatedBuilder(
+      animation: _dealController,
+      builder: (context, child) {
+        final t = Curves.easeOutBack.transform(_dealController.value);
+        final linearT = _dealController.value;
+        return Opacity(
+          opacity: linearT.clamp(0.0, 1.0),
+          child: Transform.translate(
+            offset: Offset(0, (1 - linearT) * 28),
+            child: Transform.scale(scale: 0.6 + 0.4 * t, child: child),
+          ),
+        );
+      },
+      child: column,
     );
   }
 }
