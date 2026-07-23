@@ -201,7 +201,9 @@ reproducible from the printed config. See the header comment in
 - **Card types:** Attack (Trial) degrades an opponent's armor piece;
   Defense blocks or reflects an incoming attack — Prayer blocks outright,
   It Is Written blocks *and* reflects the attack back at its sender, and
-  Fellowship asks the rest of the table for help blocking; Restore
+  Fellowship asks the rest of the table for help blocking — a helper who
+  answers the call is shielded from their own next attack in return;
+  Restore
   repairs your own armor (Renewal, Armor Bearer, or Fasting); Event
   affects the whole table at once.
 - **Winning:** eliminate every other player (all their armor Lost), fully

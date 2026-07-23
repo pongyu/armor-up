@@ -110,6 +110,36 @@ final class AttackBlocked extends GameEvent {
       '${helperId != null ? ' via $helperId' : ''})';
 }
 
+/// Logged when a Fellowship helper's block earns them a shield (see
+/// [PlayerState.isShielded]): reciprocity for the defense card they just
+/// spent on someone else's behalf.
+final class PlayerShielded extends GameEvent {
+  final String playerId;
+
+  const PlayerShielded({required super.turnNumber, required this.playerId});
+
+  @override
+  String toString() => 'PlayerShielded($playerId)';
+}
+
+/// Logged when an attack against a shielded player (see
+/// [PlayerState.isShielded]) is auto-blocked for free, consuming the
+/// shield. Distinct from [AttackBlocked] (which always costs a discarded
+/// defense card) so the event log and UI can tell the two apart.
+final class AttackBlockedByShield extends GameEvent {
+  final String defenderId;
+  final String attackCardDefId;
+
+  const AttackBlockedByShield({
+    required super.turnNumber,
+    required this.defenderId,
+    required this.attackCardDefId,
+  });
+
+  @override
+  String toString() => 'AttackBlockedByShield($defenderId, $attackCardDefId)';
+}
+
 final class AttackReflected extends GameEvent {
   final String originalAttackerId;
   final String newDefenderId;

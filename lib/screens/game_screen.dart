@@ -387,6 +387,41 @@ class _FullyArmoredMarker extends StatelessWidget {
   }
 }
 
+/// Shown next to a player whose [PlayerState.isShielded] is true: they
+/// helped block another player's attack via a Fellowship request, and
+/// their own next incoming attack will be auto-blocked for free. Pops in
+/// with a small overshoot scale (rather than just appearing) since every
+/// call site conditionally inserts this widget fresh into the tree the
+/// moment the shield is earned - the [TweenAnimationBuilder] below runs
+/// once from 0 on that first build, the same "just appeared" signal
+/// [_HandCard]'s deal animation relies on.
+class _ShieldedMarker extends StatelessWidget {
+  final double size;
+
+  const _ShieldedMarker({this.size = 16});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: MediaQuery.of(context).disableAnimations
+          ? Duration.zero
+          : const Duration(milliseconds: 350),
+      curve: Curves.elasticOut,
+      builder: (context, t, child) => Transform.scale(scale: t, child: child),
+      child: Tooltip(
+        message: 'Shielded - next attack against them is auto-blocked',
+        child: Icon(
+          Icons.shield,
+          size: size,
+          color: ArmorUpColors.goldAccent,
+          shadows: ArmorUpColors.titleOutline,
+        ),
+      ),
+    );
+  }
+}
+
 /// One classified, displayable outcome of a defense-interrupt resolution
 /// step - the shared "what just happened" beat described in Phase 4 Part
 /// 3. Deliberately narrower than the raw event union: several event
@@ -534,6 +569,16 @@ class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
         '${cardDefById(blocked.byCardDefId).name} blocked the attack!',
         'BLOCKED',
         ArmorUpColors.bannerDefense,
+      );
+    }
+
+    final shieldBlocked = newEvents.whereType<AttackBlockedByShield>().firstOrNull;
+    if (shieldBlocked != null) {
+      final name = possessiveOf(shieldBlocked.defenderId);
+      return _ResolutionBeat(
+        '$name shield absorbed ${cardDefById(shieldBlocked.attackCardDefId).name}!',
+        'SHIELDED',
+        ArmorUpColors.goldAccent,
       );
     }
 
@@ -1078,6 +1123,10 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                   if (me.isFullyRestored && state.restorationWinEnabled) ...[
                     const SizedBox(width: 6),
                     const _FullyArmoredMarker(size: 14),
+                  ],
+                  if (me.isShielded) ...[
+                    const SizedBox(width: 6),
+                    const _ShieldedMarker(size: 14),
                   ],
                 ],
               ),
@@ -2360,6 +2409,10 @@ class _ActivePlayerPortraitPanel extends StatelessWidget {
                 const SizedBox(width: 6),
                 const _FullyArmoredMarker(size: 14),
               ],
+              if (player.isShielded) ...[
+                const SizedBox(width: 6),
+                const _ShieldedMarker(size: 14),
+              ],
             ],
           ),
           const SizedBox(height: 6),
@@ -2572,6 +2625,10 @@ class _PlayerListRow extends StatelessWidget {
             if (fullyArmored) ...[
               const SizedBox(width: 4),
               const _FullyArmoredMarker(size: 14),
+            ],
+            if (player.isShielded) ...[
+              const SizedBox(width: 4),
+              const _ShieldedMarker(size: 14),
             ],
             const SizedBox(width: 6),
             // Armor badges (or the placeholder/eliminated tag) claim all
@@ -2812,6 +2869,10 @@ class _OpponentChip extends StatelessWidget {
                 const SizedBox(width: 4),
                 const _FullyArmoredMarker(size: 12),
               ],
+              if (player.isShielded) ...[
+                const SizedBox(width: 4),
+                const _ShieldedMarker(size: 12),
+              ],
               if (isPlaying)
                 const _ChipTag(
                   label: 'PLAYING',
@@ -2987,6 +3048,8 @@ class _BattleLogPanel extends StatelessWidget {
       case AttackBlocked():
       case AttackReflected():
       case DefenseTimedOut():
+      case PlayerShielded():
+      case AttackBlockedByShield():
         return ('DEF', ArmorUpColors.bannerDefense);
       case ArmorRestored():
         return ('FIX', ArmorUpColors.bannerRestore);

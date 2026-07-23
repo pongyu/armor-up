@@ -187,6 +187,66 @@ void main() {
       expect(result.pendingInterrupt, isNull);
       expect(result.players[1].armorOf(ArmorType.shield).condition, ArmorCondition.strong);
       expect(result.eventLog.whereType<AttackBlocked>().single.helperId, 'p2');
+
+      // Reciprocity: the helper (p2) is rewarded with a shield for
+      // spending their card on someone else's behalf.
+      expect(result.players[2].isShielded, isTrue);
+      expect(result.eventLog.whereType<PlayerShielded>().single.playerId, 'p2');
+    });
+
+    test('a shielded player\'s next attack is auto-blocked for free, then the shield is spent', () {
+      final state = buildTestState(
+        playerNames: ['Alice', 'Bob', 'Carl'],
+        hands: {
+          0: ['doubt', 'doubt', 'doubt'],
+          1: ['fellowship'],
+          2: ['prayer', 'doubt'],
+        },
+      );
+      final pending = _openAttack(state, attackDefId: 'doubt', attackerId: 'p0', defenderId: 'p1');
+      final fellowshipId = pending.players[1].hand.first.instanceId;
+      final requested = expectSuccess(
+        applyAction(pending, DeclareDefense(playerId: 'p1', cardInstanceId: fellowshipId)),
+      );
+      final helperCardId = requested.players[2].hand.firstWhere((c) => c.defId == 'prayer').instanceId;
+      final afterHelp = expectSuccess(
+        applyAction(requested, DeclareDefense(playerId: 'p2', cardInstanceId: helperCardId)),
+      );
+      expect(afterHelp.players[2].isShielded, isTrue);
+
+      // p0 now attacks the shielded helper (p2); it should be blocked
+      // immediately, without opening a defense interrupt or spending p2's
+      // remaining defense card. (hasPlayedCardThisTurn is reset directly
+      // here rather than rotating a full turn, since only the shield's
+      // behavior is under test.)
+      final shieldedAttack = _openAttack(
+        afterHelp.copyWith(hasPlayedCardThisTurn: false),
+        attackDefId: 'doubt',
+        attackerId: 'p0',
+        defenderId: 'p2',
+      );
+
+      expect(shieldedAttack.pendingInterrupt, isNull);
+      expect(shieldedAttack.players[2].armorOf(ArmorType.shield).condition, ArmorCondition.strong);
+      expect(shieldedAttack.players[2].isShielded, isFalse);
+      expect(shieldedAttack.players[2].hand.map((c) => c.defId), contains('doubt'));
+      expect(shieldedAttack.eventLog.whereType<AttackBlockedByShield>().single.defenderId, 'p2');
+
+      // The shield is one-time use: a second attack against p2 (who has
+      // no defense card left, having spent Prayer to help p1 earlier)
+      // lands normally instead of being auto-blocked again.
+      final secondAttack = _openAttack(
+        shieldedAttack.copyWith(hasPlayedCardThisTurn: false),
+        attackDefId: 'doubt',
+        attackerId: 'p0',
+        defenderId: 'p2',
+      );
+      expect(secondAttack.pendingInterrupt, isNull);
+      expect(
+        secondAttack.players[2].armorOf(ArmorType.shield).condition,
+        ArmorCondition.weakened,
+      );
+      expect(secondAttack.eventLog.whereType<AttackBlockedByShield>(), hasLength(1));
     });
 
     test('defender can still use their own Prayer if nobody helps', () {

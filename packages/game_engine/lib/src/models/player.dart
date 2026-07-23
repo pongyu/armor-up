@@ -32,6 +32,14 @@ final class PlayerState {
   /// fasting for is part of the counterplay window Fasting now opens.
   final ArmorType? fastingRestoreTarget;
 
+  /// True once this player has helped block another player's attack via a
+  /// Fellowship request (see [EffectPrimitive.fellowshipRequest]). Consumed
+  /// automatically to no-effect-block the next attack declared against this
+  /// player - see `_beginAttack` in effects.dart - at which point it is
+  /// cleared. Reciprocity for the help given: the shield rewards the
+  /// helper directly rather than costing them a card for nothing.
+  final bool isShielded;
+
   /// True once at least one of this player's armor pieces has ever reached
   /// [ArmorCondition.lost]. Every player starts at full Strong, so the
   /// restoration win condition ("all 6 Strong at the start of your turn")
@@ -51,6 +59,7 @@ final class PlayerState {
     this.fastingScheduled = false,
     this.fastingRestoreTarget,
     this.wasEverBroken = false,
+    this.isShielded = false,
   });
 
   bool get isEliminated =>
@@ -78,6 +87,7 @@ final class PlayerState {
     ArmorType? fastingRestoreTarget,
     bool clearFastingRestoreTarget = false,
     bool? wasEverBroken,
+    bool? isShielded,
   }) =>
       PlayerState(
         id: id ?? this.id,
@@ -90,6 +100,7 @@ final class PlayerState {
             ? null
             : (fastingRestoreTarget ?? this.fastingRestoreTarget),
         wasEverBroken: wasEverBroken ?? this.wasEverBroken,
+        isShielded: isShielded ?? this.isShielded,
       );
 
   /// Returns a copy with [type]'s condition replaced. Marks

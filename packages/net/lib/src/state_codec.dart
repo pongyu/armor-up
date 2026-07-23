@@ -72,6 +72,7 @@ extension PlayerStateJson on PlayerState {
         'fastingScheduled': fastingScheduled,
         if (fastingRestoreTarget != null) 'fastingRestoreTarget': fastingRestoreTarget!.name,
         'wasEverBroken': wasEverBroken,
+        'isShielded': isShielded,
       };
 
   static PlayerState fromJson(Map<String, dynamic> json) => PlayerState(
@@ -89,6 +90,7 @@ extension PlayerStateJson on PlayerState {
             ? null
             : ArmorType.values.byName(json['fastingRestoreTarget'] as String),
         wasEverBroken: json['wasEverBroken'] as bool,
+        isShielded: json['isShielded'] as bool? ?? false,
       );
 }
 
@@ -233,6 +235,22 @@ extension GameEventJson on GameEvent {
             'newDefenderId': newDefenderId,
             'attackCardDefId': attackCardDefId,
           },
+        PlayerShielded(:final turnNumber, :final playerId) => {
+            'kind': 'PlayerShielded',
+            'turnNumber': turnNumber,
+            'playerId': playerId,
+          },
+        AttackBlockedByShield(
+          :final turnNumber,
+          :final defenderId,
+          :final attackCardDefId,
+        ) =>
+          {
+            'kind': 'AttackBlockedByShield',
+            'turnNumber': turnNumber,
+            'defenderId': defenderId,
+            'attackCardDefId': attackCardDefId,
+          },
         TurnSkipped(:final turnNumber, :final playerId, :final reason) => {
             'kind': 'TurnSkipped',
             'turnNumber': turnNumber,
@@ -350,6 +368,17 @@ GameEvent gameEventFromJson(Map<String, dynamic> json) {
         turnNumber: turnNumber,
         originalAttackerId: json['originalAttackerId'] as String,
         newDefenderId: json['newDefenderId'] as String,
+        attackCardDefId: json['attackCardDefId'] as String,
+      );
+    case 'PlayerShielded':
+      return PlayerShielded(
+        turnNumber: turnNumber,
+        playerId: json['playerId'] as String,
+      );
+    case 'AttackBlockedByShield':
+      return AttackBlockedByShield(
+        turnNumber: turnNumber,
+        defenderId: json['defenderId'] as String,
         attackCardDefId: json['attackCardDefId'] as String,
       );
     case 'TurnSkipped':

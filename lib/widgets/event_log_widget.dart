@@ -19,6 +19,10 @@ String describeEvent(GameEvent event, GameState state) {
           '${helperId != null ? ' (helped by ${nameOf(helperId)})' : ''}',
     AttackReflected(:final originalAttackerId, :final attackCardDefId) =>
       '${cardDefById(attackCardDefId).name} was reflected back at ${nameOf(originalAttackerId)}',
+    PlayerShielded(:final playerId) =>
+      '${nameOf(playerId)} is shielded for helping through Fellowship',
+    AttackBlockedByShield(:final defenderId, :final attackCardDefId) =>
+      '${nameOf(defenderId)}\'s shield blocked ${cardDefById(attackCardDefId).name}',
     TurnSkipped(:final playerId) => '${nameOf(playerId)} skipped their turn (fasting)',
     CardDrawn(:final playerId) => '${nameOf(playerId)} drew a card',
     CardDiscarded(:final playerId, :final cardDefId) =>

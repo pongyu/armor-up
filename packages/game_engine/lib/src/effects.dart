@@ -150,6 +150,25 @@ GameState _beginAttack({
   );
 
   final defender = state.playerById(pending.defenderId);
+
+  // A shield earned by helping via Fellowship (see resolveDefense's
+  // blockAttack case) auto-blocks the very next attack against its
+  // owner for free, then is consumed - no card spent, no interrupt
+  // opened, regardless of whether the defender holds a defense card.
+  if (defender.isShielded) {
+    final working = state.updatePlayer(
+      pending.defenderId,
+      (p) => p.copyWith(isShielded: false),
+    );
+    return working.appendEvent(
+      AttackBlockedByShield(
+        turnNumber: working.turnNumber,
+        defenderId: pending.defenderId,
+        attackCardDefId: def.id,
+      ),
+    );
+  }
+
   final defenderHasDefenseCard = defender.hand
       .any((c) => cardDefById(c.defId).type == CardType.defense);
 
@@ -257,8 +276,8 @@ GameState resolveDefense({
 
   switch (def.effect) {
     case EffectPrimitive.blockAttack:
-      final working = state.copyWith(clearPendingInterrupt: true);
-      return working.appendEvent(
+      var working = state.copyWith(clearPendingInterrupt: true);
+      working = working.appendEvent(
         AttackBlocked(
           turnNumber: working.turnNumber,
           defenderId: pending.defenderId,
@@ -266,6 +285,20 @@ GameState resolveDefense({
           helperId: isHelper ? responderId : null,
         ),
       );
+      // Reciprocity for a Fellowship helper: fellowship in Ecc 4:9-12 is
+      // mutual, not one-directional charity, so the helper is rewarded
+      // directly rather than just spending a card for someone else's
+      // benefit - their own next incoming attack is auto-blocked for free.
+      if (isHelper) {
+        working = working.updatePlayer(
+          responderId,
+          (p) => p.copyWith(isShielded: true),
+        );
+        working = working.appendEvent(
+          PlayerShielded(turnNumber: working.turnNumber, playerId: responderId),
+        );
+      }
+      return working;
 
     case EffectPrimitive.reflectAttack:
       final reflected = pending.reflected();
