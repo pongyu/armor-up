@@ -116,7 +116,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       children: [
         _buildBody(context, state),
         _RestorationImminentBannerHost(state: state),
-        _ResolutionBeatHost(state: state),
+        _ResolutionBeatHost(
+          state: state,
+          viewerId: ref.watch(localPlayerIdProvider),
+        ),
       ],
     );
   }
@@ -400,7 +403,12 @@ class _ResolutionBeat {
   final String tag;
   final Color color;
 
-  const _ResolutionBeat(this.text, this.tag, this.color);
+  /// Hits named in [text] beyond the first (0 for every outcome except a
+  /// multi-target HIT beat - see _classify) - used to scale how long the
+  /// toast stays up so a long Jericho March summary is still readable.
+  final int extraHits;
+
+  const _ResolutionBeat(this.text, this.tag, this.color, {this.extraHits = 0});
 }
 
 /// Watches [state]'s event log for newly-appended interrupt-resolution
@@ -422,7 +430,14 @@ class _ResolutionBeat {
 class _ResolutionBeatHost extends StatefulWidget {
   final GameState state;
 
-  const _ResolutionBeatHost({required this.state});
+  /// This device's own player id in LAN mode, so a beat naming a hit on
+  /// this exact player can read "Your X" instead of "PlayerName's X".
+  /// Null in hotseat mode, where the device is passed around and there is
+  /// no single "you" - every beat there stays third-person, matching the
+  /// rest of hotseat's shared-screen phrasing (see [localPlayerIdProvider]).
+  final String? viewerId;
+
+  const _ResolutionBeatHost({required this.state, required this.viewerId});
 
   @override
   State<_ResolutionBeatHost> createState() => _ResolutionBeatHostState();
@@ -447,11 +462,15 @@ class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
     final events = widget.state.eventLog;
     if (events.length > _lastSeenEventCount) {
       final newEvents = events.sublist(_lastSeenEventCount);
-      final beat = _classify(newEvents, widget.state);
+      final beat = _classify(newEvents, widget.state, widget.viewerId);
       if (beat != null) {
         _autoDismissTimer?.cancel();
         setState(() => _activeBeat = beat);
-        _autoDismissTimer = Timer(const Duration(milliseconds: 2500), _dismiss);
+        // Base 2.5s, +600ms per extra named hit beyond the first (Jericho
+        // March can land on several players at once - see _classify) so a
+        // long multi-hit summary doesn't vanish before it can be read.
+        final duration = Duration(milliseconds: 2500 + (beat.extraHits * 600));
+        _autoDismissTimer = Timer(duration, _dismiss);
       }
     }
     _lastSeenEventCount = events.length;
@@ -468,23 +487,44 @@ class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
   /// resolveDefense - reflection that doesn't immediately re-land is
   /// *not* accompanied by a damage event in the same batch, since the new
   /// defender still has to respond in turn).
-  _ResolutionBeat? _classify(List<GameEvent> newEvents, GameState state) {
+  _ResolutionBeat? _classify(List<GameEvent> newEvents, GameState state, String? viewerId) {
     String nameOf(String playerId) => state.playerById(playerId).name;
+    // "Your" when the affected player is this device's own player (LAN
+    // only - viewerId is always null in hotseat, where the device is
+    // passed around and no single player is "you"), else the normal
+    // possessive name.
+    String possessiveOf(String playerId) =>
+        playerId == viewerId ? 'Your' : '${nameOf(playerId)}\'s';
 
     final timedOut = newEvents.whereType<DefenseTimedOut>().firstOrNull;
-    final weakened = newEvents.whereType<ArmorWeakened>().firstOrNull;
-    final lost = newEvents.whereType<ArmorLost>().firstOrNull;
-    if (weakened != null || lost != null) {
-      final playerId = weakened?.playerId ?? lost!.playerId;
-      final armor = weakened?.armor ?? lost!.armor;
+    final weakenedEvents = newEvents.whereType<ArmorWeakened>().toList();
+    final lostEvents = newEvents.whereType<ArmorLost>().toList();
+    if (weakenedEvents.isNotEmpty || lostEvents.isNotEmpty) {
       final prefix = timedOut != null
-          ? '${nameOf(timedOut.playerId)} ran out of time - the attack landed. '
+          ? '${timedOut.playerId == viewerId ? 'You' : nameOf(timedOut.playerId)} '
+              'ran out of time - the attack landed. '
           : '';
+      // A single-target attack always appends exactly one of these, but a
+      // table-wide event card (Jericho March) can append one per player
+      // whose piece was hit in the same batch - every one of them must be
+      // named, not just the first, or the toast silently drops everyone
+      // else's damage.
+      final hits = [
+        for (final e in weakenedEvents) (playerId: e.playerId, armor: e.armor, lost: false),
+        for (final e in lostEvents) (playerId: e.playerId, armor: e.armor, lost: true),
+      ];
+      final summary = hits.length == 1
+          ? '${possessiveOf(hits.single.playerId)} ${hits.single.armor.displayName} was '
+              '${hits.single.lost ? 'lost' : 'weakened'}.'
+          : hits
+              .map((h) => '${possessiveOf(h.playerId)} ${h.armor.displayName} '
+                  '${h.lost ? 'lost' : 'weakened'}')
+              .join(', ');
       return _ResolutionBeat(
-        '$prefix${nameOf(playerId)}\'s ${armor.displayName} was '
-        '${weakened != null ? 'weakened' : 'lost'}.',
+        '$prefix$summary',
         timedOut != null ? 'TIME UP' : 'HIT',
         ArmorUpColors.bannerAttack,
+        extraHits: hits.length - 1,
       );
     }
 
@@ -499,9 +539,12 @@ class _ResolutionBeatHostState extends State<_ResolutionBeatHost> {
 
     final reflected = newEvents.whereType<AttackReflected>().firstOrNull;
     if (reflected != null) {
+      final newDefender = reflected.newDefenderId == viewerId
+          ? 'you'
+          : nameOf(reflected.newDefenderId);
       return _ResolutionBeat(
         '${cardDefById(reflected.attackCardDefId).name}! Attack reflected to '
-        '${nameOf(reflected.newDefenderId)}!',
+        '$newDefender!',
         'REFLECTED',
         ArmorUpColors.goldAccent,
       );
