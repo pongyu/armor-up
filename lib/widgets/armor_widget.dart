@@ -427,8 +427,18 @@ class _ArmorBadgeState extends State<ArmorBadge> with TickerProviderStateMixin {
         final pulseAlpha = showEligiblePulse ? _eligiblePulseAlpha(_eligiblePulseController.value) : 0.0;
 
         final boxShadows = <BoxShadow>[
-          if (selected)
-            BoxShadow(color: color.withValues(alpha: 0.55), blurRadius: compact ? 4 : 6),
+          if (selected) ...[
+            BoxShadow(
+              color: ArmorUpColors.selectionRing.withValues(alpha: 0.9),
+              blurRadius: compact ? 8 : 14,
+              spreadRadius: compact ? 1 : 2,
+            ),
+            BoxShadow(
+              color: ArmorUpColors.selectionRing.withValues(alpha: 0.45),
+              blurRadius: compact ? 14 : 22,
+              spreadRadius: compact ? 2 : 4,
+            ),
+          ],
           if (restoreGlowAlpha > 0)
             BoxShadow(
               color: ArmorUpColors.goldAccent.withValues(alpha: restoreGlowAlpha),
@@ -442,19 +452,25 @@ class _ArmorBadgeState extends State<ArmorBadge> with TickerProviderStateMixin {
             ),
         ];
 
-        return Transform.translate(
-          offset: Offset(shake, 0),
-          child: Container(
-            width: badgeSize,
-            height: badgeSize,
-            decoration: BoxDecoration(
-              gradient: _badgeVignette,
-              border: Border.all(color: displayColor, width: selected ? 3 : 2),
-              borderRadius: borderRadius,
-              boxShadow: boxShadows.isEmpty ? null : boxShadows,
+        return Transform.scale(
+          scale: selected ? 1.12 : 1.0,
+          child: Transform.translate(
+            offset: Offset(shake, 0),
+            child: Container(
+              width: badgeSize,
+              height: badgeSize,
+              decoration: BoxDecoration(
+                gradient: _badgeVignette,
+                border: Border.all(
+                  color: selected ? ArmorUpColors.selectionRing : displayColor,
+                  width: selected ? 3 : 2,
+                ),
+                borderRadius: borderRadius,
+                boxShadow: boxShadows.isEmpty ? null : boxShadows,
+              ),
+              padding: EdgeInsets.all(compact ? 3 : 4),
+              child: child,
             ),
-            padding: EdgeInsets.all(compact ? 3 : 4),
-            child: child,
           ),
         );
       },
@@ -465,6 +481,33 @@ class _ArmorBadgeState extends State<ArmorBadge> with TickerProviderStateMixin {
         condition: piece.condition,
       ),
     );
+
+    if (selected) {
+      badge = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          badge,
+          Positioned(
+            bottom: -4,
+            right: -4,
+            child: Container(
+              width: compact ? 14 : 18,
+              height: compact ? 14 : 18,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: ArmorUpColors.selectionRing,
+                border: Border.all(color: ArmorUpColors.cardStroke, width: 1),
+              ),
+              child: Icon(
+                Icons.check,
+                size: compact ? 10 : 13,
+                color: ArmorUpColors.cardStroke,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     if (widget.fasting) {
       badge = Stack(

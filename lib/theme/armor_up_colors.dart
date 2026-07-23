@@ -69,6 +69,13 @@ class ArmorUpColors {
   static const onGold = Color(0xFF2A1404);
   static const activeGreen = Color(0xFF7FBF7F);
 
+  // Armor-badge target-selection ring: deliberately NOT gold (armorStrong
+  // and every "selected"/eligible glow elsewhere already use gold/amber,
+  // so a gold selection ring on a Strong piece - already gold-bordered -
+  // was nearly invisible). A saturated cyan reads as "picked" regardless
+  // of the badge's own condition color.
+  static const selectionRing = Color(0xFF4DE0E8);
+
   // Character picker preset swatches (claude.ai/design "Armor Up
   // Redesign", Character tab). Each list is the preset color options for
   // one avatar channel; a custom-color picker rounds out every row for
