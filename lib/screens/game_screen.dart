@@ -785,7 +785,13 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                 const Positioned(
                   top: 4,
                   right: 4,
-                  child: _RulesButton(),
+                  child: Column(
+                    children: [
+                      _RulesButton(),
+                      SizedBox(height: 8),
+                      _QuitButton(),
+                    ],
+                  ),
                 ),
             ],
           ),
@@ -917,6 +923,8 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
                 ),
               ),
               const _RulesButton(),
+              const SizedBox(width: 8),
+              const _QuitButton(),
             ],
           ),
         ),
@@ -1665,6 +1673,66 @@ class _RulesButton extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Same gold-ringed coin treatment as [_RulesButton], sat right beside it,
+/// so quitting reads as one of this pair of board-level actions rather
+/// than a random floating icon. A [ConsumerWidget] (not stateless) since
+/// it needs `ref` to read the current [AppMode] and dispatch the actual
+/// teardown once the player confirms.
+class _QuitButton extends ConsumerWidget {
+  const _QuitButton();
+
+  Future<void> _confirmQuit(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Quit game?'),
+        content: const Text(
+          'This will end the game for everyone and return to the start screen.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Quit'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final mode = ref.read(appModeControllerProvider).mode;
+    if (mode == AppMode.netPlaying) {
+      await ref.read(appModeControllerProvider.notifier).returnToModeSelect();
+    } else {
+      ref.read(gameControllerProvider.notifier).endGame();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Material(
+      color: ArmorUpColors.cardBackground,
+      shape: const CircleBorder(
+        side: BorderSide(color: ArmorUpColors.goldAccent, width: 2),
+      ),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: () => _confirmQuit(context, ref),
+        child: const SizedBox(
+          width: 34,
+          height: 34,
+          child: Center(
+            child: Icon(Icons.close, size: 16, color: ArmorUpColors.goldAccent),
           ),
         ),
       ),
