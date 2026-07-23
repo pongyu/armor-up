@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:game_engine/game_engine.dart';
 
 import '../theme/armor_up_colors.dart';
+import 'armor_widget.dart';
 import 'card_display.dart';
 
 /// Optional background texture for the card face and description panel.
@@ -147,76 +148,129 @@ class CardWidget extends StatelessWidget {
     final banner = colorForCardType(def.type);
     final spec = displaySpecFor(def.id);
 
+    final requiredArmor = def.targetRule == TargetRule.specificArmorOnPlayer
+        ? def.fixedTarget
+        : null;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
-      child: _CardFrame(
-        selected: selected,
-        accentColor: banner,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // The medallion's diameter matches the description panel's
-            // width (card width minus its horizontal margin), so both
-            // read as the same size circle-vs-rectangle.
-            const bannerHeight = 22.0;
-            const topInset = 4.0;
-            // Where the description panel's background starts: a bit
-            // above the banner's bottom edge on purpose, so the medallion
-            // visually overlaps down behind the banner and the panel's
-            // top-left/right slivers, matching the reference card.
-            const descriptionTop = 100.0;
-            final medallionDiameter = constraints.maxWidth - 16;
-            final bannerTop = topInset + medallionDiameter - bannerHeight / 2;
-            final bannerBottom = bannerTop + bannerHeight;
-            // The text itself must start below the banner's actual bottom
-            // edge, not just some fixed offset from descriptionTop - the
-            // panel's background can sit under the banner, but the text
-            // can't, or it renders visually clipped by/under the banner.
-            // Whatever vertical room that leaves for the text itself
-            // (which can be tight for a long description on a
-            // full-width medallion), _DescriptionPanel scales its own
-            // font down to fit rather than needing exact pixel budgeting
-            // here.
-            final textTopPadding = bannerBottom - descriptionTop + 6;
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _CardFrame(
+            selected: selected,
+            accentColor: banner,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // The medallion's diameter matches the description panel's
+                // width (card width minus its horizontal margin), so both
+                // read as the same size circle-vs-rectangle.
+                const bannerHeight = 22.0;
+                const topInset = 4.0;
+                // Where the description panel's background starts: a bit
+                // above the banner's bottom edge on purpose, so the medallion
+                // visually overlaps down behind the banner and the panel's
+                // top-left/right slivers, matching the reference card.
+                const descriptionTop = 100.0;
+                final medallionDiameter = constraints.maxWidth - 16;
+                final bannerTop =
+                    topInset + medallionDiameter - bannerHeight / 2;
+                final bannerBottom = bannerTop + bannerHeight;
+                // The text itself must start below the banner's actual bottom
+                // edge, not just some fixed offset from descriptionTop - the
+                // panel's background can sit under the banner, but the text
+                // can't, or it renders visually clipped by/under the banner.
+                // Whatever vertical room that leaves for the text itself
+                // (which can be tight for a long description on a
+                // full-width medallion), _DescriptionPanel scales its own
+                // font down to fit rather than needing exact pixel budgeting
+                // here.
+                final textTopPadding = bannerBottom - descriptionTop + 6;
 
-            return Stack(
-              alignment: Alignment.topCenter,
-              children: [
-                Positioned(
-                  top: topInset,
-                  child: _Medallion(spec: spec, diameter: medallionDiameter),
-                ),
-                Positioned(
-                  top: descriptionTop,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: _DescriptionPanel(
-                    text: describeEffect(def),
-                    verseRef: def.verseRef,
-                    textTopPadding: textTopPadding,
+                return Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    Positioned(
+                      top: topInset,
+                      child: _Medallion(
+                        spec: spec,
+                        diameter: medallionDiameter,
+                      ),
+                    ),
+                    Positioned(
+                      top: descriptionTop,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: _DescriptionPanel(
+                        text: describeEffect(def),
+                        verseRef: def.verseRef,
+                        textTopPadding: textTopPadding,
+                      ),
+                    ),
+                    Positioned(
+                      top: bannerTop,
+                      child: _NameBanner(
+                        name: def.name,
+                        color: banner,
+                        height: bannerHeight,
+                        // Wider than the medallion/description panel (their
+                        // -16 margin is for those two; the banner gets a
+                        // smaller -6 margin so it sits almost flush with the
+                        // card's inner frame edge instead of matching their
+                        // wider gap) - fixed regardless of name length rather
+                        // than shrinking to fit short names.
+                        width: constraints.maxWidth - 6,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          // Names the exact armor piece this card will hit, so the
+          // attacker doesn't have to cross-reference the description
+          // text against every opponent's armor row while targeting.
+          // anyPieceOnPlayer cards (e.g. Fiery Dart) have no fixed
+          // target, so they get no badge - the armor picker after
+          // tapping a player already makes that choice explicit.
+          if (requiredArmor != null)
+            Positioned(
+              top: 6,
+              left: 6,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: ArmorUpColors.cardBackground,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: ArmorUpColors.goldAccent,
+                    width: 1.5,
                   ),
                 ),
-                Positioned(
-                  top: bannerTop,
-                  child: _NameBanner(
-                    name: def.name,
-                    color: banner,
-                    height: bannerHeight,
-                    // Wider than the medallion/description panel (their
-                    // -16 margin is for those two; the banner gets a
-                    // smaller -6 margin so it sits almost flush with the
-                    // card's inner frame edge instead of matching their
-                    // wider gap) - fixed regardless of name length rather
-                    // than shrinking to fit short names.
-                    width: constraints.maxWidth - 6,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+                child: _cardTargetIcon(requiredArmor),
+              ),
+            ),
+        ],
       ),
+    );
+  }
+
+  /// Same asset-with-fallback pattern as [_ArmorIcon] in this file's
+  /// armor-widget equivalent, reused here at a fixed small size instead
+  /// of pulling in that widget's condition tinting/overlay (not needed
+  /// for a plain "this is the required piece" glyph).
+  Widget _cardTargetIcon(ArmorType type) {
+    final assetPath = armorIconAssetPath(type);
+    if (assetPath == null) {
+      return Icon(iconForArmor(type), color: ArmorUpColors.fontColor, size: 16);
+    }
+    return Image.asset(
+      assetPath,
+      width: 16,
+      height: 16,
+      filterQuality: FilterQuality.none,
     );
   }
 }
