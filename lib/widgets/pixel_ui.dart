@@ -9,9 +9,12 @@ import '../theme/armor_up_colors.dart';
 /// state - and every redesigned screen draws from the same small kit.
 
 /// 8x8 pixel head grid: H hair, S skin, E eye, M mouth/accent,
-/// _ transparent. Same glyph for everyone; the palette is what varies
-/// per player.
-const List<String> _pixelHeadGrid = [
+/// _ transparent. The "male" silhouette; [_femaleHeadGrid] is the same
+/// face with hair extended past the jaw so gender reads at a glance
+/// even at 8x8 resolution. Random/seeded avatars (opponents without a
+/// saved [Character]) always use the male grid; a player's own
+/// customized avatar picks whichever grid matches their chosen gender.
+const List<String> _maleHeadGrid = [
   '__HHHH__',
   '_HHHHHH_',
   'HHSSSSHH',
@@ -22,43 +25,86 @@ const List<String> _pixelHeadGrid = [
   '__SSSS__',
 ];
 
-class _AvatarPalette {
+const List<String> _femaleHeadGrid = [
+  '__HHHH__',
+  '_HHHHHH_',
+  'HHSSSSHH',
+  'HSSSSSSH',
+  'HSESSESH',
+  'HSSSSSSH',
+  'HSSMMSSH',
+  'HH_SS_HH',
+];
+
+/// Full avatar palette: hair/skin/eye/accent colors plus which grid
+/// (gender silhouette) to draw. Seeded opponent avatars only vary
+/// hair/skin/accent (see [_avatarPalettes]); a customized [Character]
+/// supplies all four channels plus gender.
+class AvatarPalette {
   final Color hair;
   final Color skin;
+  final Color eye;
   final Color accent;
+  final bool female;
 
-  const _AvatarPalette(this.hair, this.skin, this.accent);
+  const AvatarPalette({
+    required this.hair,
+    required this.skin,
+    this.eye = const Color(0xFF1A1410),
+    required this.accent,
+    this.female = false,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is AvatarPalette &&
+      other.hair == hair &&
+      other.skin == skin &&
+      other.eye == eye &&
+      other.accent == accent &&
+      other.female == female;
+
+  @override
+  int get hashCode => Object.hash(hair, skin, eye, accent, female);
 }
 
-const List<_AvatarPalette> _avatarPalettes = [
-  _AvatarPalette(Color(0xFF3B2A1A), Color(0xFFE8B98A), Color(0xFF9B4040)),
-  _AvatarPalette(Color(0xFF1C1C22), Color(0xFFC98A5B), Color(0xFF78A8BA)),
-  _AvatarPalette(Color(0xFFC9A24B), Color(0xFFF0D4B0), Color(0xFF8A56A0)),
-  _AvatarPalette(Color(0xFF6B3D12), Color(0xFFA8794F), Color(0xFF989550)),
-  _AvatarPalette(Color(0xFF8A8A90), Color(0xFFE0B088), Color(0xFFC97A2B)),
+const List<AvatarPalette> _avatarPalettes = [
+  AvatarPalette(hair: Color(0xFF3B2A1A), skin: Color(0xFFE8B98A), accent: Color(0xFF9B4040)),
+  AvatarPalette(hair: Color(0xFF1C1C22), skin: Color(0xFFC98A5B), accent: Color(0xFF78A8BA)),
+  AvatarPalette(hair: Color(0xFFC9A24B), skin: Color(0xFFF0D4B0), accent: Color(0xFF8A56A0)),
+  AvatarPalette(hair: Color(0xFF6B3D12), skin: Color(0xFFA8794F), accent: Color(0xFF989550)),
+  AvatarPalette(hair: Color(0xFF8A8A90), skin: Color(0xFFE0B088), accent: Color(0xFFC97A2B)),
 ];
 
 /// Tiny procedurally-drawn pixel-art head, used as a player avatar in
-/// the board header and opponent chips. [seed] picks the palette
+/// the board header and opponent chips. [seed] picks a palette
 /// deterministically (pass a stable per-player value, e.g. the player's
 /// index or name hash) so the same player always gets the same face.
+/// Pass [palette] instead to render a specific customized [Character]
+/// (e.g. the local player's own saved avatar) - it takes priority over
+/// [seed]. [blinking] swaps the eye color to the skin color, for the
+/// character picker's idle-blink animation.
 class PixelAvatar extends StatelessWidget {
   final int seed;
+  final AvatarPalette? palette;
   final double size;
   final Color borderColor;
   final double borderWidth;
+  final bool blinking;
 
   const PixelAvatar({
     super.key,
-    required this.seed,
+    this.seed = 0,
+    this.palette,
     this.size = 32,
     this.borderColor = ArmorUpColors.goldAccent,
     this.borderWidth = 2,
+    this.blinking = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final palette = _avatarPalettes[seed.abs() % _avatarPalettes.length];
+    final resolved = palette ?? _avatarPalettes[seed.abs() % _avatarPalettes.length];
     return Container(
       width: size,
       height: size,
@@ -68,28 +114,30 @@ class PixelAvatar extends StatelessWidget {
         border: Border.all(color: borderColor, width: borderWidth),
       ),
       clipBehavior: Clip.antiAlias,
-      child: CustomPaint(painter: _PixelHeadPainter(palette)),
+      child: CustomPaint(painter: _PixelHeadPainter(resolved, blinking)),
     );
   }
 }
 
 class _PixelHeadPainter extends CustomPainter {
-  final _AvatarPalette palette;
+  final AvatarPalette palette;
+  final bool blinking;
 
-  const _PixelHeadPainter(this.palette);
+  const _PixelHeadPainter(this.palette, this.blinking);
 
   @override
   void paint(Canvas canvas, Size size) {
+    final grid = palette.female ? _femaleHeadGrid : _maleHeadGrid;
     final cell = Size(size.width / 8, size.height / 8);
     final paint = Paint();
     for (var y = 0; y < 8; y++) {
       for (var x = 0; x < 8; x++) {
-        final ch = _pixelHeadGrid[y][x];
+        final ch = grid[y][x];
         if (ch == '_') continue;
         paint.color = switch (ch) {
           'H' => palette.hair,
           'S' => palette.skin,
-          'E' => const Color(0xFF1A1410),
+          'E' => blinking ? palette.skin : palette.eye,
           _ => palette.accent,
         };
         // +0.5 bleed so adjacent cells overlap and no hairline gaps
@@ -109,7 +157,7 @@ class _PixelHeadPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PixelHeadPainter oldDelegate) =>
-      oldDelegate.palette != palette;
+      oldDelegate.palette != palette || oldDelegate.blinking != blinking;
 }
 
 /// Small pulsing status dot (the "live" indicator next to ACTIVE /

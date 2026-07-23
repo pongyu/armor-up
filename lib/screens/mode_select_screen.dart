@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/app_mode_controller.dart';
+import 'character_picker_screen.dart';
 
 /// First screen: choose pass-and-play (existing hotseat flow, unchanged)
 /// or a LAN game (host or join). Replaces [SetupScreen] as the app's
@@ -64,6 +65,14 @@ class ModeSelectScreen extends ConsumerWidget {
                   'Each player uses their own phone on the same WiFi network.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12),
+                ),
+                const SizedBox(height: 24),
+                TextButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CharacterPickerScreen()),
+                  ),
+                  icon: const Icon(Icons.face),
+                  label: const Text('CHARACTER'),
                 ),
               ],
             ),

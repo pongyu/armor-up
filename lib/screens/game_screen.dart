@@ -7,6 +7,7 @@ import 'package:game_engine/game_engine.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../state/app_mode_controller.dart';
+import '../state/character_controller.dart';
 import '../state/game_controller.dart';
 import '../state/game_providers.dart';
 import '../state/turn_actor.dart';
@@ -861,7 +862,11 @@ class _MainBoardViewState extends ConsumerState<_MainBoardView> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              PixelAvatar(seed: avatarSeedFor(me.id), size: 34),
+              PixelAvatar(
+                seed: avatarSeedFor(me.id),
+                palette: ref.watch(characterControllerProvider).palette,
+                size: 34,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(

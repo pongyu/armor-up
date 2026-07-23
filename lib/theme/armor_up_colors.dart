@@ -69,6 +69,39 @@ class ArmorUpColors {
   static const onGold = Color(0xFF2A1404);
   static const activeGreen = Color(0xFF7FBF7F);
 
+  // Character picker preset swatches (claude.ai/design "Armor Up
+  // Redesign", Character tab). Each list is the preset color options for
+  // one avatar channel; a custom-color picker rounds out every row for
+  // colors outside these presets.
+  static const characterHairPresets = <Color>[
+    Color(0xFF3B2A1A),
+    Color(0xFF1C1C22),
+    Color(0xFFC9A24B),
+    Color(0xFF6B3D12),
+    Color(0xFF8A8A90),
+    Color(0xFFE3C15B),
+  ];
+  static const characterSkinPresets = <Color>[
+    Color(0xFFE8B98A),
+    Color(0xFFC98A5B),
+    Color(0xFFF0D4B0),
+    Color(0xFFA8794F),
+    Color(0xFF8A5A3A),
+  ];
+  static const characterEyePresets = <Color>[
+    Color(0xFF1A1410),
+    Color(0xFF2D5A3D),
+    Color(0xFF2D4A7A),
+    Color(0xFF5A2D7A),
+  ];
+  static const characterAccentPresets = <Color>[
+    Color(0xFF9B4040),
+    Color(0xFF78A8BA),
+    Color(0xFF8A56A0),
+    Color(0xFF989550),
+    Color(0xFFC97A2B),
+  ];
+
   /// Four offset shadows - up, down, left, right, no blur - that fake a
   /// text outline. Used on banner titles only; a real single-stroke
   /// border is illegible at small sizes, and the outline gets muddy on
