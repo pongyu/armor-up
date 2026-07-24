@@ -44,6 +44,17 @@ final responseDeadlineEpochMsProvider = Provider<int?>((ref) {
   return ref.watch(netGameControllerProvider)?.responseDeadlineEpochMs;
 });
 
+/// Engine player ids the host currently considers connected - see
+/// [GameUiState.connectedPlayerIds]. Always empty in hotseat mode (mirrors
+/// [responseDeadlineEpochMsProvider]'s gating - hotseat has no connection
+/// concept), and empty before the first LAN state arrives, both of which
+/// callers should read as "status unknown", not "everyone disconnected".
+final connectedPlayerIdsProvider = Provider<Set<String>>((ref) {
+  final mode = ref.watch(appModeControllerProvider).mode;
+  if (mode != AppMode.netPlaying) return const {};
+  return ref.watch(netGameControllerProvider)?.connectedPlayerIds ?? const {};
+});
+
 /// In LAN mode, this device's own engine player id - the player whose
 /// hand/board this device must always render, regardless of whose turn it
 /// is. Null in hotseat mode, where there is no single "local" player and

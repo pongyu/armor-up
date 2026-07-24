@@ -33,6 +33,16 @@ final class FilteredGameState {
   final bool restorationWinEnabled;
   final int? maxReshuffles;
 
+  /// Engine player ids whose socket the host currently considers live,
+  /// i.e. not mid-[HostServer.reconnectGracePeriod] after an unexpected
+  /// drop. Not derived from [GameState] (which has no connection concept
+  /// at all - see `packages/game_engine`'s `PlayerState`); populated
+  /// host-side per broadcast from its own roster bookkeeping, purely so
+  /// every viewer's UI can show "reconnecting..." for a seat that's gone
+  /// quiet instead of leaving it unexplained until the grace period lapses
+  /// and ends the session for everyone.
+  final Set<String> connectedPlayerIds;
+
   const FilteredGameState({
     required this.viewerId,
     required this.players,
@@ -48,6 +58,7 @@ final class FilteredGameState {
     required this.hasPlayedCardThisTurn,
     required this.restorationWinEnabled,
     this.maxReshuffles,
+    this.connectedPlayerIds = const {},
   });
 
   Map<String, dynamic> toJson() => {
@@ -67,6 +78,7 @@ final class FilteredGameState {
         'hasPlayedCardThisTurn': hasPlayedCardThisTurn,
         'restorationWinEnabled': restorationWinEnabled,
         if (maxReshuffles != null) 'maxReshuffles': maxReshuffles,
+        'connectedPlayerIds': connectedPlayerIds.toList(),
       };
 
   static FilteredGameState fromJson(Map<String, dynamic> json) =>
@@ -99,6 +111,9 @@ final class FilteredGameState {
         hasPlayedCardThisTurn: json['hasPlayedCardThisTurn'] as bool,
         restorationWinEnabled: json['restorationWinEnabled'] as bool,
         maxReshuffles: json['maxReshuffles'] as int?,
+        connectedPlayerIds: json['connectedPlayerIds'] == null
+            ? const {}
+            : Set<String>.from(json['connectedPlayerIds'] as List),
       );
 }
 
@@ -193,9 +208,14 @@ final class PublicPlayerView {
 /// ordering as [GameState.eventLog], just with restricted entries swapped
 /// for their [GameEvent.redacted] form rather than dropped, so log
 /// position/count never itself leaks which turns had a restricted event.
-FilteredGameState filterStateForPlayer(GameState state, String viewerId) {
+FilteredGameState filterStateForPlayer(
+  GameState state,
+  String viewerId, {
+  Set<String> connectedPlayerIds = const {},
+}) {
   return FilteredGameState(
     viewerId: viewerId,
+    connectedPlayerIds: connectedPlayerIds,
     players: [
       for (final p in state.players)
         PublicPlayerView(

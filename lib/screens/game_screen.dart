@@ -2816,6 +2816,13 @@ class _OpponentChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final avatarPalette = ref.watch(lanAvatarsProvider)[player.id];
+    final connectedPlayerIds = ref.watch(connectedPlayerIdsProvider);
+    // An empty set means "no connection status reported" (hotseat, or no
+    // LAN state received yet) - not "everyone's disconnected" - so only
+    // treat a player as dropped when the set is actually populated and
+    // they're missing from it.
+    final isDisconnected =
+        connectedPlayerIds.isNotEmpty && !connectedPlayerIds.contains(player.id);
     final strongCount =
         player.armor.where((p) => p.condition == ArmorCondition.strong).length;
     // Fully-armored (restoration-imminent) is the loudest threat signal
@@ -2851,19 +2858,24 @@ class _OpponentChip extends ConsumerWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              PixelAvatar(
-                seed: avatarSeedFor(player.id),
-                palette: avatarPalette,
-                size: 20,
-                borderColor: ArmorUpColors.descriptionBackground,
-                borderWidth: 1,
+              Opacity(
+                opacity: isDisconnected ? 0.4 : 1,
+                child: PixelAvatar(
+                  seed: avatarSeedFor(player.id),
+                  palette: avatarPalette,
+                  size: 20,
+                  borderColor: ArmorUpColors.descriptionBackground,
+                  borderWidth: 1,
+                ),
               ),
               const SizedBox(width: 6),
               Text(
                 player.name.toUpperCase(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 8.5,
-                  color: ArmorUpColors.fontColor,
+                  color: isDisconnected
+                      ? ArmorUpColors.mutedLabel
+                      : ArmorUpColors.fontColor,
                 ),
                 maxLines: 1,
               ),
@@ -2875,7 +2887,12 @@ class _OpponentChip extends ConsumerWidget {
                 const SizedBox(width: 4),
                 const _ShieldedMarker(size: 12),
               ],
-              if (isPlaying)
+              if (isDisconnected)
+                const _ChipTag(
+                  label: 'RECONNECTING',
+                  color: ArmorUpColors.bannerAttack,
+                )
+              else if (isPlaying)
                 const _ChipTag(
                   label: 'PLAYING',
                   color: ArmorUpColors.activeGreen,

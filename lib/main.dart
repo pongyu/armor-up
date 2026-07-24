@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:net/net.dart';
 
+import 'net/reconnect_info.dart';
+import 'screens/connection_lost_screen.dart';
 import 'screens/game_screen.dart';
 import 'screens/host_disconnected_screen.dart';
 import 'screens/host_lobby_screen.dart';
@@ -111,7 +114,33 @@ class _AppRoot extends ConsumerStatefulWidget {
 class _AppRootState extends ConsumerState<_AppRoot> {
   StreamSubscription? _hostDisconnectedSub;
   StreamSubscription? _playerLeftSub;
+  StreamSubscription? _connectionLostSub;
   Object? _listeningToClient;
+  bool _checkedColdStartReconnect = false;
+  ReconnectInfo? _coldStartInfo;
+
+  /// Once, on first build: if the app relaunched with a [ReconnectInfo]
+  /// still saved from a prior process (it was killed mid-session rather
+  /// than backing out deliberately - see [AppModeController.
+  /// returnToModeSelect] for the deliberate-exit clear), route straight to
+  /// [AppMode.connectionLost] with a fresh [GameClient] instead of
+  /// dropping the player on mode-select with no memory of the game they
+  /// were just in. [_coldStartInfo] is threaded to [ConnectionLostScreen]
+  /// as its `initialInfo` since the fresh client has no host/session
+  /// details of its own yet (see that parameter's doc comment).
+  void _checkColdStartReconnect() {
+    if (_checkedColdStartReconnect) return;
+    _checkedColdStartReconnect = true;
+    ReconnectInfo.load().then((info) {
+      if (!mounted || info == null) return;
+      // Only relevant from a completely fresh app-mode state - if the user
+      // has already navigated somewhere (e.g. this future resolved after
+      // they'd already started a new hotseat game), don't yank them away.
+      if (ref.read(appModeControllerProvider).mode != AppMode.modeSelect) return;
+      setState(() => _coldStartInfo = info);
+      ref.read(appModeControllerProvider.notifier).resumeFromColdStart(GameClient());
+    });
+  }
 
   /// Wires up the lifecycle listeners for whichever [GameClient] is
   /// currently live. This lives in [_AppRoot] - the one widget that is
@@ -128,6 +157,7 @@ class _AppRootState extends ConsumerState<_AppRoot> {
 
     _hostDisconnectedSub?.cancel();
     _playerLeftSub?.cancel();
+    _connectionLostSub?.cancel();
     _listeningToClient = client;
     if (client == null) return;
 
@@ -140,15 +170,35 @@ class _AppRootState extends ConsumerState<_AppRoot> {
       }
       ref.read(netGameControllerProvider.notifier).attach(client);
       ref.read(appModeControllerProvider.notifier).enterNetPlaying();
+      // The reconnect token is only meaningful once the game has actually
+      // started (LobbyStartedMessage is what carries playerId/sessionToken)
+      // - persisting it here, not just on a fresh join, is what lets a
+      // *reconnected* client that then drops again reconnect once more.
+      if (client.hostAddress != null &&
+          client.hostPort != null &&
+          client.playerId != null &&
+          client.sessionToken != null) {
+        unawaited(ReconnectInfo.save(ReconnectInfo(
+          hostAddress: client.hostAddress!,
+          hostPort: client.hostPort!,
+          playerId: client.playerId!,
+          sessionToken: client.sessionToken!,
+        )));
+      }
     });
 
     _hostDisconnectedSub = client.hostDisconnected.listen((_) {
+      unawaited(ReconnectInfo.clear());
       ref.read(appModeControllerProvider.notifier).hostDisconnected('The host ended the game.');
     });
     _playerLeftSub = client.playerLeft.listen((playerId) {
+      unawaited(ReconnectInfo.clear());
       ref
           .read(appModeControllerProvider.notifier)
           .hostDisconnected('A player disconnected and the game ended.');
+    });
+    _connectionLostSub = client.connectionLost.listen((_) {
+      ref.read(appModeControllerProvider.notifier).connectionLost();
     });
   }
 
@@ -156,6 +206,7 @@ class _AppRootState extends ConsumerState<_AppRoot> {
   void dispose() {
     _hostDisconnectedSub?.cancel();
     _playerLeftSub?.cancel();
+    _connectionLostSub?.cancel();
     super.dispose();
   }
 
@@ -163,6 +214,7 @@ class _AppRootState extends ConsumerState<_AppRoot> {
   Widget build(BuildContext context) {
     final modeState = ref.watch(appModeControllerProvider);
     _listenToClient(modeState);
+    _checkColdStartReconnect();
 
     switch (modeState.mode) {
       case AppMode.modeSelect:
@@ -184,6 +236,8 @@ class _AppRootState extends ConsumerState<_AppRoot> {
         return const GameScreen();
       case AppMode.hostDisconnected:
         return const HostDisconnectedScreen();
+      case AppMode.connectionLost:
+        return ConnectionLostScreen(initialInfo: _coldStartInfo);
     }
   }
 }

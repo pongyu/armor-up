@@ -369,7 +369,14 @@ class HostServer {
     _send(
       entry,
       StateMessage(
-        filterStateForPlayer(_state!, entry.playerId),
+        filterStateForPlayer(
+          _state!,
+          entry.playerId,
+          connectedPlayerIds: {
+            for (final e in _roster)
+              if (e.isConnected) e.playerId,
+          },
+        ),
         responseDeadlineEpochMs: _responseDeadline?.millisecondsSinceEpoch,
       ),
     );

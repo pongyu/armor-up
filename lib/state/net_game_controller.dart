@@ -43,12 +43,14 @@ class NetGameController extends StateNotifier<GameUiState?> implements GameActio
       state = GameUiState(
         state: reconstructFromFiltered(latest),
         responseDeadlineEpochMs: client.latestResponseDeadlineEpochMs,
+        connectedPlayerIds: latest.connectedPlayerIds,
       );
     }
     _statesSub = client.states.listen((filtered) {
       state = GameUiState(
         state: reconstructFromFiltered(filtered),
         responseDeadlineEpochMs: client.latestResponseDeadlineEpochMs,
+        connectedPlayerIds: filtered.connectedPlayerIds,
       );
     });
     // Broadcast separately from states (see GameClient.responseDeadlines'

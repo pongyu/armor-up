@@ -43,6 +43,7 @@ dependencies:
   nsd: ^5.0.1
   qr_flutter: ^4.1.0
   wakelock_plus: ^1.6.1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

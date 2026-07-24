@@ -23,8 +23,11 @@ import 'messages.dart';
 class GameClient {
   String? _playerId;
   String? _sessionToken;
+  String? _hostAddress;
+  int? _hostPort;
   WebSocket? _socket;
   bool _closing = false;
+  bool _endedDeliberately = false;
   List<LobbyPlayer> _latestRoster = const [];
   FilteredGameState? _latestState;
   int? _latestResponseDeadlineEpochMs;
@@ -38,10 +41,18 @@ class GameClient {
   final _errorController = StreamController<String>.broadcast();
   final _hostDisconnectedController = StreamController<void>.broadcast();
   final _playerLeftController = StreamController<String>.broadcast();
+  final _connectionLostController = StreamController<void>.broadcast();
 
   /// This client's engine player id, assigned by the host once the game
   /// starts (see [lobbyStarted]); null during the lobby phase.
   String? get playerId => _playerId;
+
+  /// The host address/port last connected to via [connectToLobby] or
+  /// [reconnect], for a caller that wants to persist enough to retry a
+  /// later [reconnect] without the user re-entering them (e.g. across an
+  /// app restart). Null before the first successful connect.
+  String? get hostAddress => _hostAddress;
+  int? get hostPort => _hostPort;
 
   /// The lobby roster, updated every time it changes while in the lobby
   /// phase (including immediately after [connectToLobby]/[reconnect]).
@@ -109,12 +120,25 @@ class GameClient {
   /// One-shot [ActionFailure] reasons for actions this client sent.
   Stream<String> get errors => _errorController.stream;
 
-  /// Fires once, when the host deliberately ends the session.
+  /// Fires once, when the host deliberately ends the session
+  /// ([HostDisconnectedMessage] received) - unrecoverable, unlike
+  /// [connectionLost].
   Stream<void> get hostDisconnected => _hostDisconnectedController.stream;
 
   /// Fires with the departed player's id when their reconnect grace period
-  /// expires mid-game, ending the session for everyone.
+  /// expires mid-game, ending the session for everyone. Unrecoverable, same
+  /// as [hostDisconnected] - the engine has no concept of continuing
+  /// without a seat that never came back.
   Stream<String> get playerLeft => _playerLeftController.stream;
+
+  /// Fires when this client's own socket drops (network blip, host
+  /// unreachable, app backgrounded, ...) without the host having sent
+  /// [HostDisconnectedMessage] or [PlayerLeftMessage] first - i.e. the
+  /// host may well still be running and the seat may still be held during
+  /// its reconnect grace period. Distinct from [hostDisconnected]/
+  /// [playerLeft] specifically so the UI can offer a retry via [reconnect]
+  /// instead of treating every drop as the end of the session.
+  Stream<void> get connectionLost => _connectionLostController.stream;
 
   /// Connects to the host's lobby at [hostAddress]:[port] as a fresh
   /// player named [displayName] (the fallback room-code path just needs
@@ -133,14 +157,17 @@ class GameClient {
 
   /// Reconnects to the host at [hostAddress]:[port], reclaiming the seat
   /// identified by [playerId]/[sessionToken] (captured from a prior
-  /// [lobbyStarted]). Used both for a mid-lobby reconnect and a mid-game
-  /// reconnect.
+  /// [lobbyStarted], or persisted by the caller across an app restart).
+  /// Used both for a mid-lobby reconnect and a mid-game reconnect - safe to
+  /// call again on the same [GameClient] after [connectionLost] fires, or
+  /// on a freshly constructed one.
   Future<void> reconnect(
     String hostAddress,
     int port,
     String playerId,
     String sessionToken,
   ) async {
+    _endedDeliberately = false;
     await _connectSocket(hostAddress, port);
     _playerId = playerId;
     _sessionToken = sessionToken;
@@ -156,21 +183,26 @@ class GameClient {
     final uri = Uri(scheme: 'ws', host: hostAddress, port: port);
     final socket = await WebSocket.connect(uri.toString());
     _socket = socket;
+    _hostAddress = hostAddress;
+    _hostPort = port;
     _closing = false;
     socket.listen(
       _handleIncoming,
-      onDone: _notifyHostDisconnected,
-      onError: (_) => _notifyHostDisconnected(),
+      onDone: _notifySocketClosed,
+      onError: (_) => _notifySocketClosed(),
     );
   }
 
-  /// Fires [hostDisconnected], unless this client itself initiated the
-  /// close via [close] - closing our own socket also triggers its
-  /// `onDone`, which must not be mistaken for the host going away.
-  void _notifyHostDisconnected() {
+  /// Routes an unexpected socket close to [connectionLost] (recoverable -
+  /// [reconnect] may still succeed) unless the host already told us why it
+  /// was ending for good ([HostDisconnectedMessage]/[PlayerLeftMessage],
+  /// tracked via [_endedDeliberately]) or we initiated the close ourselves
+  /// via [close].
+  void _notifySocketClosed() {
     if (_closing) return;
-    if (!_hostDisconnectedController.isClosed) {
-      _hostDisconnectedController.add(null);
+    if (_endedDeliberately) return;
+    if (!_connectionLostController.isClosed) {
+      _connectionLostController.add(null);
     }
   }
 
@@ -193,7 +225,10 @@ class GameClient {
       case ErrorMessage(:final reason):
         if (!_errorController.isClosed) _errorController.add(reason);
       case HostDisconnectedMessage():
-        _notifyHostDisconnected();
+        _endedDeliberately = true;
+        if (!_hostDisconnectedController.isClosed) {
+          _hostDisconnectedController.add(null);
+        }
       case LobbyRosterMessage(:final players):
         _latestRoster = players;
         if (!_lobbyRosterController.isClosed) _lobbyRosterController.add(players);
@@ -205,6 +240,7 @@ class GameClient {
       case JoinRejectedMessage(:final reason):
         if (!_joinRejectedController.isClosed) _joinRejectedController.add(reason);
       case PlayerLeftMessage(:final playerId):
+        _endedDeliberately = true;
         if (!_playerLeftController.isClosed) _playerLeftController.add(playerId);
       case ActionMessage():
       case JoinLobbyMessage():
@@ -236,5 +272,6 @@ class GameClient {
     await _errorController.close();
     await _hostDisconnectedController.close();
     await _playerLeftController.close();
+    await _connectionLostController.close();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:net/net.dart';
 
+import '../net/reconnect_info.dart';
 import '../widgets/pixel_ui.dart';
 import 'game_controller.dart';
 import 'net_game_controller.dart';
@@ -39,7 +40,17 @@ enum AppMode {
 
   /// The host ended the session (deliberately, or a seat's grace period
   /// expired) - shown until the player backs out to [modeSelect].
+  /// Unrecoverable - unlike [connectionLost], there is nothing a retry
+  /// could fix.
   hostDisconnected,
+
+  /// This device's own [GameClient] socket dropped unexpectedly (see
+  /// [GameClient.connectionLost]) without the host having said the session
+  /// is over - the host may still be running and the seat may still be
+  /// held during its reconnect grace period. Shown with a manual
+  /// "Reconnect" action (see `ConnectionLostScreen`) rather than treating
+  /// this the same as [hostDisconnected].
+  connectionLost,
 }
 
 /// Tracks [AppMode] plus whatever LAN plumbing (host server / client) is
@@ -107,6 +118,36 @@ class AppModeController extends StateNotifier<AppModeState> {
     state = AppModeState(mode: AppMode.hostDisconnected, hostDisconnectedReason: reason);
   }
 
+  /// This device's own [GameClient] socket dropped unexpectedly (see
+  /// [AppMode.connectionLost]'s doc comment). Keeps [AppModeState.client]
+  /// and [AppModeState.hostServer] around - the same [GameClient] is what
+  /// `ConnectionLostScreen`'s Reconnect button calls `reconnect` on, and a
+  /// host whose own loopback client drops must not have its still-running
+  /// [HostServer] torn down out from under the other connected players.
+  void connectionLost() {
+    state = state.copyWith(mode: AppMode.connectionLost);
+  }
+
+  /// Cold-start equivalent of [connectionLost]: the app relaunched with a
+  /// [ReconnectInfo] still saved from a prior process, so it never went
+  /// through [enterWaitingForHost]/[enterHostLobby] to get a [client] in
+  /// the first place. [client] is a freshly constructed, not-yet-connected
+  /// [GameClient] for `ConnectionLostScreen`'s Reconnect button to call
+  /// `reconnect` on (using the persisted info, since this client has none
+  /// of its own yet).
+  void resumeFromColdStart(GameClient client) {
+    state = AppModeState(mode: AppMode.connectionLost, client: client);
+  }
+
+  /// Called after `GameClient.reconnect` succeeds, to leave
+  /// [AppMode.connectionLost] and resume wherever the session actually is
+  /// - back in the lobby if the host hadn't started the game yet, or
+  /// straight back into gameplay (mirroring `_AppRoot`'s normal
+  /// `whenStarted` transition) if it had.
+  void resumeAfterReconnect({required bool gameStarted}) {
+    state = state.copyWith(mode: gameStarted ? AppMode.netPlaying : AppMode.waitingForHost);
+  }
+
   /// Tears down any LAN plumbing and returns to the mode-select screen.
   /// Safe to call from any mode, including ones with no live
   /// server/client (hotseat).
@@ -114,6 +155,7 @@ class AppModeController extends StateNotifier<AppModeState> {
     final current = state;
     await current.client?.close();
     await current.hostServer?.stop();
+    await ReconnectInfo.clear();
     state = const AppModeState(mode: AppMode.modeSelect);
   }
 }

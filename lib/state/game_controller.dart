@@ -15,7 +15,21 @@ class GameUiState {
   /// or timer concept at all and never sets this field.
   final int? responseDeadlineEpochMs;
 
-  const GameUiState({required this.state, this.lastError, this.responseDeadlineEpochMs});
+  /// Mirrors [FilteredGameState.connectedPlayerIds] in LAN mode - engine
+  /// player ids whose socket the host currently considers live, so the UI
+  /// can show a seat as "reconnecting..." instead of leaving a stalled
+  /// turn unexplained. Always empty in hotseat, where every "player" is
+  /// the same device and there is no connection concept - callers should
+  /// treat an empty set as "connection status unknown/not applicable",
+  /// not "everyone disconnected".
+  final Set<String> connectedPlayerIds;
+
+  const GameUiState({
+    required this.state,
+    this.lastError,
+    this.responseDeadlineEpochMs,
+    this.connectedPlayerIds = const {},
+  });
 
   GameUiState copyWith({
     GameState? state,
@@ -23,6 +37,7 @@ class GameUiState {
     bool clearError = false,
     int? responseDeadlineEpochMs,
     bool clearResponseDeadline = false,
+    Set<String>? connectedPlayerIds,
   }) =>
       GameUiState(
         state: state ?? this.state,
@@ -30,6 +45,7 @@ class GameUiState {
         responseDeadlineEpochMs: clearResponseDeadline
             ? null
             : (responseDeadlineEpochMs ?? this.responseDeadlineEpochMs),
+        connectedPlayerIds: connectedPlayerIds ?? this.connectedPlayerIds,
       );
 }
 
