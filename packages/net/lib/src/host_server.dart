@@ -18,6 +18,7 @@ class _RosterEntry {
   final String playerId;
   final String displayName;
   final String sessionToken;
+  final LobbyAvatar? avatar;
   WebSocket? socket;
   Timer? graceTimer;
 
@@ -25,6 +26,7 @@ class _RosterEntry {
     required this.playerId,
     required this.displayName,
     required this.sessionToken,
+    this.avatar,
   });
 
   bool get isConnected => socket != null;
@@ -102,7 +104,11 @@ class HostServer {
   /// the game has started).
   List<LobbyPlayer> get roster => [
         for (final entry in _roster)
-          LobbyPlayer(playerId: entry.playerId, displayName: entry.displayName),
+          LobbyPlayer(
+            playerId: entry.playerId,
+            displayName: entry.displayName,
+            avatar: entry.avatar,
+          ),
       ];
 
   /// Starts listening on [port] (default 0 = OS-assigned free port) on all
@@ -153,11 +159,16 @@ class HostServer {
     if (message.isReconnect) {
       _handleReconnect(socket, route, message.rejoinPlayerId!, message.rejoinToken ?? '');
     } else {
-      _handleFreshJoin(socket, route, message.displayName ?? '');
+      _handleFreshJoin(socket, route, message.displayName ?? '', message.avatar);
     }
   }
 
-  void _handleFreshJoin(WebSocket socket, _SocketRoute route, String displayName) {
+  void _handleFreshJoin(
+    WebSocket socket,
+    _SocketRoute route,
+    String displayName,
+    LobbyAvatar? avatar,
+  ) {
     if (_gameStarted) {
       socket.add(jsonEncode(const JoinRejectedMessage('Game already started').toJson()));
       socket.close();
@@ -183,6 +194,7 @@ class HostServer {
       playerId: 'p${_roster.length}',
       displayName: displayName,
       sessionToken: _mintToken(),
+      avatar: avatar,
     )..socket = socket;
     _roster.add(entry);
 

@@ -37,6 +37,9 @@ sealed class NetMessage {
           displayName: json['displayName'] as String?,
           rejoinPlayerId: json['rejoinPlayerId'] as String?,
           rejoinToken: json['rejoinToken'] as String?,
+          avatar: json['avatar'] != null
+              ? LobbyAvatar.fromJson(json['avatar'] as Map<String, dynamic>)
+              : null,
         );
       case 'lobbyRoster':
         return LobbyRosterMessage(
@@ -125,18 +128,24 @@ final class HostDisconnectedMessage extends NetMessage {
 }
 
 /// Client -> host, sent immediately on connect, before a game exists.
-/// Either a fresh join (only [displayName] set) or a reconnect attempt
-/// (only [rejoinPlayerId]/[rejoinToken] set, presenting the identity
-/// issued in a prior [LobbyStartedMessage]) - never both.
+/// Either a fresh join (only [displayName]/[avatar] set) or a reconnect
+/// attempt (only [rejoinPlayerId]/[rejoinToken] set, presenting the
+/// identity issued in a prior [LobbyStartedMessage]) - never both.
 final class JoinLobbyMessage extends NetMessage {
   final String? displayName;
   final String? rejoinPlayerId;
   final String? rejoinToken;
 
+  /// This client's chosen avatar look, sent on a fresh join so the host
+  /// can include it in the [LobbyPlayer] roster entry it broadcasts. Not
+  /// resent on reconnect - the host's roster entry already has it.
+  final LobbyAvatar? avatar;
+
   const JoinLobbyMessage({
     this.displayName,
     this.rejoinPlayerId,
     this.rejoinToken,
+    this.avatar,
   });
 
   bool get isReconnect => rejoinPlayerId != null;
@@ -147,6 +156,7 @@ final class JoinLobbyMessage extends NetMessage {
         if (displayName != null) 'displayName': displayName,
         if (rejoinPlayerId != null) 'rejoinPlayerId': rejoinPlayerId,
         if (rejoinToken != null) 'rejoinToken': rejoinToken,
+        if (avatar != null) 'avatar': avatar!.toJson(),
       };
 }
 

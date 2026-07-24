@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:net/net.dart';
 
 import '../theme/armor_up_colors.dart';
 
@@ -66,6 +67,25 @@ class AvatarPalette {
 
   @override
   int get hashCode => Object.hash(hair, skin, eye, accent, female);
+
+  /// Converts to the plain-Dart wire representation sent over LAN (see
+  /// `LobbyAvatar` in `packages/net`, which can't depend on `dart:ui`'s
+  /// `Color`).
+  LobbyAvatar toLobbyAvatar() => LobbyAvatar(
+        hair: hair.toARGB32(),
+        skin: skin.toARGB32(),
+        eye: eye.toARGB32(),
+        accent: accent.toARGB32(),
+        female: female,
+      );
+
+  static AvatarPalette fromLobbyAvatar(LobbyAvatar avatar) => AvatarPalette(
+        hair: Color(avatar.hair),
+        skin: Color(avatar.skin),
+        eye: Color(avatar.eye),
+        accent: Color(avatar.accent),
+        female: avatar.female,
+      );
 }
 
 const List<AvatarPalette> _avatarPalettes = [

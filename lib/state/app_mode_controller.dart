@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:net/net.dart';
 
+import '../widgets/pixel_ui.dart';
 import 'game_controller.dart';
 import 'net_game_controller.dart';
 
@@ -131,4 +132,34 @@ final activeGameControllerProvider = Provider<GameActionDispatcher>((ref) {
   return mode == AppMode.netPlaying
       ? ref.read(netGameControllerProvider.notifier)
       : ref.read(gameControllerProvider.notifier);
+});
+
+/// Maps engine player id -> chosen avatar look for every LAN player who
+/// customized one, sourced from the current [AppModeState.client]'s lobby
+/// roster (see `LobbyPlayer.avatar`). The roster is only ever broadcast
+/// during the lobby phase, but [GameClient.latestRoster] retains the last
+/// broadcast - which already has everyone, host included - for the rest of
+/// the session, so this stays valid once gameplay starts. Empty in hotseat
+/// mode (no client) or when nobody customized an avatar; callers should
+/// fall back to the seed-derived look on a miss, same as hotseat opponents
+/// always have.
+final lanAvatarsProvider = Provider<Map<String, AvatarPalette>>((ref) {
+  final client = ref.watch(appModeControllerProvider).client;
+  if (client == null) return const {};
+  // Rebuild whenever the roster changes (e.g. a player joins after this
+  // provider is first read) - AsyncValue.data seeds synchronously from
+  // client.latestRoster via the initial event a StreamProvider re-emits,
+  // but we drive this off the raw stream directly to avoid an extra
+  // provider just for that plumbing.
+  final roster = ref.watch(_lanRosterProvider).valueOrNull ?? client.latestRoster;
+  return {
+    for (final player in roster)
+      if (player.avatar != null) player.playerId: AvatarPalette.fromLobbyAvatar(player.avatar!),
+  };
+});
+
+final _lanRosterProvider = StreamProvider<List<LobbyPlayer>>((ref) {
+  final client = ref.watch(appModeControllerProvider).client;
+  if (client == null) return const Stream.empty();
+  return client.lobbyRoster;
 });

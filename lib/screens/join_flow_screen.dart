@@ -4,6 +4,7 @@ import 'package:net/net.dart';
 
 import '../net/discovery_service.dart';
 import '../state/app_mode_controller.dart';
+import '../state/character_controller.dart';
 
 /// Join flow: a live mDNS discovery list plus a manual IP:port fallback
 /// field, and a display-name field. Selecting a discovered game or
@@ -50,8 +51,9 @@ class _JoinFlowScreenState extends ConsumerState<JoinFlowScreen> {
 
     final client = GameClient();
     final rejection = client.joinRejected.first;
+    final palette = ref.read(characterControllerProvider).palette;
     try {
-      await client.connectToLobby(address, port, name);
+      await client.connectToLobby(address, port, name, avatar: palette.toLobbyAvatar());
     } catch (e) {
       if (mounted) {
         setState(() {

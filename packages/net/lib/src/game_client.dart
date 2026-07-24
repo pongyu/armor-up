@@ -119,10 +119,16 @@ class GameClient {
   /// Connects to the host's lobby at [hostAddress]:[port] as a fresh
   /// player named [displayName] (the fallback room-code path just needs
   /// the host's LAN IP typed in here; mDNS discovery resolves the same
-  /// address automatically).
-  Future<void> connectToLobby(String hostAddress, int port, String displayName) async {
+  /// address automatically). [avatar] is this device's chosen avatar look,
+  /// if any, forwarded to the host for inclusion in the broadcast roster.
+  Future<void> connectToLobby(
+    String hostAddress,
+    int port,
+    String displayName, {
+    LobbyAvatar? avatar,
+  }) async {
     await _connectSocket(hostAddress, port);
-    _send(JoinLobbyMessage(displayName: displayName));
+    _send(JoinLobbyMessage(displayName: displayName, avatar: avatar));
   }
 
   /// Reconnects to the host at [hostAddress]:[port], reclaiming the seat

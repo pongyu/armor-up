@@ -7,6 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../net/discovery_service.dart';
 import '../net/lan_address.dart';
 import '../state/app_mode_controller.dart';
+import '../state/character_controller.dart';
 import '../theme/armor_up_colors.dart';
 import '../widgets/pixel_ui.dart';
 
@@ -211,7 +212,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     client.joinRejected.listen((reason) {
       if (mounted) setState(() => _error = reason);
     });
-    await client.connectToLobby('127.0.0.1', port, hostName);
+    final palette = ref.read(characterControllerProvider).palette;
+    await client.connectToLobby('127.0.0.1', port, hostName, avatar: palette.toLobbyAvatar());
 
     dynamic registration;
     if (lanAddress != null) {

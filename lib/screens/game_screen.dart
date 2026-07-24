@@ -2794,7 +2794,7 @@ class _SidebarButton extends StatelessWidget {
 /// applicable) on top, six condition-colored armor squares plus a
 /// strong-pieces count below. Purely informational - target picking
 /// happens in [_TargetingOverlay], not here.
-class _OpponentChip extends StatelessWidget {
+class _OpponentChip extends ConsumerWidget {
   final PlayerState player;
   final bool fullyArmored;
 
@@ -2814,7 +2814,8 @@ class _OpponentChip extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final avatarPalette = ref.watch(lanAvatarsProvider)[player.id];
     final strongCount =
         player.armor.where((p) => p.condition == ArmorCondition.strong).length;
     // Fully-armored (restoration-imminent) is the loudest threat signal
@@ -2852,6 +2853,7 @@ class _OpponentChip extends StatelessWidget {
             children: [
               PixelAvatar(
                 seed: avatarSeedFor(player.id),
+                palette: avatarPalette,
                 size: 20,
                 borderColor: ArmorUpColors.descriptionBackground,
                 borderWidth: 1,
@@ -3184,7 +3186,7 @@ class _BattleLogPanel extends StatelessWidget {
 /// rules) only SELECTS the target - freely re-tappable to change your
 /// mind - and CONFIRM is what actually commits the attack. Cancel
 /// returns to the board with the card still selected.
-class _TargetingOverlay extends StatelessWidget {
+class _TargetingOverlay extends ConsumerWidget {
   final CardDef def;
   final List<PlayerState> opponents;
   final bool Function(ArmorCondition condition) isConditionSelectable;
@@ -3224,8 +3226,9 @@ class _TargetingOverlay extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final needsArmorPick = def.targetRule == TargetRule.anyPieceOnPlayer;
+    final avatarPalettes = ref.watch(lanAvatarsProvider);
 
     return Container(
       color: const Color(0xE605060A),
@@ -3308,6 +3311,7 @@ class _TargetingOverlay extends StatelessWidget {
                                   children: [
                                     PixelAvatar(
                                       seed: avatarSeedFor(opp.id),
+                                      palette: avatarPalettes[opp.id],
                                       size: 24,
                                       borderColor:
                                           ArmorUpColors.descriptionBackground,
